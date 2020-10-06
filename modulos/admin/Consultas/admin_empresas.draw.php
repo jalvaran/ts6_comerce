@@ -156,7 +156,8 @@ if( !empty($_REQUEST["Accion"]) ){
                                 
                                 print('<tr>');
                                     print("<td>");
-                                        print('<a onclick="frm_crear_empresa(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');
+                                        print('<a onclick="frm_crear_empresa(`'.$idItem.'`)" title="Editar"><i class="icon-pencil text-info"></i></a>');
+                                        print(' || <a onclick="frm_crear_cliente_factura_electronica(`'.$idItem.'`)" title="Crear como facturador electrónico" ><i class="fa fa-cogs text-warning"></i></a>');
                                     print("</td>");
                                     print("<td class='mailbox-name'>");
                                         print($RegistrosTabla["ID"]);
@@ -194,7 +195,214 @@ if( !empty($_REQUEST["Accion"]) ){
             
             
         break; //Fin caso 2   
+           
+        
+        case 3: //Dibuja el formulario para crear el cliente en el api de facturación electrónica
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datosEmpresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $css->div("", "panel panel-default", "", "", "", "", "");
+                $css->div("", "panel-head", "", "", "", "", "");
+                    $css->div("", "panel-title", "", "", "", "", "");
+                        print('<span class="panel-title-text">Crear a '.$datosEmpresa["RazonSocial"].' || '.$datosEmpresa["NIT"].' en el API de Facturación Electrónica</span>');
+                    $css->Cdiv();
+                $css->Cdiv();   
+                $css->div("", "panel-body", "", "", "", "", "");
+                    print('<p>Seleccione uno de los procesos</p>');
+                        print('<ul class="nav nav-tabs">');
+                            print('<li class="nav-item">');
+                                print('<a class="nav-link active show" href="#tab_empresa" data-toggle="tab" onclick=dibuje_json_empresa(`'.$empresa_id.'`)><i class="far fa-building mr-2"></i>Crear Empresa</a>');
+                            print('</li>');
+                            print('<li class="nav-item">');
+                                print('<a class="nav-link" href="#tab_software" data-toggle="tab" onclick=dibuje_json_software(`'.$empresa_id.'`)><i class="fa fa-code-branch mr-2"></i>Crear Software</a>');
+                            print('</li>');
+                            print('<li class="nav-item">');
+                                print('<a class="nav-link" href="#tab_certificado" data-toggle="tab" onclick=dibuje_json_certificado(`'.$empresa_id.'`);><i class="fa fa-certificate mr-2"></i>Crear Certificado Digital</a>');
+                            print('</li>');
+                            print('<li class="nav-item">');
+                                print('<a class="nav-link" href="#tab_resolucionfe" data-toggle="tab"><i class="ti-view-list mr-2"></i>Crear Resolución de Facturación</a>');
+                            print('</li>');
+                            print('<li class="nav-item">');
+                                print('<a class="nav-link" href="#tab_resolucionnc" data-toggle="tab"><i class="ti-view-list-alt mr-2"></i>Crear Resolución de Notas Crédito</a>');
+                            print('</li>');
+                            print('<li class="nav-item">');
+                                print('<a class="nav-link" href="#tab_resolucionnd" data-toggle="tab"><i class="ti-view-grid mr-2"></i>Crear Resolución de Notas Débito</a>');
+                            print('</li>');
+                        print('</ul>'); 
+                        
+                        $css->div("", "tab-content", "", "", "", "", "");
+                            $css->div("tab_empresa", "tab-pane active show", "", "", "", "", "");
+                                print("<h5>Crear Empresa</h5>");
+                                $css->div("", "row", "", "", "", "", "");  
+                                
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                    $css->Cdiv();
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                        $css->CrearBotonEvento("btnCrearEmpresa", "Click para Crear la Empresa en el API", 1, "onclick", "confirmaAccion(`1`,`$empresa_id`)", "rojo");
+                                    $css->Cdiv();
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                    $css->Cdiv();
+                                $css->Cdiv();
+                                $css->div("", "row", "", "", "", "", "");  
+                                    $css->div("div_crearEmpresa", "col-md-12", "", "", "", "", "");
+                                    $css->Cdiv();
+                                $css->Cdiv();    
+                            $css->Cdiv();
+                        
+                            $css->div("tab_software", "tab-pane", "", "", "", "", "");
+                                print("<h5>Crear Software</h5>");
+                                $css->div("", "row", "", "", "", "", "");
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                        
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">ID del Software</label>
+                                                    <input id="software_id" name="software_id" value="" type="text" class="form-control" placeholder="ID del software">
+                                                <span class="form-text">Digite el ID que suministró la DIAN del Software</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                        
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">PIN del Software</label>
+                                                    <input id="software_pin" name="software_pin" value="" type="text" class="form-control" placeholder="PIN del software">
+                                                <span class="form-text">Digite el PIN del Software</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Click para Crear</label>');
+                                            $css->CrearBotonEvento("btnCrearSoftware", "Crear Software", 1, "onclick", "confirmaAccion(`2`,`$empresa_id`)", "rojo");
+                                        $css->Cdiv();
+                                    $css->Cdiv();
+                                    $css->div("", "row", "", "", "", "", "");  
+                                        $css->div("div_crear_software", "col-md-12", "", "", "", "", "");
+                                        $css->Cdiv();
+                                    $css->Cdiv(); 
+                                $css->Cdiv();
+                            $css->Cdiv();
+                        
+                            $css->div("tab_certificado", "tab-pane", "", "", "", "", "");
+                                print("<h5>Crear Certificado</h5>");
+                                print('<div class="row">');
+                                    print('<div class="col-md-4">
+                                        <div class="panel">
+                                            <div class="panel-head">
+                                                <h5 class="panel-title">Por favor adjuntar el Certificado digital con extension .p12</h5>
+                                            </div>
+                                            <div class="panel-body">
+                                                <form data-empresa_id="'.$empresa_id.'" action="/" class="dropzone dz-clickable" id="certificado_empresa"><div class="dz-default dz-message"><span><i class="icon-plus"></i>Arrastre aqui el certificado digital con extension .p12<br> Suba solo un archivo con extension .p12</span></div></form>
+                                            </div>
+                                        </div>
+                                    </div>');
+                                
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Clave del certificado</label>
+                                                    <input id="clave_certificado" name="clave_certificado" value="" type="text" class="form-control" placeholder="Clave del certificado digital">
+                                                <span class="form-text">Digite la clave del certificado digital</span> 
+                                            </div>');
+                                    $css->Cdiv();
+
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Click para Crear el certificado digital</label>');
+                                            $css->CrearBotonEvento("btnCrearCertificado", "Crear Certificado", 1, "onclick", "confirmaAccion(`3`,`$empresa_id`)", "rojo");
+                                        $css->Cdiv();
+                                    $css->Cdiv();
+                                $css->Cdiv();    
+                                $css->div("", "row", "", "", "", "", "");  
+                                    $css->div("div_crear_certificado", "col-md-12", "", "", "", "", "");
+                                    $css->Cdiv();
+                                $css->Cdiv(); 
+                                    
+                            $css->Cdiv();
+                        
+                            $css->div("tab_resolucionfe", "tab-pane", "", "", "", "", "");
+                                print("<h5>Crear Resolución de Facturación Electrónica</h5>");
+                            $css->Cdiv();
+                        
+                            $css->div("tab_resolucionnc", "tab-pane", "", "", "", "", "");
+                                print("<h5>Crear Resolución de Notas Crédito</h5>");
+                            $css->Cdiv();
+                        
+                            $css->div("tab_resolucionnd", "tab-pane", "", "", "", "", "");
+                                print("<h5>Crear Resolución de Notas Débito</h5>");
+                            $css->Cdiv();
+                        $css->Cdiv(); 
+                $css->Cdiv();
+            $css->Cdiv();     
                 
+                                    
+                                    
+        break; //Fin caso 3
+    
+        case 4://Dibuja el json de la creacion de la empresa
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosRespuestasApi=$obCon->DevuelveValores("api_factura_electronica_respuestas_procesos", "empresa_id", $empresa_id);
+            $respuesta=$DatosRespuestasApi["jsonCreacionEmpresa"];
+            $arrayRespuesta = json_decode($respuesta,true);
+            if(is_array($arrayRespuesta)){
+                foreach ($arrayRespuesta as $key => $value) {
+                    if(is_array($value)){
+                        foreach ($value as $key2 => $value2) {
+                            print("<li><strong>$key2: </strong> ".$value2."</li>");
+                        }
+                    }else{
+                        print("<br><strong>$key: </strong> ".$value);
+                    }
+
+                }
+            }else{
+                print("aún no se ha creado esta empresa en el API");
+            }
+        break; //Fin caso 4    
+        
+        case 5://Dibuja el json de la creacion del software
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosRespuestasApi=$obCon->DevuelveValores("api_factura_electronica_respuestas_procesos", "empresa_id", $empresa_id);
+            $respuesta=$DatosRespuestasApi["jsonSoftware"];
+            $arrayRespuesta = json_decode($respuesta,true);
+            
+            if(is_array($arrayRespuesta)){
+                foreach ($arrayRespuesta as $key => $value) {
+                    if(is_array($value)){
+                        foreach ($value as $key2 => $value2) {
+                            print("<li><strong>$key2: </strong> ".$value2."</li>");
+                        }
+                    }else{
+                        print("<br><strong>$key: </strong> ".$value);
+                    }
+
+                }
+            }else{
+                print("No hay software creado para esta empresa");
+            }
+        break; //Fin caso 5
+        
+        case 6://Dibuja el json de la creacion del certificado digital
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosRespuestasApi=$obCon->DevuelveValores("api_factura_electronica_respuestas_procesos", "empresa_id", $empresa_id);
+            $respuesta=$DatosRespuestasApi["jsonCertificado"];
+            $arrayRespuesta = json_decode($respuesta,true);
+            
+            if(is_array($arrayRespuesta)){
+                foreach ($arrayRespuesta as $key => $value) {
+                    if(is_array($value)){
+                        foreach ($value as $key2 => $value2) {
+                            print("<li><strong>$key2: </strong> ".$value2."</li>");
+                        }
+                    }else{
+                        print("<br><strong>$key: </strong> ".$value);
+                    }
+
+                }
+            }else{
+                print("No hay certificados creados para esta empresa");
+            }
+        break; //Fin caso 6
+        
+        
+        
     }
     
     

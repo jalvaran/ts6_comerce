@@ -34,6 +34,7 @@ $("#txtBusquedasGenerales").keypress(function(e) {
 function add_events_frms(){
     $('#btn_frm_empresapro').on('click',function () {         
         ConfirmarCreacionEmpresa();
+        return false;
     });
     
     $('.ts_select').select2();
@@ -148,38 +149,14 @@ function GuardarEmpresa(){
     document.getElementById(btnEnviar).disabled=true;
     document.getElementById(btnEnviar).value="Enviando...";
     var edit_id=$("#btn_frm_empresapro").data("edit_id");
-    
-    var RazonSocial=document.getElementById('RazonSocial').value;
-    var NIT=document.getElementById('NIT').value;
-    var Direccion=document.getElementById('Direccion').value;
-    var Telefono=document.getElementById('Telefono').value;
-    var Celular=document.getElementById('Celular').value;
-    var Ciudad=document.getElementById('Ciudad').value;
-    var CodigoDaneCiudad=document.getElementById('CodigoDaneCiudad').value;
-    var Regimen=document.getElementById('Regimen').value;
-    var TipoPersona=document.getElementById('TipoPersona').value;
-    var TipoDocumento=document.getElementById('TipoDocumento').value;    
-    var Email=document.getElementById('Email').value;
-    var WEB=document.getElementById('WEB').value;
-    
-    //var jsonFormulario=$('.ts_form').serialize();
-      //  console.log("Datos: "+jsonFormulario);
+        
+    var jsonFormulario=$('.ts_form').serialize();
+        console.log("Datos: "+jsonFormulario);
     var form_data = new FormData();
         form_data.append('Accion', '1');  
         form_data.append('edit_id', edit_id);
-        form_data.append('RazonSocial', RazonSocial);
-        form_data.append('NIT', NIT);
-        form_data.append('Direccion', Direccion);
-        form_data.append('Telefono', Telefono);
-        form_data.append('Celular', Celular);
-        form_data.append('Ciudad', Ciudad);
-        form_data.append('CodigoDaneCiudad', CodigoDaneCiudad);
-        form_data.append('Regimen', Regimen);
-        form_data.append('TipoPersona', TipoPersona);
-        form_data.append('TipoDocumento', TipoDocumento);
-        form_data.append('Email', Email);
-        form_data.append('WEB', WEB);
-               
+        form_data.append('jsonFormulario', jsonFormulario);
+                       
         $.ajax({
         url: urlQuery,
         //dataType: 'json',
@@ -257,6 +234,378 @@ function dibujeListadoEmpresas(Page=1){
       });
 }
 
+/**
+ * Dibuja los formularios para la creacion de una empresa en la plataforma de facturacion electronica
+ * @param {type} empresa_id
+ * @returns {undefined}
+ */
+function frm_crear_cliente_factura_electronica(empresa_id){
+    var idDiv="DivListado";
+    urlQuery='Consultas/admin_empresas.draw.php';  
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 3);  
+        form_data.append('empresa_id', empresa_id);
+        
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            dibuje_json_empresa(empresa_id);
+            add_events_dropzone_centificado();
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+
+function confirmaAccion(funcion,empresa_id){
+    swal({   
+            title: "Seguro que desea Realizar esta acción?",   
+            //text: "You will not be able to recover this imaginary file!",   
+            type: "warning",   
+            showCancelButton: true,  
+            
+            confirmButtonColor: "#DD6B55",   
+            confirmButtonText: "Claro que Siii!",   
+            cancelButtonText: "Espera voy a revisar algo!",   
+            closeOnConfirm: true,   
+            closeOnCancel: true 
+        }, function(isConfirm){   
+            if (isConfirm) {   
+                if(funcion==1){
+                    crear_empresa_api(empresa_id);
+                }
+                if(funcion==2){
+                    crear_software_empresa_api(empresa_id);
+                }
+                if(funcion==3){
+                    crear_certificado_digital_api(empresa_id);
+                }
+                              
+            } else {     
+                swal("Cancelado", "Se ha cancelado el proceso :)", "error");   
+            } 
+        });
+}
+
+function crear_empresa_api(empresa_id){
+    
+    urlQuery='procesadores/admin_empresas.process.php';    
+    
+    var btnEnviar = "btnCrearEmpresa";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    
+        
+    
+    var form_data = new FormData();
+        form_data.append('Accion', '2');  
+        form_data.append('empresa_id', empresa_id);
+                               
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Click para Crear la Empresa en el API";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);
+                
+                dibuje_json_empresa(empresa_id);
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                var idDiv="div_crearEmpresa";
+                document.getElementById(idDiv).innerHTML=data;
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Click para Crear la Empresa en el API";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function crear_software_empresa_api(empresa_id){
+    
+    urlQuery='procesadores/admin_empresas.process.php';    
+    
+    var btnEnviar = "btnCrearSoftware";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    
+    var software_id=document.getElementById('software_id').value;    
+    var software_pin=document.getElementById('software_pin').value; 
+    
+    var form_data = new FormData();
+        form_data.append('Accion', '3');  
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('software_id', software_id);
+        form_data.append('software_pin', software_pin);
+        
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Crear Software";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);
+                
+                dibuje_json_software(empresa_id);
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+                dibuje_json_software(empresa_id);
+            }else{
+                var idDiv="div_crear_software";
+                document.getElementById(idDiv).innerHTML=data;
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Crear Software";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function crear_certificado_digital_api(empresa_id){
+    
+    urlQuery='procesadores/admin_empresas.process.php';    
+    
+    var btnEnviar = "btnCrearCertificado";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    
+    var clave_certificado=document.getElementById('clave_certificado').value;    
+        
+    var form_data = new FormData();
+        form_data.append('Accion', '5');  
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('clave_certificado', clave_certificado);
+        
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Crear Certificado";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);                
+                dibuje_json_certificado(empresa_id);
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+                dibuje_json_certificado(empresa_id);
+            }else{
+                var idDiv="div_crear_certificado";
+                document.getElementById(idDiv).innerHTML=data;
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Crear Certificado";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function dibuje_json_empresa(empresa_id){
+    var idDiv="div_crearEmpresa";
+    urlQuery='Consultas/admin_empresas.draw.php';  
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 4);  
+        form_data.append('empresa_id', empresa_id);
+        
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+function dibuje_json_software(empresa_id){
+    var idDiv="div_crear_software";
+    urlQuery='Consultas/admin_empresas.draw.php';  
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 5);  
+        form_data.append('empresa_id', empresa_id);
+        
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+function dibuje_json_certificado(empresa_id){
+    var idDiv="div_crear_certificado";
+    urlQuery='Consultas/admin_empresas.draw.php';  
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 6);  
+        form_data.append('empresa_id', empresa_id);
+        
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+
+function add_events_dropzone_centificado(){
+    Dropzone.autoDiscover = false;
+           
+    urlQuery='procesadores/admin_empresas.process.php';
+    var empresa_id=$("#certificado_empresa").data("empresa_id");
+        
+    var myDropzone = new Dropzone("#certificado_empresa", { url: urlQuery,paramName: "certificado_empresa",maxFiles: 1,acceptedFiles: '.p12'});
+        myDropzone.on("sending", function(file, xhr, formData) { 
+
+            formData.append("Accion", 4);            
+            formData.append("empresa_id", empresa_id);
+            
+        });
+
+        myDropzone.on("addedfile", function(file) {
+            file.previewElement.addEventListener("click", function() {
+                myDropzone.removeFile(file);
+            });
+        });
+
+        myDropzone.on("success", function(file, data) {
+
+            var respuestas = data.split(';');
+            if(respuestas[0]=="OK"){
+                toastr.success(respuestas[1]);
+                
+            }else if(respuestas[0]=="E1"){
+                toastr.warning(respuestas[1]);
+            }else{
+                swal(data);
+            }
+
+        });
+   
+}
 
 dibujeListadoEmpresas();
 

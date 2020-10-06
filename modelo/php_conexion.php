@@ -140,13 +140,15 @@ public function VerificaPermisos($VectorPermisos) {
     
     public function getColumns($table) {
         $Cols=$this->ShowColums($table);
+        
         foreach ($Cols["Field"] as $key => $value) {
-            $sql="SELECT muestra FROM tablas_nombres_campos WHERE nombreTablaDB='$value'";
+            
+            $sql="SELECT muestre FROM tablas_nombres_campos WHERE nombreOriginalCampo='$value'";
             $dataQuery=$this->FetchAssoc($this->Query($sql));
-            if($dataQuery["muestra"]==''){
-                $Cols["titleField"]=$value;
+            if($dataQuery["muestre"]==''){
+                $Cols["titleField"][$key]=$value;
             }else{
-                $Cols["titleField"]=$dataQuery["muestra"];
+                $Cols["titleField"][$key]=$dataQuery["muestre"];
             }
         }
         return($Cols);

@@ -2354,7 +2354,7 @@ class PageConstruct extends html_estruct_class{
             $Columnas=$this->obCon->getColumns($tab);
             $data_reg=$this->obCon->DevuelveValores($tab, "ID", $idEdit);
             //print_r($Columnas);
-            //print('<form id="'.$form_id.'" method="post">');
+            print('<form id="'.$form_id.'" class="ts_form" method="post">');
 
             print('<div class="form-body">');
             print('<div class="form-heading">'.$form_title.'</div>');
@@ -2364,6 +2364,7 @@ class PageConstruct extends html_estruct_class{
                 if(isset($Columnas["Field"][$key])){
 
                     $Nombre=$Columnas["Field"][$key];
+                    $TituloCampo= utf8_encode($Columnas["titleField"][$key]);
                     $Type=$Columnas["Type"][$key];
                     $Comment=$Columnas["Comment"][$key];
                     $Index=$Columnas["Key"][$key];
@@ -2400,13 +2401,13 @@ class PageConstruct extends html_estruct_class{
                         
                         print('<div class="col-md-4">');
                             print('<div class="form-group">
-                                    <label class="col-form-label">'.$Nombre.'</label>');
+                                    <label class="col-form-label">'.$TituloCampo.'</label>');
                             
                             $sql="SELECT TablaAsociada,CampoAsociado,IDCampoAsociado FROM tablas_campos_asociados WHERE TablaOrigen='$NombreTabla' AND CampoTablaOrigen='$NombreCol'";
                             $CamposAsociados= $this->obCon->FetchAssoc($this->obCon->Query($sql));
                             
                             if($CamposAsociados["TablaAsociada"]==''){
-                                print('<input '.$disabled.' id="'.$NombreCol.'" value="'.$valueField.'" type="'.$TypeField.'" class="form-control ts_form ts_campo_'.$NombreCol.'" placeholder="'.$NombreCol.'">');
+                                print('<input '.$disabled.' id="'.$NombreCol.'" name="'.$NombreCol.'" value="'.$valueField.'" type="'.$TypeField.'" class="form-control ts_form ts_campo_'.$NombreCol.'" placeholder="'.$TituloCampo.'">');
                             }else{
                                 $this->select($NombreCol, "form-control ts_select ts_col_$NombreCol", $NombreCol, "", "", "", "data-live-search='true'");
                                     $this->option("", "", "", "", "", "", "", "");
@@ -2443,7 +2444,7 @@ class PageConstruct extends html_estruct_class{
                 print('<button id="btn_'.$form_id.'" data-edit_id="'.$idEdit.'" class="btn btn-success btn-pill mr-2">Enviar</button>');
             print('</div>');
             print('</div>');
-            //print('</form>');
+            print('</form>');
             
         }
         

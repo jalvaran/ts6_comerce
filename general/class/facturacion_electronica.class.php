@@ -8,7 +8,7 @@ if(file_exists("../../modelo/php_conexion.php")){
  * Techno Soluciones SAS
  */
 
-class Factura_Electronica extends ProcesoVenta{
+class Factura_Electronica extends conexion{
     
     public function EliminarAcentos($cadena) {
          //Codificamos la cadena en formato utf8 en caso de que nos de errores
@@ -50,11 +50,9 @@ class Factura_Electronica extends ProcesoVenta{
         return $cadena;
     }
     
-    public function callAPI($method, $url, $data) {
+    public function callAPI($method, $url,$TokenTS5, $data) {
         
-        $DatosParametrosFE=$this->DevuelveValores("facturas_electronicas_parametros", "ID", 4);
-        $TokenTS5=$DatosParametrosFE["Valor"];
-        
+               
         $curl = curl_init();
 
         switch ($method){
@@ -89,9 +87,56 @@ class Factura_Electronica extends ProcesoVenta{
         curl_close($curl);
         return $result;
     }
+    /**
+     * Funcion para retornar el json para crear la empresa
+     * @param type $empresa_id
+     * @return type
+     */
+    public function JSONCrearEmpresa($empresa_id) {
+        $DatosEmpresa=$this->DevuelveValores("empresapro", "ID", $empresa_id);
+        $parametros=$this->DevuelveValores("tipo_documento_identificacion", "codigo", $DatosEmpresa["TipoDocumento"]);
+        $tipo_identificacion_id=$parametros["ID"];
+        $parametros=$this->DevuelveValores("catalogo_municipios", "CodigoDANE", $DatosEmpresa["CodigoDaneCiudad"]);
+        $municipality_id=$parametros["ID"];
+        $json_empresa='{ 
+            "type_document_identification_id": '.$tipo_identificacion_id.',
+            "type_organization_id": '.$DatosEmpresa["TipoPersona"].',
+            "type_regime_id": '.$DatosEmpresa["Regimen"].',
+            "type_liability_id": '.$DatosEmpresa["Obligaciones"].',
+            "business_name": "'.$DatosEmpresa["RazonSocial"].'",
+            "merchant_registration": "'.$DatosEmpresa["MatriculoMercantil"].'",
+            "municipality_id": '.$municipality_id.',
+            "address": "'.$DatosEmpresa["RazonSocial"].'",
+            "phone": '.$DatosEmpresa["Telefono"].',
+            "ciius": "'.$DatosEmpresa["ActividadesEconomicas"].'",    
+            "email": "'.$DatosEmpresa["Email"].'"
+        }' ;
+        return($json_empresa);
+    }
+    
+    public function JSONCrearSoftware($software_id,$software_pin) {
+        
+        $json_data='{ 
+            "id": "'.$software_id.'",
+            "pin": '.$software_pin.'
+            
+        }' ;
+        return($json_data);
+    }
+    
+    public function JSONCrearCertificado($CertificadoBase64,$clave_certificado) {
+        
+        $json_data='{ 
+            "certificate": "'.$CertificadoBase64.'",
+            "password": "'.$clave_certificado.'"
+            
+        }' ;
+        return($json_data);
+    }
     
     public function JSONFactura($idFactura) {
         $DatosFactura=$this->DevuelveValores("facturas", "idFacturas", $idFactura);
+        
         $idEmpresaPro=$DatosFactura["EmpresaPro_idEmpresaPro"];
         $DatosEmpresaPro=$this->DevuelveValores("empresapro", "idEmpresaPro", $idEmpresaPro);
         $EmpresaTipoCompania=$DatosEmpresaPro["TipoPersona"];
@@ -99,6 +144,11 @@ class Factura_Electronica extends ProcesoVenta{
         $CodigoDane=$DatosCliente["Cod_Dpto"].$DatosCliente["Cod_Mcipio"];
         $DatosMunicipos= $this->DevuelveValores("catalogo_municipios", "CodigoDANE", $CodigoDane);
         $municipio_id=$DatosMunicipos["ID"];
+        $OrdenCompra='NA';
+        if($DatosFactura["OCompra"]<>''){
+            $OrdenCompra=$DatosFactura["OCompra"];
+        }
+        
         if($municipio_id==''){
             $municipio_id=1006;
         }
@@ -178,11 +228,15 @@ class Factura_Electronica extends ProcesoVenta{
                 "municipality_id": "'.$municipio_id.'",
                 "merchant_registration": "NA"
             },
-            "payment_form": {
+            "order_reference": {
+                "id": "'.$OrdenCompra.'" 
+            },
+            "payment_forms": [{
                 "payment_form_id": "'.$idFormaPago.'",
+                "payment_method_id": "10",
                 "payment_due_date": "'.$FechaVencimiento.'",
                 "duration_measure": "30"
-            },
+            }],
             ';
         if($DatosFactura["ObservacionesFact"]<>''){
             $json_factura.=' 
@@ -514,6 +568,10 @@ class Factura_Electronica extends ProcesoVenta{
     }
     
     public function FacturaElectronica_Registre_Respuesta_Server($idFactura,$RespuestaServidor,$Estado) {
+        //$RespuestaServidor=str_replace(PHP_EOL, '', $RespuestaServidor);
+        //$RespuestaServidor=str_replace("\n", '', $RespuestaServidor);
+        //$RespuestaServidor=str_replace("\r", '', $RespuestaServidor);        
+        $RespuestaServidor=str_replace("'", '', $RespuestaServidor);
         $Datos["idFactura"]=$idFactura;
         $Datos["Estado"]=$Estado;
         $Datos["RespuestaCompletaServidor"]=$RespuestaServidor;
