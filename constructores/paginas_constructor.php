@@ -2339,7 +2339,7 @@ class PageConstruct extends html_estruct_class{
                 
         }
         
-        function frm_form($form_id,$form_title,$tab,$idEdit,$data_extra){
+        function frm_form($form_id,$form_title,$tab,$idEdit,$data_extra,$idDiv=""){
             $ArrayTabs=explode(".",$tab);
             $TotalArray=count($ArrayTabs);
             if($TotalArray==2){
@@ -2403,7 +2403,7 @@ class PageConstruct extends html_estruct_class{
                             print('<div class="form-group">
                                     <label class="col-form-label">'.$TituloCampo.'</label>');
                             
-                            $sql="SELECT TablaAsociada,CampoAsociado,IDCampoAsociado FROM tablas_campos_asociados WHERE TablaOrigen='$NombreTabla' AND CampoTablaOrigen='$NombreCol'";
+                            $sql="SELECT TablaAsociada,CampoAsociado,IDCampoAsociado,dbCampoAsociado FROM tablas_campos_asociados WHERE TablaOrigen='$NombreTabla' AND CampoTablaOrigen='$NombreCol'";
                             $CamposAsociados= $this->obCon->FetchAssoc($this->obCon->Query($sql));
                             
                             if($CamposAsociados["TablaAsociada"]==''){
@@ -2413,10 +2413,21 @@ class PageConstruct extends html_estruct_class{
                                     $this->option("", "", "", "", "", "", "", "");
                                         print("Seleccione una opción");
                                     $this->Coption();
-                                    $TablaConsulta=$db.".".$CamposAsociados["TablaAsociada"];
+                                    
+                                    if($CamposAsociados["dbCampoAsociado"]==''){
+                                        $dbAsociada=DB;
+                                    }
+                                    if($CamposAsociados["dbCampoAsociado"]<>''){
+                                        $dbAsociada=$CamposAsociados["dbCampoAsociado"];
+                                    }
+                                    $TablaConsulta=$dbAsociada.".".$CamposAsociados["TablaAsociada"];
                                     $CampoAsociado=$CamposAsociados["CampoAsociado"];
                                     $IDCampoAsociado=$CamposAsociados["IDCampoAsociado"];
                                     $sql="SELECT $CampoAsociado,$IDCampoAsociado FROM $TablaConsulta ";
+                                    
+                                    if($CamposAsociados["dbCampoAsociado"]<>''){
+                                        $dbCampoAsociado=$CamposAsociados["dbCampoAsociado"];
+                                    }
                                     $ConsultaCamposAsociados=$this->obCon->Query($sql);
                                     while($DatosCamposAsociados= $this->obCon->FetchAssoc($ConsultaCamposAsociados)){
                                         $sel=0;
@@ -2424,7 +2435,12 @@ class PageConstruct extends html_estruct_class{
                                             $sel=1;
                                         }
                                         $this->option("", "", "", $DatosCamposAsociados[$IDCampoAsociado], "", "", $sel, "");
-                                            print(utf8_encode($DatosCamposAsociados[$CampoAsociado]." || ".$DatosCamposAsociados[$IDCampoAsociado]));
+                                            $textOption="";
+                                            $array_campos_asociados= explode(",",$CampoAsociado);
+                                            foreach ($array_campos_asociados as $key => $value) {
+                                                $textOption.=$DatosCamposAsociados[$value]. " || ";
+                                            }
+                                            print(utf8_encode($textOption.$DatosCamposAsociados[$IDCampoAsociado]));
                                         $this->Coption();
                                     }
                                 $this->Cselect();
@@ -2440,8 +2456,8 @@ class PageConstruct extends html_estruct_class{
             print('<div class="form-seperator-dashed"></div>');
             
             print('<div class="form-footer text-right">');
-                //print('<button type="reset" class="btn btn-default btn-pill mr-2">Cancelar</button>');
-                print('<button id="btn_'.$form_id.'" data-edit_id="'.$idEdit.'" class="btn btn-success btn-pill mr-2">Enviar</button>');
+                
+                print('<button id="btn_'.$form_id.'" data-div_id="'.$idDiv.'" data-edit_id="'.$idEdit.'" data-db="'.$db.'" data-table_ts6="'.$NombreTabla.'" class="btn btn-success btn-pill mr-2">Enviar</button>');
             print('</div>');
             print('</div>');
             print('</form>');
@@ -3249,6 +3265,30 @@ class PageConstruct extends html_estruct_class{
             print('</div>');
             
             
+        }
+        
+        public function getHtmlPanelInfo($titulo,$total,$idTotals,$cols,$icon,$js,$styles,$color="primary",$gradiente=1,$id="") {
+            
+            $color="bg-".$color;
+            $class="panel ".$color;
+            if($gradiente==1){
+                $class=$class." bg-gradient-reverse";
+            }
+            $html='<div id="'.$id.'" class="col-md-'.$cols.'" '.$js.' '.$styles.'>
+                            <div class="'.$class.'">
+                                <div class="widget-11">
+                                    <div class="tbl-cell">
+                                        <div class="content">
+                                            <h4 class="text-white">'.$titulo.'</h4>
+                                            <p class="text-white" id="'.$idTotals.'">'.$total.'</p>
+                                        </div>
+                                    </div>
+                                    <div class="tbl-cell icon"><i class="'.$icon.' text-white"></i></div>
+                                </div>
+                            </div>
+                        </div>';
+            
+            return($html);
         }
         
         //////////////////////////////////FIN

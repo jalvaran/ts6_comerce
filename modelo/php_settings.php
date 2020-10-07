@@ -3,6 +3,6 @@
  * Aqui se establecen los datos de conexion a la base de datos
  */
 
-const HOST="localhost", USER="techno",PW="techno",DB="ts6_comerce";
+const HOST="localhost", USER="techno",PW="techno",DB="techno_ts6_comerce";
 
 ?>

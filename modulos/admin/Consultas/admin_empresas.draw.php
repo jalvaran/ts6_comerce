@@ -219,14 +219,9 @@ if( !empty($_REQUEST["Accion"]) ){
                                 print('<a class="nav-link" href="#tab_certificado" data-toggle="tab" onclick=dibuje_json_certificado(`'.$empresa_id.'`);><i class="fa fa-certificate mr-2"></i>Crear Certificado Digital</a>');
                             print('</li>');
                             print('<li class="nav-item">');
-                                print('<a class="nav-link" href="#tab_resolucionfe" data-toggle="tab"><i class="ti-view-list mr-2"></i>Crear Resolución de Facturación</a>');
+                                print('<a class="nav-link" href="#tab_resolucionfe" data-toggle="tab" onclick=dibuje_resoluciones(`'.$empresa_id.'`)><i class="ti-view-list mr-2" ></i>Crear Resolución de Facturación</a>');
                             print('</li>');
-                            print('<li class="nav-item">');
-                                print('<a class="nav-link" href="#tab_resolucionnc" data-toggle="tab"><i class="ti-view-list-alt mr-2"></i>Crear Resolución de Notas Crédito</a>');
-                            print('</li>');
-                            print('<li class="nav-item">');
-                                print('<a class="nav-link" href="#tab_resolucionnd" data-toggle="tab"><i class="ti-view-grid mr-2"></i>Crear Resolución de Notas Débito</a>');
-                            print('</li>');
+                            
                         print('</ul>'); 
                         
                         $css->div("", "tab-content", "", "", "", "", "");
@@ -319,15 +314,146 @@ if( !empty($_REQUEST["Accion"]) ){
                         
                             $css->div("tab_resolucionfe", "tab-pane", "", "", "", "", "");
                                 print("<h5>Crear Resolución de Facturación Electrónica</h5>");
+                                
+                                
+                                $css->div("", "row", "", "", "", "", ""); 
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                        $css->select("cmb_tipo_documento", "form-control", "cmb_tipo_documento", "", "", "", "");
+                                            $css->option("", "", "", 1, "", "");
+                                                print("Facturación Electrónica");
+                                            $css->Coption();
+                                            
+                                            $css->option("", "", "", 5, "", "");
+                                                print("Nota Crédito");
+                                            $css->Coption();
+                                            $css->option("", "", "", 6, "", "");
+                                                print("Nota Débito");
+                                            $css->Coption();
+                                        $css->Cselect();
+                                    $css->Cdiv();
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                        
+                                    $css->Cdiv();
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                        
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-2", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Prefijo</label>
+                                                    <input id="resolucion_prefijo" name="resolucion_prefijo" value="SETP" type="text" class="form-control" placeholder="Prefijo">
+                                                <span class="form-text">Prefijo de la Resolución</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Numero de Resolución</label>
+                                                    <input id="resolucion_numero" name="resolucion_numero" value="18760000001" type="text" class="form-control" placeholder="Número de la Resolución">
+                                                <span class="form-text">Número de la Resolución</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-2", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Fecha</label>
+                                                    <input type="text" id="resolucion_fecha" name="resolucion_fecha" value="0001-01-01" class="form-control" placeholder="Fecha de la Resolución">
+                                                <span class="form-text">Fecha de la Resolución</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-5", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Llave Técnica</label>
+                                                    <input type="text" id="resolucion_llave" name="resolucion_llave" value="fc8eac422eba16e22ffd8c6f94b3f40a6e38162c" class="form-control" placeholder="llave técnica de la Resolución">
+                                                <span class="form-text">Llave técnica</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Rango desde</label>
+                                                    <input id="resolucion_rango_desde" name="resolucion_rango_desde" value="990000000" type="text" class="form-control" placeholder="Desde">
+                                                <span class="form-text">Numero Inicial</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Rango hasta</label>
+                                                    <input id="resolucion_rango_hasta" name="resolucion_rango_hasta" value="995000000" type="text" class="form-control" placeholder="Hasta">
+                                                <span class="form-text">Numero Final</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Fecha desde</label>
+                                                    <input id="resolucion_fecha_desde" name="resolucion_fecha_desde" value="2019-01-19" type="text" class="form-control" placeholder="Fecha desde">
+                                                <span class="form-text">Fecha inicial</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Fecha hasta</label>
+                                                    <input id="resolucion_fecha_hasta" name="resolucion_fecha_hasta" value="2030-01-19" type="text" class="form-control" placeholder="Fecha hasta">
+                                                <span class="form-text">Fecha hasta</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Tipo de Acción</label>');
+                                            
+                                        $css->select("cmb_tipo_accion", "form-control", "cmb_tipo_accion", "", "", "", "");
+                                            $css->option("", "", "", 1, "", "");
+                                                print("Individual Creación y Actualización");
+                                            $css->Coption();
+                                            
+                                            $css->option("", "", "", 2, "", "");
+                                                print("Multiple Creación");
+                                            $css->Coption();
+                                            $css->option("", "", "", 3, "", "");
+                                                print("Multiple Actualización");
+                                            $css->Coption();
+                                        $css->Cselect();
+                                        
+                                        print(' <span class="form-text">Acción a Ejecutar</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">ID de la Resolución</label>
+                                                    <input id="resolucion_api_id" name="resolucion_api_id" value="" type="text" class="form-control" placeholder="ID de la Resolución">
+                                                <span class="form-text">ID en el API de la Resolución</span> 
+                                            </div>');
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Obtener las resoluciones</label>');
+                                            $css->CrearBotonEvento("btnObtenerResoluciones", "Obtener Resoluciones", 1, "onclick", "obtenerResoluciones(`$empresa_id`)", "verde");
+                                        $css->Cdiv();
+                                    $css->Cdiv();
+                                    
+                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Click para Crear una resolución</label>');
+                                            $css->CrearBotonEvento("btnCrearResolucion", "Ejecutar", 1, "onclick", "confirmaAccion(`4`,`$empresa_id`)", "rojo");
+                                        $css->Cdiv();
+                                    $css->Cdiv();
+                                    
+                                $css->Cdiv(); 
+                                
+                                $css->div("", "row", "", "", "", "", "");  
+                                    $css->div("div_crear_resoluciones", "col-md-12", "", "", "", "", "");
+                                    $css->Cdiv();
+                                $css->Cdiv(); 
                             $css->Cdiv();
                         
-                            $css->div("tab_resolucionnc", "tab-pane", "", "", "", "", "");
-                                print("<h5>Crear Resolución de Notas Crédito</h5>");
-                            $css->Cdiv();
-                        
-                            $css->div("tab_resolucionnd", "tab-pane", "", "", "", "", "");
-                                print("<h5>Crear Resolución de Notas Débito</h5>");
-                            $css->Cdiv();
+                            
                         $css->Cdiv(); 
                 $css->Cdiv();
             $css->Cdiv();     
@@ -400,6 +526,46 @@ if( !empty($_REQUEST["Accion"]) ){
                 print("No hay certificados creados para esta empresa");
             }
         break; //Fin caso 6
+        
+        case 7://Dibuja la tabla de resoluciones de facturacion
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $css->CrearTabla();
+                $css->FilaTabla(16);
+                    $css->ColTabla("<strong>RESOLUCIONES CREADAS PARA LA ENTIDAD</strong>", 10,"C");
+                $css->CierraFilaTabla();
+                $css->FilaTabla(12);
+                    $css->ColTabla("<strong>Tipo</strong>", 1,"C");
+                    $css->ColTabla("<strong>prefijo</strong>", 1,"C");
+                    $css->ColTabla("<strong>numero_resolucion</strong>", 1,"C");
+                    $css->ColTabla("<strong>fecha_resolucion</strong>", 1,"C");
+                    $css->ColTabla("<strong>llave_tecnica</strong>", 1,"C");
+                    $css->ColTabla("<strong>desde</strong>", 1,"C");
+                    $css->ColTabla("<strong>hasta</strong>", 1,"C");
+                    $css->ColTabla("<strong>fecha_desde</strong>", 1,"C");
+                    $css->ColTabla("<strong>fecha_hasta</strong>", 1,"C");
+                    $css->ColTabla("<strong>resolucion_id_api</strong>", 1,"C");
+                $css->CierraFilaTabla();
+                
+                $sql="SELECT t1.*,(SELECT t2.name FROM api_fe_tipo_documentos t2 WHERE t2.ID=t1.tipo_documento_id) as nombre_tipo_documento FROM empresa_resoluciones t1 WHERE t1.empresa_id='$empresa_id'";
+                $Consulta=$obCon->Query($sql);
+                while ($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                    $css->FilaTabla(12);
+                        $css->ColTabla($datos_consulta["nombre_tipo_documento"], 1);
+                        $css->ColTabla($datos_consulta["prefijo"], 1);
+                        $css->ColTabla($datos_consulta["numero_resolucion"], 1);
+                        $css->ColTabla($datos_consulta["fecha_resolucion"], 1);
+                        $css->ColTabla($datos_consulta["llave_tecnica"], 1);
+                        $css->ColTabla($datos_consulta["desde"], 1);
+                        $css->ColTabla($datos_consulta["hasta"], 1);
+                        $css->ColTabla($datos_consulta["fecha_desde"], 1);
+                        $css->ColTabla($datos_consulta["fecha_hasta"], 1);
+                        $css->ColTabla($datos_consulta["resolucion_id_api"], 1);
+                        
+                    $css->CierraFilaTabla();
+                }
+                
+            $css->CerrarTabla();
+        break; //Fin caso 7
         
         
         

@@ -300,11 +300,127 @@ function confirmaAccion(funcion,empresa_id){
                 if(funcion==3){
                     crear_certificado_digital_api(empresa_id);
                 }
+                
+                if(funcion==4){
+                    crear_resolucion_facturacion_api(empresa_id);
+                }
                               
             } else {     
                 swal("Cancelado", "Se ha cancelado el proceso :)", "error");   
             } 
         });
+}
+
+
+function crear_resolucion_facturacion_api(empresa_id){
+    
+    urlQuery='procesadores/admin_empresas.process.php';    
+    
+    var btnEnviar = "btnCrearResolucion";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    
+    var resolucion_prefijo=document.getElementById('resolucion_prefijo').value;    
+    var resolucion_numero=document.getElementById('resolucion_numero').value;     
+    var resolucion_fecha=document.getElementById('resolucion_fecha').value;
+    var resolucion_llave=document.getElementById('resolucion_llave').value;
+    var resolucion_rango_desde=document.getElementById('resolucion_rango_desde').value;
+    var resolucion_rango_hasta=document.getElementById('resolucion_rango_hasta').value;
+    var resolucion_fecha_desde=document.getElementById('resolucion_fecha_desde').value;
+    var resolucion_fecha_hasta=document.getElementById('resolucion_fecha_hasta').value;
+    var cmb_tipo_accion=document.getElementById('cmb_tipo_accion').value;
+    var resolucion_api_id=document.getElementById('resolucion_api_id').value;
+    var cmb_tipo_documento=document.getElementById('cmb_tipo_documento').value;
+    
+    var form_data = new FormData();
+        form_data.append('Accion', '6');  
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('resolucion_prefijo', resolucion_prefijo);
+        form_data.append('resolucion_numero', resolucion_numero);
+        form_data.append('cmb_tipo_documento', cmb_tipo_documento);
+        form_data.append('resolucion_fecha', resolucion_fecha);
+        form_data.append('resolucion_llave', resolucion_llave);
+        form_data.append('resolucion_rango_desde', resolucion_rango_desde);
+        form_data.append('resolucion_rango_hasta', resolucion_rango_hasta);
+        form_data.append('resolucion_fecha_desde', resolucion_fecha_desde);
+        form_data.append('resolucion_fecha_hasta', resolucion_fecha_hasta);
+        form_data.append('cmb_tipo_accion', cmb_tipo_accion);
+        form_data.append('resolucion_api_id', resolucion_api_id);
+        
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Ejecutar";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);
+                
+                dibuje_resoluciones(empresa_id);
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+                dibuje_resoluciones(empresa_id);
+            }else{
+                var idDiv="div_crear_resoluciones";
+                document.getElementById(idDiv).innerHTML=data;
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Ejecutar";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+function obtenerResoluciones(empresa_id){
+    
+    urlQuery='procesadores/admin_empresas.process.php';    
+    
+    var btnEnviar = "btnObtenerResoluciones";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Obteniendo...";
+    
+    var idDiv="div_crear_resoluciones";    
+    
+    var form_data = new FormData();
+        form_data.append('Accion', '7');  
+        form_data.append('empresa_id', empresa_id);
+                               
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Obtener Resoluciones";
+            
+                
+            document.getElementById(idDiv).innerHTML=data;
+          
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Obtener Resoluciones";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
 }
 
 function crear_empresa_api(empresa_id){
@@ -461,6 +577,41 @@ function crear_certificado_digital_api(empresa_id){
       });
 }
 
+function dibuje_resoluciones(empresa_id){
+    var idDiv="div_crear_resoluciones";
+    urlQuery='Consultas/admin_empresas.draw.php';  
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 7);  
+        form_data.append('empresa_id', empresa_id);
+        
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
 
 function dibuje_json_empresa(empresa_id){
     var idDiv="div_crearEmpresa";

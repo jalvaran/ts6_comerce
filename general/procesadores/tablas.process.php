@@ -1,69 +1,50 @@
 <?php
 
-session_start();
+@session_start();
 if (!isset($_SESSION['username'])){
   exit("<a href='../../index.php' ><img src='../images/401.png'>Iniciar Sesion </a>");
   
 }
 $idUser=$_SESSION['idUser'];
 
-include_once("../clases/administrador.class.php");
+include_once("../class/tablas.class.php");
 
-if( !empty($_REQUEST["idAccion"]) ){
+if( !empty($_REQUEST["Accion"]) ){
     
-    $obCon = new Administrador($idUser);
+    $obCon = new tablas($idUser);
     
-    switch ($_REQUEST["idAccion"]) {
+    switch ($_REQUEST["Accion"]) {
         
-        case 1: //insertar datos en una tabla
-            $Tabla=$obCon->normalizar($_REQUEST["Tabla"]);            
-            $Columnas=$obCon->getColumnasVisibles($Tabla, ""); 
-            foreach($Columnas["Field"] as $key => $value) {
-                if($key>0){
-                    $Datos[$value]=$obCon->normalizar($_REQUEST["$value"]);   
-                    if($value=="Password"){
-                        $Datos[$value]= md5($obCon->normalizar($_REQUEST["$value"]));
-                    }
-                    
+        case 1: //insertar o editar datos en una tabla
+            
+            $jsonForm= $_REQUEST["jsonFormulario"];                    
+            parse_str($jsonForm,$DatosFormulario);
+            
+            $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
+            $db_table_ts6=$obCon->normalizar($_REQUEST["db"]); 
+            $tab=$obCon->normalizar($_REQUEST["tab"]); 
+            
+            foreach ($DatosFormulario as $key => $value) {
+                
+                if($value==''){
+                    exit("E1;El campo $key no puede estar vacío;$key");
                 }
             }
             
-            $sql=$obCon->getSQLInsert($Tabla, $Datos);
-            $obCon->Query($sql);
-            if($Tabla=="clientes"){
-                $sql=$obCon->getSQLInsert("proveedores", $Datos);
-                $obCon->Query($sql);
-            }
-            if($Tabla=="proveedores"){
-                $sql=$obCon->getSQLInsert("clientes", $Datos);
-                $obCon->Query($sql);
-            }
-            print("OK");
             
-        break; 
-        
-        case 2: //editar datos en una tabla
-            $Tabla=$obCon->normalizar($_REQUEST["Tabla"]);  
-            $idEditar=$obCon->normalizar($_REQUEST["idEditar"]); 
-            $Columnas=$obCon->getColumnasVisibles($Tabla, ""); 
-            $DatosActuales=$obCon->DevuelveValores($Tabla, $Columnas["Field"][0], $idEditar);
-            foreach($Columnas["Field"] as $key => $value) {
-                if($key>0){
-                    $ValorEditado=$obCon->normalizar($_REQUEST["$value"]);     
-                    if($DatosActuales[$key]<>$ValorEditado){
-                        if($value=="Password"){
-                            $ValorEditado= md5($obCon->normalizar($_REQUEST["$value"]));
-                        }
-                        $obCon->ActualizaRegistro($Tabla, $value, $ValorEditado, $Columnas["Field"][0], $idEditar,0); 
-                    }                  
-                    
-                }
+            if($edit_id==""){
+                $sql=$obCon->getSQLInsert($tab, $DatosFormulario); 
+            }else{
+                $sql=$obCon->getSQLUpdate($tab, $DatosFormulario);
+                $sql.=" WHERE ID='$edit_id'";
             }
             
-            print("OK");
+            $obCon->QueryExterno($sql, HOST, USER, PW, $db_table_ts6, "");
             
-        break; 
-         
+            print("OK;Datos Guardados");
+            
+        break; //Fin caso 1
+              
         
     }
     

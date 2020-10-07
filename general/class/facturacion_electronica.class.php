@@ -134,6 +134,54 @@ class Factura_Electronica extends conexion{
         return($json_data);
     }
     
+    public function JSONCrearResolucionFacturacion($type_document_id,$prefix,$from,$to,$number_resolution,$resolution_date,$technical_key,$date_from,$date_to) {
+        
+        $json_data='{ 
+            "type_document_id": '.$type_document_id.',
+            "prefix": "'.$prefix.'",
+            "from": '.$from.',
+            "to": '.$to.',
+            "resolution":'.$number_resolution.',
+            "resolution_date":"'.$resolution_date.'",
+            "technical_key":"'.$technical_key.'",
+            "date_from":"'.$date_from.'",
+            "date_to":"'.$date_to.'"            
+        }' ;
+        return($json_data);
+    }
+    
+    public function crear_actualizar_resolucion_db($empresa_id,$type_document_id,$prefix,$from,$to,$number_resolution,$resolution_date,$technical_key,$date_from,$date_to,$resolucion_id_api,$condition) {
+        $Tabla="empresa_resoluciones";
+        $Datos["empresa_id"]=$empresa_id;
+        $Datos["tipo_documento_id"]=$type_document_id;
+        $Datos["prefijo"]=$prefix;
+        $Datos["numero_resolucion"]=$number_resolution;
+        $Datos["fecha_resolucion"]=$resolution_date;
+        $Datos["llave_tecnica"]=$technical_key;
+        $Datos["desde"]=$from;
+        $Datos["hasta"]=$to;
+        $Datos["fecha_desde"]=$date_from;
+        $Datos["fecha_hasta"]=$date_to;
+        $Datos["resolucion_id_api"]=$resolucion_id_api;
+        if($condition==""){
+            $sql=$this->getSQLInsert($Tabla, $Datos);
+        }else{
+            $sql=$this->getSQLUpdate($Tabla, $Datos);
+            $sql.=" ".$condition;
+        }
+        $this->Query($sql);
+    }
+    
+    public function JSONCrearResolucionNotas($type_document_id,$prefix,$from,$to) {
+        
+        $json_data='{ 
+            "type_document_id": '.$type_document_id.',
+            "prefix": "'.$prefix.'",
+            "from": '.$from.',
+            "to": '.$to.'            
+        }' ;
+        return($json_data);
+    }
     public function JSONFactura($idFactura) {
         $DatosFactura=$this->DevuelveValores("facturas", "idFacturas", $idFactura);
         
