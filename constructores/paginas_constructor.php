@@ -15,6 +15,7 @@ class PageConstruct extends html_estruct_class{
     public $NombreUsuario;
     public $obCon;
     public $Titulo;
+    public $usuario_id;
     /**
      * Constructor
      * @param type $Titulo ->Titulo de la pagina
@@ -25,6 +26,7 @@ class PageConstruct extends html_estruct_class{
         $idUser=$_SESSION["idUser"];
         $this->obCon=new conexion($idUser);
         $this->Titulo=$Titulo;
+        $this->usuario_id=$idUser;
         $sql="SELECT Nombre,Apellido,Role,TipoUser FROM usuarios WHERE idUsuarios='$idUser'";
         $Consulta=$this->obCon->Query($sql);
         $this->DatosUsuario=$this->obCon->FetchAssoc($Consulta);
@@ -2398,8 +2400,11 @@ class PageConstruct extends html_estruct_class{
                             
                             $disabled="disabled";
                         }
-                        
-                        print('<div class="col-md-4">');
+                        $style="";
+                        if(($NombreCol=="usuario_id" or $NombreCol=="idUser")){
+                            $style="style=display:none";
+                        }
+                        print('<div class="col-md-4" '.$style.'>');
                             print('<div class="form-group">
                                     <label class="col-form-label">'.$TituloCampo.'</label>');
                             
@@ -2407,6 +2412,11 @@ class PageConstruct extends html_estruct_class{
                             $CamposAsociados= $this->obCon->FetchAssoc($this->obCon->Query($sql));
                             
                             if($CamposAsociados["TablaAsociada"]==''){
+                                
+                                if(($NombreCol=="usuario_id" or $NombreCol=="idUser") and $valueField==''){
+                                    $valueField= $this->usuario_id;
+                                    $TypeField="hidden";
+                                }
                                 print('<input '.$disabled.' id="'.$NombreCol.'" name="'.$NombreCol.'" value="'.$valueField.'" type="'.$TypeField.'" class="form-control ts_form ts_campo_'.$NombreCol.'" placeholder="'.$TituloCampo.'">');
                             }else{
                                 $this->select($NombreCol, "form-control ts_select ts_col_$NombreCol", $NombreCol, "", "", "", "data-live-search='true'");
@@ -3289,6 +3299,10 @@ class PageConstruct extends html_estruct_class{
                         </div>';
             
             return($html);
+        }
+        
+        public function linea() {
+            print("<hr style='color: #0056b2;'>");
         }
         
         //////////////////////////////////FIN

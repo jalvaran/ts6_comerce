@@ -51,7 +51,7 @@ $css->PageInit($myTitulo);
                             <div class="row">
                             <div class="col-md-4">
                                 ');
-        $css->select("empresa_id", "form-control btn-pill", "empresa_id", "", "", "", "");
+        $css->select("empresa_id", "form-control btn-pill", "empresa_id", "", "", "onchange=formulario_facturador();", "");
             if($TipoUser=="administrador"){
                 $sql="SELECT * FROM empresapro WHERE Estado=1";
             }else{
@@ -65,10 +65,11 @@ $css->PageInit($myTitulo);
                 $css->Coption();
             }
         $css->Cselect();
-        $css->CrearBotonEvento("btnFacturar", "Facturador", 1, "onclick", "formulario_facturar()", "azul");
+        //print('<span class="btn btn-light fom-control text-dark">Facturador: </span>');
+        $css->CrearBotonEvento("btnFacturar", "Módulo Facturador", 1, "onclick", "formulario_facturador()", "azul");
         print('</div>');
         $html=$css->getHtmlPanelInfo("Terceros", 0, "sp_terceros", 2, "icon-people", "onclick=dibuja_tabla(`get`,`terceros`,`1`,`DivListados`)", "style=cursor:pointer", "primary", 1, "p_terceros");
-        $html.=$css->getHtmlPanelInfo("Items", 0, "sp_inventario_items", 2, "icon-layers", "onclick=listar_inventario_items()", "style=cursor:pointer", "warning", 1, "p_inventario_items");
+        $html.=$css->getHtmlPanelInfo("Items", 0, "sp_inventario_items", 2, "icon-layers", "onclick=dibuja_tabla(`get`,`inventario_items_general`,`1`,`DivListados`)", "style=cursor:pointer", "warning", 1, "p_inventario_items");
         
         $html.=$css->getHtmlPanelInfo("Enviados", 0, "sp_documentos_enviados", 2, "fab fa-telegram-plane", "onclick=listar_documentos_enviados()", "style=cursor:pointer", "success", 1, "p_enviados");
         $html.=$css->getHtmlPanelInfo("Errores", 0, "sp_errores", 2, "fa fa-exclamation-triangle", "onclick=listar_documentos_errores()", "style=cursor:pointer", "flickr", 1, "p_errores");

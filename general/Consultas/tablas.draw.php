@@ -80,9 +80,35 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $totales = $obCon->FetchAssoc($Consulta);
             $ResultadosTotales = $totales['Items'];
-                        
-            $sql="SELECT t1.*  
-                  FROM $tab t1 $Condicion ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
+            $Columnas=$obCon->getColumns($db.".".$tab);
+            
+            $sql="SELECT ";
+            
+            foreach ($Columnas["Field"] as $key => $NombreCol) {
+                
+                $sql2="SELECT TablaAsociada,CampoTablaOrigen,CampoAsociado,IDCampoAsociado,dbCampoAsociado FROM tablas_campos_asociados WHERE TablaOrigen='$tab' AND CampoTablaOrigen='$NombreCol'";
+                $CamposAsociados= $obCon->FetchAssoc($obCon->Query($sql2));
+                if($CamposAsociados["CampoAsociado"]<>''){
+                    $arrayField= explode(",", $CamposAsociados["CampoAsociado"]);
+                    $campo_visible=$arrayField[0];
+                    $tabla_asociada=$CamposAsociados["TablaAsociada"];
+                    $campo_asociado=$CamposAsociados["CampoAsociado"];
+                    $campo_tabla_origen=$CamposAsociados["CampoTablaOrigen"];
+                    $campo_asociado_id=$CamposAsociados["IDCampoAsociado"];
+                    $campo_asociado_db=$CamposAsociados["dbCampoAsociado"];
+                    if($campo_asociado_db==''){
+                        $campo_asociado_db=DB;
+                    }
+                    $sql.="(SELECT $campo_visible FROM $campo_asociado_db.$tabla_asociada t2 WHERE t2.$campo_asociado_id=t1.$campo_tabla_origen LIMIT 1) AS $campo_tabla_origen,";
+                }else{
+                    $sql.=$NombreCol.",";
+                }
+                
+                
+            }
+            $sql= substr($sql, 0,-1);
+            $sql.=" FROM $tab t1 $Condicion ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
+            
             $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
                     
             $css->div("", "box-body no-padding", "", "", "", "", "");
@@ -122,12 +148,12 @@ if( !empty($_REQUEST["Accion"]) ){
                                 $disable="";
                                 $Color="info";
                                 $NumPage1=$NumPage-1;
-                                print('<button class="btn btn-'.$Color.' btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style="cursor:pointer" '.$disable.'><i class="fa fa-chevron-left" '.$disable.'></i></button>');
+                                print('<button class="btn btn-'.$Color.' btn-pill" onclick=cambie_pagina_tb_ts6(`'.$NumPage1.'`,`'.$db.'`,`'.$tab.'`,`'.$idDiv.'`) style="cursor:pointer" '.$disable.'><i class="fa fa-chevron-left" '.$disable.'></i></button>');
                             }
                             
                             
-                            $FuncionJS="onchange=CambiePagina(`1`);";
-                            $css->select("CmbPage", "btn btn-light text-dark btn-pill", "CmbPage", "", "", $FuncionJS, "");
+                            $FuncionJS="onchange=cambie_pagina_tb_ts6(``,`$db`,`$tab`,`$idDiv`);";
+                            $css->select("cmb_page_tb_ts6", "btn btn-light text-dark btn-pill", "cmb_page_tb_ts6", "", "", $FuncionJS, "");
 
                                 for($p=1;$p<=$TotalPaginas;$p++){
                                     if($p==$NumPage){
@@ -149,7 +175,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                 $disable="";
                                 $Color="info";
                                 $NumPage1=$NumPage+1;
-                                print('<span class="btn btn-info btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style=cursor:pointer><i class="fa fa-chevron-right" ></i></span>');
+                                print('<span class="btn btn-info btn-pill" onclick=cambie_pagina_tb_ts6(`'.$NumPage1.'`,`'.$db.'`,`'.$tab.'`,`'.$idDiv.'`) style=cursor:pointer><i class="fa fa-chevron-right" ></i></span>');
                             }
                              
                             
@@ -159,13 +185,15 @@ if( !empty($_REQUEST["Accion"]) ){
                         $css->Cdiv();
                     $css->Cdiv();
                 $css->Cdiv();
-                $Columnas=$obCon->getColumns($db.".".$tab);
+                
                 
                 $css->CrearDiv("", "table-responsive mailbox-messages", "", 1, 1);
                     print('<table class="table table-hover table-striped">');
                         print('<thead>
                                     <tr>');
-                        
+                        print('<th>
+                                <strong>Acciones</strong>
+                               </th>');
                         foreach ($Columnas["Field"] as $key => $value) {
                             print("<th>");
                                 print("<strong>");
@@ -183,6 +211,9 @@ if( !empty($_REQUEST["Accion"]) ){
                                 $idItem=$RegistrosTabla["ID"];
                                 
                                 print('<tr>');
+                                    print('<td class="mailbox-name">');
+                                        print('<a onclick="frm_agregar_editar_registro_ts6(`'.$db.'`,`'.$tab.'`,`'.$idItem.'`,`'.$idDiv.'`)" title="Editar"><i class="icon-pencil text-info"></i></a>');
+                                    print('</td>');
                                 foreach ($RegistrosTabla as $key => $value) {
                                     print("<td class='mailbox-name'>");
                                         print($value);

@@ -5,6 +5,15 @@
  * 317 774 0609
  */
 
+function asigne_eventos_busqueda_general(empresa_id,tab,page,idDiv){
+    $("#txtBusquedasGenerales").unbind();
+    $('#txtBusquedasGenerales').on('keyup',function() {
+        
+        dibuja_tabla(empresa_id,tab,page,idDiv);
+        
+    });
+}
+
 function add_events_frms_ts6(){
     
     $('#btn_frm_ts6_registros').on('click',function () {         
@@ -95,8 +104,18 @@ function crear_editar_registro_db(){
       });
 }
 
+function cambie_pagina_tb_ts6(page,db,table,idDiv){
+    if(page==''){
+        page=$("#cmb_page_tb_ts6").val();
+    }
+    dibuja_tabla('get',table,page,idDiv);
+}
+
 function dibuja_tabla(empresa_id,tab,page,idDiv){
     
+    
+    asigne_eventos_busqueda_general(empresa_id,tab,page,idDiv);
+ 
     urlQuery='../../general/Consultas/tablas.draw.php';  
     if(empresa_id=='get'){
         var empresa_id=$("#empresa_id").val();
