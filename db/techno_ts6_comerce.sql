@@ -32,6 +32,28 @@ CREATE TABLE `api_fe_certificado` (
 INSERT INTO `api_fe_certificado` (`ID`, `empresa_id`, `certificadoBase64`, `Clave`) VALUES
 (1,	2,	'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',	'haxszwPhHb');
 
+DROP TABLE IF EXISTS `api_fe_configuracion_envio_documentos`;
+CREATE TABLE `api_fe_configuracion_envio_documentos` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `descripcion` text COLLATE utf8_spanish_ci NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+INSERT INTO `api_fe_configuracion_envio_documentos` (`ID`, `descripcion`) VALUES
+(1,	'Enviar documento al correo del cliente'),
+(2,	'No enviar Documento al Correo del Cliente');
+
+DROP TABLE IF EXISTS `api_fe_metodos_envio`;
+CREATE TABLE `api_fe_metodos_envio` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `metodo` text COLLATE utf8_spanish_ci NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+INSERT INTO `api_fe_metodos_envio` (`ID`, `metodo`) VALUES
+(1,	'Metodo sincrono, envía el documento mas no suma al contador en las pruebas'),
+(2,	'Metodo Asincrono, envía el documento y suma al contador en las pruebas, no funciona en produccion, solo en pruebss');
+
 DROP TABLE IF EXISTS `api_fe_software`;
 CREATE TABLE `api_fe_software` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
@@ -1354,6 +1376,9 @@ CREATE TABLE `empresapro` (
   `FacturaSinInventario` varchar(2) COLLATE utf8_spanish_ci DEFAULT NULL,
   `CXPAutomaticas` varchar(2) COLLATE utf8_spanish_ci NOT NULL DEFAULT 'SI',
   `TokenAPIFE` text COLLATE utf8_spanish_ci,
+  `test_set_dian` varchar(100) COLLATE utf8_spanish_ci DEFAULT NULL COMMENT 'identificador del test de la DIAN',
+  `metodo_envio` int(11) DEFAULT '1' COMMENT 'Metodo de envio 1 para Sincrono (Test no suma) 2 asincrono (Suma)',
+  `enviar_documento` int(11) DEFAULT '1' COMMENT '1 enviar documento al mail, 0 no enviar',
   `db` varchar(45) COLLATE utf8_spanish_ci DEFAULT NULL,
   `Estado` int(11) NOT NULL DEFAULT '1' COMMENT '0 inactivo, 1 activo',
   `Updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -1362,9 +1387,9 @@ CREATE TABLE `empresapro` (
   UNIQUE KEY `NIT` (`NIT`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
-INSERT INTO `empresapro` (`ID`, `RazonSocial`, `NIT`, `DigitoVerificacion`, `Direccion`, `Barrio`, `Telefono`, `Celular`, `Ciudad`, `CodigoDaneCiudad`, `ResolucionDian`, `Regimen`, `TipoPersona`, `TipoDocumento`, `MatriculoMercantil`, `ActividadesEconomicas`, `Obligaciones`, `Email`, `WEB`, `ObservacionesLegales`, `PuntoEquilibrio`, `DatosBancarios`, `RutaImagen`, `FacturaSinInventario`, `CXPAutomaticas`, `TokenAPIFE`, `db`, `Estado`, `Updated`, `Sync`) VALUES
-(1,	'TECHNO SOLUCIONES SAS',	900833180,	7,	'CARRERA 17 7 24',	'JOSE MARIA CABAL',	'3177740609',	'3177740609',	'BUGA',	76111,	NULL,	1,	'1',	31,	321321,	'321321',	23,	'jalvaran@gmail.com',	'www.technosoluciones.com.co',	NULL,	0,	NULL,	'LogosEmpresas/logotipo1.png',	NULL,	'SI',	NULL,	'techno_ts6_comerce_900833180',	0,	'2020-10-08 00:12:57',	'0000-00-00 00:00:00'),
-(2,	'DISTRIBUIDORA PADILLA SPORT',	34606612,	3,	'CARRERA 3 8 30',	'PADILLA',	'3207001207',	'3207001207',	'PADILLA',	19513,	NULL,	1,	'2',	31,	70196,	'4711',	29,	'padillasportfe@gmail.com',	'www.technosoluciones.com.co',	NULL,	0,	NULL,	'LogosEmpresas/logotipo1.png',	NULL,	'SI',	'ttuPDi4OL6BybXdJNZ0ylxrLBDQDXkDC6rhz3I5KU3nN0Kg9Nt9nRsoAwR0N1LAE8BjPwrZVKJVbJZX0',	'techno_ts6_comerce_34606612',	1,	'2020-10-05 18:12:43',	'0000-00-00 00:00:00');
+INSERT INTO `empresapro` (`ID`, `RazonSocial`, `NIT`, `DigitoVerificacion`, `Direccion`, `Barrio`, `Telefono`, `Celular`, `Ciudad`, `CodigoDaneCiudad`, `ResolucionDian`, `Regimen`, `TipoPersona`, `TipoDocumento`, `MatriculoMercantil`, `ActividadesEconomicas`, `Obligaciones`, `Email`, `WEB`, `ObservacionesLegales`, `PuntoEquilibrio`, `DatosBancarios`, `RutaImagen`, `FacturaSinInventario`, `CXPAutomaticas`, `TokenAPIFE`, `test_set_dian`, `metodo_envio`, `enviar_documento`, `db`, `Estado`, `Updated`, `Sync`) VALUES
+(1,	'TECHNO SOLUCIONES SAS',	900833180,	7,	'CARRERA 17 7 24',	'JOSE MARIA CABAL',	'3177740609',	'3177740609',	'BUGA',	76111,	NULL,	1,	'1',	31,	321321,	'321321',	23,	'jalvaran@gmail.com',	'www.technosoluciones.com.co',	NULL,	0,	NULL,	'LogosEmpresas/logotipo1.png',	NULL,	'SI',	NULL,	NULL,	NULL,	NULL,	'techno_ts6_comerce_900833180',	0,	'2020-10-08 00:12:57',	'0000-00-00 00:00:00'),
+(2,	'DISTRIBUIDORA PADILLA SPORT',	34606612,	3,	'CARRERA 3 8 30',	'PADILLA',	'3207001207',	'3207001207',	'PADILLA',	19513,	NULL,	1,	'2',	31,	70196,	'4711',	29,	'padillasportfe@gmail.com',	'www.technosoluciones.com.co',	NULL,	0,	NULL,	'LogosEmpresas/logotipo1.png',	NULL,	'SI',	'ttuPDi4OL6BybXdJNZ0ylxrLBDQDXkDC6rhz3I5KU3nN0Kg9Nt9nRsoAwR0N1LAE8BjPwrZVKJVbJZX0',	'8272943b-1ffa-48c5-9e35-4bd2bb61b9b8',	1,	1,	'techno_ts6_comerce_34606612',	1,	'2020-10-09 03:12:47',	'0000-00-00 00:00:00');
 
 DROP TABLE IF EXISTS `empresa_obligaciones`;
 CREATE TABLE `empresa_obligaciones` (
@@ -1508,6 +1533,7 @@ CREATE TABLE `empresa_resoluciones` (
   `hasta` bigint(20) NOT NULL COMMENT 'rango de numeracion hasta',
   `fecha_desde` date NOT NULL COMMENT 'fecha desde',
   `fecha_hasta` date NOT NULL COMMENT 'fecha hasta',
+  `proximo_numero_documento` bigint(20) NOT NULL COMMENT 'proximo numero de documento para esta resolucion',
   `resolucion_id_api` int(11) NOT NULL COMMENT 'id de la resolucion en el api',
   `estado` int(11) NOT NULL DEFAULT '1' COMMENT '1 activa, 2 completada, 3 vencida',
   `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP COMMENT 'fecha de creacion del registro',
@@ -1520,10 +1546,10 @@ CREATE TABLE `empresa_resoluciones` (
   KEY `estado` (`estado`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
-INSERT INTO `empresa_resoluciones` (`ID`, `empresa_id`, `tipo_documento_id`, `prefijo`, `numero_resolucion`, `fecha_resolucion`, `llave_tecnica`, `desde`, `hasta`, `fecha_desde`, `fecha_hasta`, `resolucion_id_api`, `estado`, `created`) VALUES
-(1,	2,	1,	'SETP',	'18760000001',	'0001-01-01',	'fc8eac422eba16e22ffd8c6f94b3f40a6e38162c',	990000000,	995000000,	'2019-01-19',	'2030-01-19',	37,	1,	'0000-00-00 00:00:00'),
-(2,	2,	5,	'NOTC',	'',	'0000-00-00',	'',	1,	1000,	'0000-00-00',	'0000-00-00',	38,	1,	'0000-00-00 00:00:00'),
-(3,	2,	6,	'NOTD',	'',	'0000-00-00',	'',	1,	1000,	'0000-00-00',	'0000-00-00',	39,	1,	'0000-00-00 00:00:00');
+INSERT INTO `empresa_resoluciones` (`ID`, `empresa_id`, `tipo_documento_id`, `prefijo`, `numero_resolucion`, `fecha_resolucion`, `llave_tecnica`, `desde`, `hasta`, `fecha_desde`, `fecha_hasta`, `proximo_numero_documento`, `resolucion_id_api`, `estado`, `created`) VALUES
+(1,	2,	1,	'SETP',	'18760000001',	'0001-01-01',	'fc8eac422eba16e22ffd8c6f94b3f40a6e38162c',	990000000,	995000000,	'2019-01-19',	'2030-01-19',	990000003,	37,	1,	'2020-10-08 22:01:33'),
+(2,	2,	5,	'NOTC',	'',	'0000-00-00',	'',	1,	1000,	'0000-00-00',	'0000-00-00',	1,	38,	1,	'2020-10-08 09:35:51'),
+(3,	2,	6,	'NOTD',	'',	'0000-00-00',	'',	1,	1000,	'0000-00-00',	'0000-00-00',	1,	39,	1,	'2020-10-08 09:35:51');
 
 DROP TABLE IF EXISTS `empresa_tipo_organizacion`;
 CREATE TABLE `empresa_tipo_organizacion` (
@@ -1574,7 +1600,7 @@ CREATE TABLE `menu` (
   `Target` varchar(10) COLLATE utf8_spanish_ci NOT NULL DEFAULT '_SELF',
   `Estado` int(1) NOT NULL DEFAULT '1',
   `Image` text COLLATE utf8_spanish_ci,
-  `CSS_Clase` varchar(20) COLLATE utf8_spanish_ci DEFAULT NULL,
+  `CSS_Clase` varchar(45) COLLATE utf8_spanish_ci DEFAULT NULL,
   `Orden` int(11) NOT NULL DEFAULT '1',
   `Updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `Sync` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
@@ -1583,7 +1609,8 @@ CREATE TABLE `menu` (
 
 INSERT INTO `menu` (`ID`, `Nombre`, `idCarpeta`, `Pagina`, `Target`, `Estado`, `Image`, `CSS_Clase`, `Orden`, `Updated`, `Sync`) VALUES
 (1,	'Administrar',	2,	'Menu.php?menu_id=1',	'_SELF',	1,	'admin.png',	'icon icon-user',	1,	'2020-07-10 20:47:24',	'0000-00-00 00:00:00'),
-(2,	'Salir',	1,	'destruir.php',	'_SELF',	1,	'salir.png',	'fa fa-share',	9999,	'2020-10-03 16:10:11',	'2020-07-25 10:05:00');
+(99,	'Salir',	1,	'destruir.php',	'_SELF',	1,	'salir.png',	'fa fa-share',	9999,	'2020-10-09 03:31:53',	'2020-07-25 10:05:00'),
+(100,	'Facturación',	2,	'Menu.php?menu_id=100',	'_SELF',	1,	'factura_electronica.png',	'far fa-money-bill-alt',	1,	'2020-10-09 03:40:13',	'0000-00-00 00:00:00');
 
 DROP TABLE IF EXISTS `menu_carpetas`;
 CREATE TABLE `menu_carpetas` (
@@ -1601,7 +1628,8 @@ INSERT INTO `menu_carpetas` (`ID`, `Ruta`, `Updated`, `Sync`) VALUES
 (4,	'../../modulos/equipos/',	'2020-07-09 16:48:23',	'0000-00-00 00:00:00'),
 (5,	'../../modulos/catalogos/',	'2020-07-09 16:48:23',	'0000-00-00 00:00:00'),
 (6,	'../../modulos/mantenimiento/',	'2020-07-09 16:48:23',	'0000-00-00 00:00:00'),
-(7,	'../../modulos/informes_mantenimiento/',	'2020-07-09 16:48:23',	'0000-00-00 00:00:00');
+(7,	'../../modulos/informes_mantenimiento/',	'2020-07-09 16:48:23',	'0000-00-00 00:00:00'),
+(100,	'../../modulos/facturador_electronico/',	'2020-07-09 16:48:23',	'0000-00-00 00:00:00');
 
 DROP TABLE IF EXISTS `menu_pestanas`;
 CREATE TABLE `menu_pestanas` (
@@ -1616,7 +1644,8 @@ CREATE TABLE `menu_pestanas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 INSERT INTO `menu_pestanas` (`ID`, `Nombre`, `idMenu`, `Orden`, `Estado`, `Updated`, `Sync`) VALUES
-(1,	'Software',	1,	1,	CONV('1', 2, 10) + 0,	'2020-07-09 16:49:40',	'0000-00-00 00:00:00');
+(1,	'Software',	1,	1,	CONV('1', 2, 10) + 0,	'2020-07-09 16:49:40',	'0000-00-00 00:00:00'),
+(2,	'Facturador Electrónico',	100,	1,	CONV('1', 2, 10) + 0,	'2020-07-09 16:49:40',	'0000-00-00 00:00:00');
 
 DROP TABLE IF EXISTS `menu_submenus`;
 CREATE TABLE `menu_submenus` (
@@ -1639,7 +1668,8 @@ CREATE TABLE `menu_submenus` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 INSERT INTO `menu_submenus` (`ID`, `Nombre`, `idPestana`, `idCarpeta`, `idMenu`, `TablaAsociada`, `TipoLink`, `JavaScript`, `Pagina`, `Target`, `Estado`, `Image`, `Orden`, `Updated`, `Sync`) VALUES
-(1,	'Empresas',	1,	3,	1,	NULL,	0,	NULL,	'admin_empresas.php',	'_self',	1,	'empresa.png',	1,	'2020-07-09 16:51:42',	'0000-00-00 00:00:00');
+(1,	'Empresas',	1,	3,	1,	NULL,	0,	NULL,	'admin_empresas.php',	'_self',	1,	'empresa.png',	1,	'2020-07-09 16:51:42',	'0000-00-00 00:00:00'),
+(2,	'Facturar',	2,	100,	100,	NULL,	0,	NULL,	'facturador.php',	'_self',	1,	'factura.png',	1,	'2020-10-09 03:39:46',	'0000-00-00 00:00:00');
 
 DROP TABLE IF EXISTS `paginas_bloques`;
 CREATE TABLE `paginas_bloques` (
@@ -1679,24 +1709,25 @@ CREATE TABLE `porcentajes_iva` (
   `Nombre` varchar(45) COLLATE utf8_spanish_ci NOT NULL,
   `Valor` varchar(45) COLLATE utf8_spanish_ci NOT NULL,
   `FactorMultiplicador` double NOT NULL,
+  `porcentaje` double NOT NULL,
   `ClaseImpuesto` varchar(2) COLLATE utf8_spanish_ci NOT NULL DEFAULT '01' COMMENT '01 para IVA, 02 impoconsumo, 03 ICA',
   `Factor` varchar(10) COLLATE utf8_spanish_ci NOT NULL DEFAULT 'M',
   `CuentaPUC` bigint(20) NOT NULL,
   `CuentaPUCIVAGenerado` bigint(20) NOT NULL,
   `NombreCuenta` varchar(100) COLLATE utf8_spanish_ci NOT NULL,
-  `idImpuestoAPIFE` int(11) NOT NULL,
+  `impuesto_api_id` int(11) NOT NULL,
   `Habilitado` varchar(2) COLLATE utf8_spanish_ci NOT NULL,
   `Updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `Sync` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
-INSERT INTO `porcentajes_iva` (`ID`, `Nombre`, `Valor`, `FactorMultiplicador`, `ClaseImpuesto`, `Factor`, `CuentaPUC`, `CuentaPUCIVAGenerado`, `NombreCuenta`, `idImpuestoAPIFE`, `Habilitado`, `Updated`, `Sync`) VALUES
-(1,	'Sin IVA',	'0',	0,	'01',	'M',	2408,	2408,	'',	15,	'SI',	'2020-07-25 15:05:23',	'2020-07-25 10:05:23'),
-(2,	'Excluidos',	'E',	0,	'01',	'M',	2408,	2408,	'',	15,	'SI',	'2020-07-25 15:05:23',	'2020-07-25 10:05:23'),
-(3,	'IVA 5 %',	'0.05',	0.05,	'01',	'M',	24080503,	24081003,	'Impuestos del 5%',	1,	'SI',	'2020-10-07 14:29:51',	'2020-07-25 10:05:23'),
-(4,	'IVA del 8%',	'0.08',	0.08,	'01',	'M',	24080502,	24081002,	'Impuestos del 8%',	4,	'SI',	'2020-10-07 14:29:51',	'2020-07-25 10:05:23'),
-(6,	'IVA del 19%',	'0.19',	0.19,	'01',	'M',	24080501,	24081001,	'Impuestos del 19%',	1,	'SI',	'2020-10-08 03:26:26',	'2020-07-25 10:05:23');
+INSERT INTO `porcentajes_iva` (`ID`, `Nombre`, `Valor`, `FactorMultiplicador`, `porcentaje`, `ClaseImpuesto`, `Factor`, `CuentaPUC`, `CuentaPUCIVAGenerado`, `NombreCuenta`, `impuesto_api_id`, `Habilitado`, `Updated`, `Sync`) VALUES
+(1,	'Sin IVA',	'0',	0,	0,	'01',	'M',	2408,	2408,	'',	15,	'SI',	'2020-07-25 15:05:23',	'2020-07-25 10:05:23'),
+(2,	'Excluidos',	'E',	0,	0,	'01',	'M',	2408,	2408,	'',	15,	'SI',	'2020-07-25 15:05:23',	'2020-07-25 10:05:23'),
+(3,	'IVA 5 %',	'0.05',	0.05,	5,	'01',	'M',	24080503,	24081003,	'Impuestos del 5%',	1,	'SI',	'2020-10-08 22:44:52',	'2020-07-25 10:05:23'),
+(4,	'IMPOCONSUMO del 8%',	'0.08',	0.08,	8,	'01',	'M',	24080502,	24081002,	'Impuestos del 8%',	4,	'SI',	'2020-10-08 22:44:52',	'2020-07-25 10:05:23'),
+(6,	'IVA del 19%',	'0.19',	0.19,	19,	'01',	'M',	24080501,	24081001,	'Impuestos del 19%',	1,	'SI',	'2020-10-08 22:44:52',	'2020-07-25 10:05:23');
 
 DROP TABLE IF EXISTS `servidores`;
 CREATE TABLE `servidores` (
@@ -1756,7 +1787,9 @@ INSERT INTO `tablas_campos_asociados` (`ID`, `TablaOrigen`, `CampoTablaOrigen`, 
 (16,	'terceros',	'tipo_regimen_id',	'empresa_tipo_regimen',	'Regimen',	'ID',	'',	'2020-10-07 00:17:45',	'0000-00-00 00:00:00'),
 (17,	'terceros',	'tipo_documento_id',	'tipo_documento_identificacion',	'nombre',	'ID',	'',	'2020-10-07 00:17:45',	'0000-00-00 00:00:00'),
 (18,	'terceros',	'municipio_id',	'catalogo_municipios',	'Nombre,Departamento',	'ID',	'',	'2020-10-07 00:45:26',	'0000-00-00 00:00:00'),
-(19,	'inventario_items_general',	'porcentajes_iva_id',	'porcentajes_iva',	'Nombre',	'ID',	'',	'2020-10-07 00:45:26',	'0000-00-00 00:00:00');
+(19,	'inventario_items_general',	'porcentajes_iva_id',	'porcentajes_iva',	'Nombre',	'ID',	'',	'2020-10-07 00:45:26',	'0000-00-00 00:00:00'),
+(20,	'empresapro',	'metodo_envio',	'api_fe_metodos_envio',	'metodo',	'ID',	'',	'2020-10-09 12:32:13',	'0000-00-00 00:00:00'),
+(21,	'empresapro',	'enviar_documento',	'api_fe_configuracion_envio_documentos',	'descripcion',	'ID',	'',	'2020-10-09 12:32:13',	'0000-00-00 00:00:00');
 
 DROP TABLE IF EXISTS `tablas_campos_busquedas`;
 CREATE TABLE `tablas_campos_busquedas` (
@@ -1769,7 +1802,8 @@ CREATE TABLE `tablas_campos_busquedas` (
 
 INSERT INTO `tablas_campos_busquedas` (`ID`, `nombre_tabla`, `nombre_campo`, `condicion`) VALUES
 (1,	'terceros',	'razon_social',	3),
-(2,	'terceros',	'identificacion',	1);
+(2,	'terceros',	'identificacion',	1),
+(3,	'inventario_items_general',	'Descripcion',	3);
 
 DROP TABLE IF EXISTS `tablas_campos_control`;
 CREATE TABLE `tablas_campos_control` (
@@ -1956,7 +1990,10 @@ INSERT INTO `tablas_nombres_campos` (`ID`, `nombreOriginalCampo`, `muestre`, `Up
 (18,	'porcentajes_iva_id',	'Porcentaje de IVA',	'2020-10-07 00:50:31',	'0000-00-00 00:00:00'),
 (19,	'usuario_id',	'Usuario Creador',	'2020-10-07 00:50:31',	'0000-00-00 00:00:00'),
 (20,	'created',	'Creación',	'2020-10-07 00:50:31',	'0000-00-00 00:00:00'),
-(21,	'updated',	'Actualización',	'2020-10-07 15:22:42',	'0000-00-00 00:00:00');
+(21,	'updated',	'Actualización',	'2020-10-07 15:22:42',	'0000-00-00 00:00:00'),
+(22,	'test_set_dian',	'Test Set Id de la DIAN',	'2020-10-07 15:22:42',	'0000-00-00 00:00:00'),
+(23,	'metodo_envio',	'Método de Envio de los Documentos',	'2020-10-07 15:22:42',	'0000-00-00 00:00:00'),
+(24,	'enviar_documento',	'Conf. Mail',	'2020-10-07 15:22:42',	'0000-00-00 00:00:00');
 
 DROP TABLE IF EXISTS `terceros_tipo`;
 CREATE TABLE `terceros_tipo` (
@@ -2049,4 +2086,4 @@ INSERT INTO `usuarios_tipo` (`ID`, `Tipo`, `Updated`, `Sync`) VALUES
 (4,	'cajero',	'2019-01-13 14:14:14',	'2019-01-13 09:14:14'),
 (5,	'bodega',	'2019-01-13 14:14:14',	'2019-01-13 09:14:14');
 
--- 2020-10-08 03:45:31
+-- 2020-10-09 15:22:26

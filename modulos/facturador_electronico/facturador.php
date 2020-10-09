@@ -74,8 +74,8 @@ $css->PageInit($myTitulo);
         $html=$css->getHtmlPanelInfo("Terceros", 0, "sp_terceros", 2, "icon-people", "onclick=dibuja_tabla(`get`,`terceros`,`1`,`DivListados`)", "style=cursor:pointer", "primary", 1, "p_terceros");
         $html.=$css->getHtmlPanelInfo("Items", 0, "sp_inventario_items", 2, "icon-layers", "onclick=dibuja_tabla(`get`,`inventario_items_general`,`1`,`DivListados`)", "style=cursor:pointer", "warning", 1, "p_inventario_items");
         
-        $html.=$css->getHtmlPanelInfo("Enviados", 0, "sp_documentos_enviados", 2, "fab fa-telegram-plane", "onclick=listar_documentos_enviados()", "style=cursor:pointer", "success", 1, "p_enviados");
-        $html.=$css->getHtmlPanelInfo("Errores", 0, "sp_errores", 2, "fa fa-exclamation-triangle", "onclick=listar_documentos_errores()", "style=cursor:pointer", "flickr", 1, "p_errores");
+        $html.=$css->getHtmlPanelInfo("Enviados", 0, "sp_documentos_enviados", 2, "fab fa-telegram-plane", "onclick=listado_id=1;dibujeListadoSegunID();evento_busqueda()", "style=cursor:pointer", "success", 1, "p_enviados");
+        $html.=$css->getHtmlPanelInfo("Errores", 0, "sp_errores", 2, "fa fa-exclamation-triangle", "onclick=listado_id=2;dibujeListadoSegunID();evento_busqueda()", "style=cursor:pointer", "flickr", 1, "p_errores");
         
         
         print($html);

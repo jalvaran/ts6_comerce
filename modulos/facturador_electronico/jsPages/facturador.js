@@ -1,7 +1,14 @@
 /*
  * javascript para controlar los eventos del modulo facturador
  */
-
+var listado_id=1;
+function evento_busqueda(){
+    $("#txtBusquedasGenerales").unbind();
+    $('#txtBusquedasGenerales').on('keyup',function () {
+        dibujeListadoSegunID();        
+    });
+}
+evento_busqueda();
 function add_events_frms(){
     
     var empresa_id=document.getElementById("empresa_id").value;
@@ -114,6 +121,38 @@ function ocultar_spinner(){
     $("#spinner1").remove();    
 }
 
+
+
+function CambiePagina(Funcion,Page=""){
+    
+    if(Page==""){
+        if(document.getElementById('CmbPage')){
+            Page = document.getElementById('CmbPage').value;
+        }else{
+            Page=1;
+        }
+    }
+    if(Funcion==1){
+        dibujeListadoSegunID(Page);
+    }
+    
+    
+}
+
+
+function dibujeListadoSegunID(Page=1){
+    
+    if(listado_id==1){
+        listar_documentos_enviados(Page);
+    }
+    if(listado_id==2){
+        listar_documentos_error(Page);
+    }
+    
+    
+}
+
+
 function confirma_crear_documento_electronico(funcion_id){
     swal({   
             title: "Seguro que desea crear este documento?",   
@@ -168,9 +207,10 @@ function reportar_documento_electronico_api(documento_electronico_id){
             if(respuestas[0]=="OK"){
                 
                 toastr.success(respuestas[1]);
+                actualizar_contadores();
                 
             }else if(respuestas[0]=="E1"){                
-                swa(respuestas[1]);
+                alert(respuestas[1]);
             }else{
                 alert(data);
             }
@@ -183,7 +223,6 @@ function reportar_documento_electronico_api(documento_electronico_id){
           }
       });
 }
-
 
 function crear_factura_electronica(){
     
@@ -440,6 +479,42 @@ function agregar_prefactura(){
       });
 }
 
+function actualizar_contadores(){
+    var empresa_id = document.getElementById('empresa_id').value;        
+    var form_data = new FormData();
+        form_data.append('Accion', 11);        
+        form_data.append('empresa_id', empresa_id);
+        
+        $.ajax({
+        url: './procesadores/facturador.process.php',
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            var respuestas = data.split(';'); 
+            if(respuestas[0]=="OK"){
+                document.getElementById('sp_terceros').innerHTML=respuestas[1];
+                document.getElementById('sp_inventario_items').innerHTML=respuestas[2];
+                document.getElementById('sp_documentos_enviados').innerHTML=respuestas[3];
+                document.getElementById('sp_errores').innerHTML=respuestas[4];
+            }else if(respuestas[0]=="E1"){
+                
+                toastr.error(respuestas[1]);
+            }else{
+                swal(data);
+            }
+                       
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
 function formulario_facturador(){
     
     var empresa_id=document.getElementById("empresa_id").value;
@@ -521,5 +596,135 @@ function dibuje_prefactura(){
 
 }
 
+
+function listar_documentos_enviados(Page){
+    
+    var empresa_id=document.getElementById("empresa_id").value;
+    var txtBusquedasGenerales=document.getElementById("txtBusquedasGenerales").value;
+    var idDiv="DivListados";
+    urlQuery='Consultas/facturador.draw.php';    
+    var form_data = new FormData();
+        form_data.append('Accion', 3);  
+        form_data.append('empresa_id', empresa_id);  
+        form_data.append('Page', Page); 
+        form_data.append('txtBusquedasGenerales', txtBusquedasGenerales); 
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+
+}
+
+
+function listar_documentos_error(Page){
+    
+    var empresa_id=document.getElementById("empresa_id").value;
+    var txtBusquedasGenerales=document.getElementById("txtBusquedasGenerales").value;
+    var idDiv="DivListados";
+    urlQuery='Consultas/facturador.draw.php';    
+    var form_data = new FormData();
+        form_data.append('Accion', 4);  
+        form_data.append('empresa_id', empresa_id);  
+        form_data.append('Page', Page); 
+        form_data.append('txtBusquedasGenerales', txtBusquedasGenerales); 
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+
+}
+
+
+function ver_json_documento(empresa_id,documento_electronico_id){
+    
+    if(empresa_id==''){
+        var empresa_id=document.getElementById("empresa_id").value;
+    }
+    
+    openModal('modal_view');
+    var idDiv="div_modal_view";
+    urlQuery='procesadores/facturador.process.php';    
+    var form_data = new FormData();
+        form_data.append('Accion', 10);  
+        form_data.append('empresa_id', empresa_id);  
+        form_data.append('documento_electronico_id', documento_electronico_id); 
+        
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+
+}
+
+actualizar_contadores();
 
 formulario_facturador();

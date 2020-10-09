@@ -55,6 +55,22 @@ class Facturador extends conexion{
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }
     
+    public function crear_vista_documentos_electronicos($db) {
+        $principalDb=DB;
+        $sql="DROP VIEW IF EXISTS `vista_documentos_electronicos`;";
+        $this->QueryExterno($sql, HOST, USER, PW, $db, "");
+        
+        $sql="CREATE VIEW vista_documentos_electronicos AS
+                SELECT t1.*,                    
+                    (SELECT name FROM $principalDb.api_fe_tipo_documentos t3 WHERE t3.ID=t1.tipo_documento_id LIMIT 1) AS nombre_tipo_documento,
+                    (SELECT razon_social FROM terceros t4 WHERE t4.ID=t1.tercero_id LIMIT 1) AS nombre_tercero, 
+                    (SELECT identificacion FROM terceros t4 WHERE t4.ID=t1.tercero_id LIMIT 1) AS nit_tercero,
+                    (SELECT CONCAT(Nombre,' ',Apellido) FROM $principalDb.usuarios t5 WHERE t5.idUsuarios=t1.usuario_id LIMIT 1) AS nombre_usuario 
+                    
+                FROM `documentos_electronicos` t1 ORDER BY updated,ID DESC;";
+        
+        $this->QueryExterno($sql, HOST, USER, PW, $db, "");
+    }
     
     /**
      * Fin Clase

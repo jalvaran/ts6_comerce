@@ -143,6 +143,71 @@ if( !empty($_REQUEST["Accion"]) ){
             
         break;//Fin caso 7    
         
+        case 8://Ver pdf en handler con base 64
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $documento_electronico_id=$obCon->normalizar($_REQUEST["documento_electronico_id"]);
+            $sql="SELECT base64_pdf FROM $db.documentos_electronicos WHERE documento_electronico_id='$documento_electronico_id'";
+            $datos_consulta=$obCon->FetchAssoc($obCon->Query($sql));
+            $base_64=$datos_consulta["base64_pdf"];
+            $data = base64_decode($base_64);
+            header('Content-Type: application/pdf');
+            echo $data;
+            
+        break;//Fin caso 8    
+    
+        case 9://Ver zip en handler con base 64
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $documento_electronico_id=$obCon->normalizar($_REQUEST["documento_electronico_id"]);
+            $sql="SELECT base64_zip FROM $db.documentos_electronicos WHERE documento_electronico_id='$documento_electronico_id'";
+            $datos_consulta=$obCon->FetchAssoc($obCon->Query($sql));
+            $base_64=$datos_consulta["base64_zip"];
+            $data = base64_decode($base_64);
+            header('Content-Type: application/zip');
+            header('Content-disposition: filename="xml_file.zip"');
+            echo $data;
+            
+        break;//Fin caso 9
+        
+        case 10:// ver el json de un documento
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $documento_electronico_id=$obCon->normalizar($_REQUEST["documento_electronico_id"]);
+            $datos_documento=$obCon->DevuelveValores("$db.documentos_electronicos", "documento_electronico_id", $documento_electronico_id);
+            if($datos_documento["tipo_documento_id"]==1){
+                $json=$obFe->json_factura_electronica($datos_empresa, $db, $documento_electronico_id);
+            }
+            print("<pre>".$json."</pre>");
+        break;//Fin caso 10    
+            
+        case 11://obtiene los totales de las diferentes tablas
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            
+            $sql="SELECT COUNT(ID) AS total FROM $db.terceros ";
+            $totales=$obCon->FetchAssoc($obCon->Query($sql));
+            $terceros=$totales["total"];
+            $sql="SELECT COUNT(ID) AS total FROM $db.inventario_items_general ";
+            $totales=$obCon->FetchAssoc($obCon->Query($sql));
+            $items=$totales["total"];
+            $sql="SELECT COUNT(ID) AS total FROM $db.documentos_electronicos WHERE is_valid=1 ";
+            $totales=$obCon->FetchAssoc($obCon->Query($sql));
+            $documentos_ok=$totales["total"];
+            $sql="SELECT COUNT(ID) AS total FROM $db.documentos_electronicos WHERE is_valid=0 ";
+            $totales=$obCon->FetchAssoc($obCon->Query($sql));
+            $documentos_error=$totales["total"];
+            print("OK;".$terceros.";".$items.";".$documentos_ok.";".$documentos_error);
+            
+        break;//Fin caso 11    
+        
     }
     
     

@@ -87,6 +87,11 @@ function crear_editar_registro_db(){
                 
                 dibuja_tabla('get',tab,1,idDiv);
                 
+                if(typeof actualizar_contadores === 'function') {
+                    
+                    actualizar_contadores();
+                }
+                
             }else if(respuestas[0]=="E1"){  
                 toastr.error(respuestas[1],'',2000);
                 MarqueErrorElemento(respuestas[2]);

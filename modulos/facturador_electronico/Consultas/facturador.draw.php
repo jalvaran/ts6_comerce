@@ -249,7 +249,408 @@ if( !empty($_REQUEST["Accion"]) ){
             $css->CerrarTabla();
         break;//Fin caso 2   
         
-                  
+        case 3://Listado de documentos electronicos enviados
+            
+            $tabla="vista_documentos_electronicos";
+            $Limit=20;
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            
+            $obCon->crear_vista_documentos_electronicos($db);
+            
+            $Page=$obCon->normalizar($_REQUEST["Page"]);
+            $NumPage=$obCon->normalizar($_REQUEST["Page"]);
+            if($Page==''){
+                $Page=1;
+                $NumPage=1;
+            }
+            
+            $BusquedasGenerales=$obCon->normalizar($_REQUEST["txtBusquedasGenerales"]);
+            
+            $Condicion=" WHERE t1.is_valid='1' ";
+            
+            if($BusquedasGenerales<>''){
+                $Condicion.=" AND ( t1.numero = '$BusquedasGenerales' or t1.uuid = '$BusquedasGenerales' or t1.nombre_tercero like '%$BusquedasGenerales%' or t1.nit_tercero = '$BusquedasGenerales')";
+            }
+            
+            
+            $PuntoInicio = ($Page * $Limit) - $Limit;
+            
+            $sql = "SELECT COUNT(ID) as Items 
+                   FROM $tabla t1 $Condicion;";
+            
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            
+            $totales = $obCon->FetchAssoc($Consulta);
+            $ResultadosTotales = $totales['Items'];
+                        
+            $sql="SELECT t1.*
+                  FROM $tabla t1 $Condicion LIMIT $PuntoInicio,$Limit;";
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+                    
+            $css->div("", "box-body no-padding", "", "", "", "", "");
+                $css->div("", "mailbox-controls", "", "", "", "", "");
+                
+                    print('<div class="row widget-separator-1 mb-3">
+                                <div class="col-md-3">
+                                    <div class="widget-1">
+                                        <div class="content">
+                                            <div class="row align-items-center">
+                                                <div class="col">
+                                                    <h5 class="title">Documentos Enviados</h5>
+                                                    <span class="descr">Total Registros</span>
+                                                </div>
+                                                <div class="col text-right">
+                                                    <div class="number text-primary">'.number_format($ResultadosTotales).'</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                
+                                </div>
+                                <div class="col-md-3">
+                                
+                                </div>
+                                <div class="col-md-3">
+                                
+                                
+                            ');
+                   
+                    $css->div("", "pull-right", "", "", "", "", "");
+                        if($ResultadosTotales>$Limit){
+                            $TotalPaginas= ceil($ResultadosTotales/$Limit);                               
+                            print('<div class="btn-group">');
+                            $disable='disabled="true"';
+                            $Color="dark";
+                            $NumPage1=$NumPage;
+                            if($NumPage>1){
+                                $disable="";
+                                $Color="info";
+                                $NumPage1=$NumPage-1;
+                                print('<button class="btn btn-'.$Color.' btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style="cursor:pointer" '.$disable.'><i class="fa fa-chevron-left" '.$disable.'></i></button>');
+                            }
+                            
+                            
+                            $FuncionJS="onchange=CambiePagina(`1`);";
+                            $css->select("CmbPage", "btn btn-light text-dark btn-pill", "CmbPage", "", "", $FuncionJS, "");
+
+                                for($p=1;$p<=$TotalPaginas;$p++){
+                                    if($p==$NumPage){
+                                        $sel=1;
+                                    }else{
+                                        $sel=0;
+                                    }
+
+                                    $css->option("", "", "", $p, "", "",$sel);
+                                        print($p);
+                                    $css->Coption();
+
+                                }
+
+                            $css->Cselect();
+                            $disable='disabled="true"';
+                            $Color="dark";
+                            if($ResultadosTotales>($PuntoInicio+$Limit)){
+                                $disable="";
+                                $Color="info";
+                                $NumPage1=$NumPage+1;
+                                print('<span class="btn btn-info btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style=cursor:pointer><i class="fa fa-chevron-right" ></i></span>');
+                            }
+                             
+                            
+                            print("</div>");
+                        }    
+                        $css->Cdiv();
+                        $css->Cdiv();
+                    $css->Cdiv();
+                $css->Cdiv();
+                   
+                $css->CrearDiv("", "table-responsive mailbox-messages", "", 1, 1);
+                    print('<table class="table table-hover table-striped">');
+                                      
+                        print(' <thead>
+                                    <tr>
+                                        <th>PDF</th>
+                                        <th>ZIP</th>       
+                                        <th>Tipo de Documento</th>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Número</th>
+                                        <th>Tercero</th>
+                                        <th>Orden de Compra</th>   
+                                        <th>Observaciones</th>                                       
+                                        <th>Usuario</th>
+                                        <th>Nota Crédito</th>
+                                        <th>UUID</th>
+                                                                                
+                                    </tr>
+                                </thead>');
+                        print('<tbody>');
+                        
+                        while($RegistrosTabla=$obCon->FetchAssoc($Consulta)){
+
+                            $idItem=$RegistrosTabla["documento_electronico_id"];
+
+                            print('<tr>');
+                                print("<td style='text-align:center'>");
+                                    $link="procesadores/facturador.process.php?Accion=8&empresa_id=$empresa_id&documento_electronico_id=$idItem";
+                                    print('<a style="font-size:25px;text-align:center" title="Ver PDF" href="'.$link.'" target="_blank")" ><i class="far fa-file-pdf text-danger"></i></a>');
+
+                                print("</td>");
+                                print("<td style='text-align:center'>");
+                                    $link="procesadores/facturador.process.php?Accion=9&empresa_id=$empresa_id&documento_electronico_id=$idItem";
+                                    print('<a style="font-size:25px;text-align:center" title="Ver ZIP" href="'.$link.'" target="_blank" ><i class="far fa-file-archive text-primary"></i></a>');
+
+                                print("</td>");
+                                                                      
+
+                                print("<td class='mailbox-name'>");
+                                    print($RegistrosTabla["nombre_tipo_documento"]);
+                                print("</td>");
+                                print("<td class='mailbox-subject text-primary'>");
+                                    print("<strong>".$RegistrosTabla["fecha"]."</strong>");
+                                print("</td>");
+                                print("<td class='mailbox-subject text-primary'>");
+                                    print("<strong>".$RegistrosTabla["hora"]."</strong>");
+                                print("</td>");
+                                
+                                print("<td class='mailbox-subject'>");
+                                    print("<strong>".$RegistrosTabla["prefijo"]."-".$RegistrosTabla["numero"]."</strong>");
+                                print("</td>");   
+                                
+                                print("<td class='mailbox-subject text-success'>");
+                                    print(" ".$RegistrosTabla["nombre_tercero"]." || <strong>" .$RegistrosTabla["nit_tercero"]."</strong>");
+                                print("</td>");
+                                print("<td class='mailbox-subject text-primary'>");
+                                    print(" <strong>".$RegistrosTabla["orden_compra"]."</strong>");
+                                print("</td>");
+                                print("<td class='mailbox-subject text-flickr'>");
+                                    print($RegistrosTabla["notas"]);
+                                print("</td>");
+                                
+                                
+                                print("<td class='mailbox-name'>");
+                                    print($RegistrosTabla["nombre_usuario"]);
+                                print("</td>");
+                                print("<td style='text-align:center'>");
+                                    if($RegistrosTabla["tipo_documento_id"]==1){
+                                        print('<a style="font-size:25px;text-align:center" title="Ver PDF" onclick="formulario_nota_credito(`'.$empresa_id.'`,`'.$idItem.'`)" ><i class="fa fa-info-circle text-danger"></i></a>');
+                                    }
+                                print("</td>");
+                                print("<td class='mailbox-name'>");
+                                    print($RegistrosTabla["uuid"]);
+                                print("</td>");
+
+                            print('</tr>');
+
+                        }
+
+                    print('</tbody>');
+                print('</table>');
+            $css->Cdiv();
+        $css->Cdiv();
+            
+        break;//Fin caso 3   
+        
+        case 4://Listado de documentos electronicos con error
+            
+            $tabla="vista_documentos_electronicos";
+            $Limit=20;
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            
+            $obCon->crear_vista_documentos_electronicos($db);
+            
+            $Page=$obCon->normalizar($_REQUEST["Page"]);
+            $NumPage=$obCon->normalizar($_REQUEST["Page"]);
+            if($Page==''){
+                $Page=1;
+                $NumPage=1;
+            }
+            
+            $BusquedasGenerales=$obCon->normalizar($_REQUEST["txtBusquedasGenerales"]);
+            
+            $Condicion=" WHERE t1.is_valid<>'1' ";
+            
+            if($BusquedasGenerales<>''){
+                $Condicion.=" AND ( t1.numero = '$BusquedasGenerales' or t1.uuid = '$BusquedasGenerales' or t1.nombre_tercero like '%$BusquedasGenerales%' or t1.nit_tercero = '$BusquedasGenerales')";
+            }
+            
+            
+            $PuntoInicio = ($Page * $Limit) - $Limit;
+            
+            $sql = "SELECT COUNT(ID) as Items 
+                   FROM $tabla t1 $Condicion;";
+            
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            
+            $totales = $obCon->FetchAssoc($Consulta);
+            $ResultadosTotales = $totales['Items'];
+                        
+            $sql="SELECT t1.*
+                  FROM $tabla t1 $Condicion LIMIT $PuntoInicio,$Limit;";
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+                    
+            $css->div("", "box-body no-padding", "", "", "", "", "");
+                $css->div("", "mailbox-controls", "", "", "", "", "");
+                
+                    print('<div class="row widget-separator-1 mb-3">
+                                <div class="col-md-3">
+                                    <div class="widget-1">
+                                        <div class="content">
+                                            <div class="row align-items-center">
+                                                <div class="col">
+                                                    <h5 class="title">Errores</h5>
+                                                    <span class="descr">Total Registros</span>
+                                                </div>
+                                                <div class="col text-right">
+                                                    <div class="number text-primary">'.number_format($ResultadosTotales).'</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                
+                                </div>
+                                <div class="col-md-3">
+                                
+                                </div>
+                                <div class="col-md-3">
+                                
+                                
+                            ');
+                   
+                    $css->div("", "pull-right", "", "", "", "", "");
+                        if($ResultadosTotales>$Limit){
+                            $TotalPaginas= ceil($ResultadosTotales/$Limit);                               
+                            print('<div class="btn-group">');
+                            $disable='disabled="true"';
+                            $Color="dark";
+                            $NumPage1=$NumPage;
+                            if($NumPage>1){
+                                $disable="";
+                                $Color="info";
+                                $NumPage1=$NumPage-1;
+                                print('<button class="btn btn-'.$Color.' btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style="cursor:pointer" '.$disable.'><i class="fa fa-chevron-left" '.$disable.'></i></button>');
+                            }
+                            
+                            
+                            $FuncionJS="onchange=CambiePagina(`1`);";
+                            $css->select("CmbPage", "btn btn-light text-dark btn-pill", "CmbPage", "", "", $FuncionJS, "");
+
+                                for($p=1;$p<=$TotalPaginas;$p++){
+                                    if($p==$NumPage){
+                                        $sel=1;
+                                    }else{
+                                        $sel=0;
+                                    }
+
+                                    $css->option("", "", "", $p, "", "",$sel);
+                                        print($p);
+                                    $css->Coption();
+
+                                }
+
+                            $css->Cselect();
+                            $disable='disabled="true"';
+                            $Color="dark";
+                            if($ResultadosTotales>($PuntoInicio+$Limit)){
+                                $disable="";
+                                $Color="info";
+                                $NumPage1=$NumPage+1;
+                                print('<span class="btn btn-info btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style=cursor:pointer><i class="fa fa-chevron-right" ></i></span>');
+                            }
+                             
+                            
+                            print("</div>");
+                        }    
+                        $css->Cdiv();
+                        $css->Cdiv();
+                    $css->Cdiv();
+                $css->Cdiv();
+                   
+                $css->CrearDiv("", "table-responsive mailbox-messages", "", 1, 1);
+                    print('<table class="table table-hover table-striped">');
+                                      
+                        print(' <thead>
+                                    <tr>
+                                        <th>Reenviar</th>
+                                        <th>Código</th>
+                                        <th>Tipo de Documento</th>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Número</th>
+                                        <th>Tercero</th>
+                                        <th>Orden de Compra</th>   
+                                        <th>Observaciones</th>                                       
+                                        <th>Usuario</th>
+                                        
+                                                                                
+                                    </tr>
+                                </thead>');
+                        print('<tbody>');
+                        
+                        while($RegistrosTabla=$obCon->FetchAssoc($Consulta)){
+
+                            $idItem=$RegistrosTabla["documento_electronico_id"];
+
+                            print('<tr>');
+                                print("<td style='text-align:center'>");
+                                    print('<a style="font-size:25px;text-align:center" title="Reenviar" onclick="reportar_documento_electronico_api(`'.$idItem.'`)" ><i class="fa fa-paper-plane text-warning"></i></a>');
+
+                                print("</td>");
+                                
+                                print("<td style='text-align:center'>");
+                                    print('<a style="font-size:25px;text-align:center" title="Ver PDF" onclick="ver_json_documento(`'.$empresa_id.'`,`'.$idItem.'`)" ><i class="fa fa-code text-primary"></i></a>');
+
+                                print("</td>");
+                                    
+                                print("<td class='mailbox-name'>");
+                                    print($RegistrosTabla["nombre_tipo_documento"]);
+                                print("</td>");
+                                print("<td class='mailbox-subject text-primary'>");
+                                    print("<strong>".$RegistrosTabla["fecha"]."</strong>");
+                                print("</td>");
+                                print("<td class='mailbox-subject text-primary'>");
+                                    print("<strong>".$RegistrosTabla["hora"]."</strong>");
+                                print("</td>");
+                                
+                                print("<td class='mailbox-subject'>");
+                                    print("<strong>".$RegistrosTabla["prefijo"]."-".$RegistrosTabla["numero"]."</strong>");
+                                print("</td>");   
+                                
+                                print("<td class='mailbox-subject text-success'>");
+                                    print(" ".$RegistrosTabla["nombre_tercero"]." || <strong>" .$RegistrosTabla["nit_tercero"]."</strong>");
+                                print("</td>");
+                                print("<td class='mailbox-subject text-primary'>");
+                                    print(" <strong>".$RegistrosTabla["orden_compra"]."</strong>");
+                                print("</td>");
+                                print("<td class='mailbox-subject text-flickr'>");
+                                    print($RegistrosTabla["notas"]);
+                                print("</td>");
+                                
+                                
+                                print("<td class='mailbox-name'>");
+                                    print($RegistrosTabla["nombre_usuario"]);
+                                print("</td>");
+                                                                
+                            print('</tr>');
+
+                        }
+
+                    print('</tbody>');
+                print('</table>');
+            $css->Cdiv();
+        $css->Cdiv();
+            
+        break;//Fin caso 4
+        
+        
     }
     
     
