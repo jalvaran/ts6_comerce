@@ -10,46 +10,15 @@ if(file_exists("../../modelo/php_conexion.php")){
 
 class Factura_Electronica extends conexion{
     
-    public function EliminarAcentos($cadena) {
-         //Codificamos la cadena en formato utf8 en caso de que nos de errores
-        $cadena = utf8_encode($cadena);
-
-        //Ahora reemplazamos las letras
-        $cadena = str_replace(
-            array('á', 'à', 'ä', 'â', 'ª', 'Á', 'À', 'Â', 'Ä'),
-            array('a', 'a', 'a', 'a', 'a', 'A', 'A', 'A', 'A'),
-            $cadena
-        );
-
-        $cadena = str_replace(
-            array('é', 'è', 'ë', 'ê', 'É', 'È', 'Ê', 'Ë'),
-            array('e', 'e', 'e', 'e', 'E', 'E', 'E', 'E'),
-            $cadena );
-
-        $cadena = str_replace(
-            array('í', 'ì', 'ï', 'î', 'Í', 'Ì', 'Ï', 'Î'),
-            array('i', 'i', 'i', 'i', 'I', 'I', 'I', 'I'),
-            $cadena );
-
-        $cadena = str_replace(
-            array('ó', 'ò', 'ö', 'ô', 'Ó', 'Ò', 'Ö', 'Ô'),
-            array('o', 'o', 'o', 'o', 'O', 'O', 'O', 'O'),
-            $cadena );
-
-        $cadena = str_replace(
-            array('ú', 'ù', 'ü', 'û', 'Ú', 'Ù', 'Û', 'Ü'),
-            array('u', 'u', 'u', 'u', 'U', 'U', 'U', 'U'),
-            $cadena );
-
-        $cadena = str_replace(
-            array('ñ', 'Ñ', 'ç', 'Ç'),
-            array('n', 'N', 'c', 'C'),
-            $cadena
-        );
-        
-        return $cadena;
-    }
     
+    public function limpiar_cadena($string) {
+        $string = htmlentities($string);
+        $string = preg_replace('/\&(.)[^;]*;/', '', $string);
+        $string = str_replace('\n', '', $string);
+        $string = trim(preg_replace('/[\r\n|\n|\r]+/', '', $string));
+        return $string;
+    }
+        
     public function callAPI($method, $url,$TokenTS5, $data) {
         
                
@@ -160,6 +129,7 @@ class Factura_Electronica extends conexion{
         $Datos["llave_tecnica"]=$technical_key;
         $Datos["desde"]=$from;
         $Datos["hasta"]=$to;
+        $Datos["proximo_numero_documento"]=$from;
         $Datos["fecha_desde"]=$date_from;
         $Datos["fecha_hasta"]=$date_to;
         $Datos["resolucion_id_api"]=$resolucion_id_api;
@@ -182,452 +152,7 @@ class Factura_Electronica extends conexion{
         }' ;
         return($json_data);
     }
-    public function JSONFactura($idFactura) {
-        $DatosFactura=$this->DevuelveValores("facturas", "idFacturas", $idFactura);
         
-        $idEmpresaPro=$DatosFactura["EmpresaPro_idEmpresaPro"];
-        $DatosEmpresaPro=$this->DevuelveValores("empresapro", "idEmpresaPro", $idEmpresaPro);
-        $EmpresaTipoCompania=$DatosEmpresaPro["TipoPersona"];
-        $DatosCliente=$this->DevuelveValores("clientes", "idClientes", $DatosFactura["Clientes_idClientes"]);
-        $CodigoDane=$DatosCliente["Cod_Dpto"].$DatosCliente["Cod_Mcipio"];
-        $DatosMunicipos= $this->DevuelveValores("catalogo_municipios", "CodigoDANE", $CodigoDane);
-        $municipio_id=$DatosMunicipos["ID"];
-        $OrdenCompra='NA';
-        if($DatosFactura["OCompra"]<>''){
-            $OrdenCompra=$DatosFactura["OCompra"];
-        }
-        
-        if($municipio_id==''){
-            $municipio_id=1006;
-        }
-        $NumeroFactura=$DatosFactura["NumeroFactura"];
-        $Parametros=$this->DevuelveValores("configuracion_general", "ID", 27); //Contiene el metodo de envio del documento a la DIAN
-        $MetodoEnvio=$Parametros["Valor"]; //1 sincrono 2 asincrono
-        $Parametros=$this->DevuelveValores("configuracion_general", "ID", 28); //Determina si se envia al mail del cliente
-        $EnviarXMail=$Parametros["Valor"]; //1 se envia 0 no se envia
-        $TipoDocumento=1; // 1 Factura nacional  ver type_documents de la base de datos del api
-        $FechaFactura=$DatosFactura["Fecha"];
-        $HoraFactura=$DatosFactura["Hora"];
-        
-        $MonedaFactura="COP";
-        $Datos["Fecha"]=$DatosFactura["Fecha"];
-        $Datos["Dias"]=30;
-        $FechaVencimiento=$this->SumeDiasFecha($Datos);
-        
-        //Datos Adquiriente
-        
-        $AdqNit=$DatosCliente["Num_Identificacion"];
-        $AdqTipoDocumento=$DatosCliente["Tipo_Documento"];
-        $AdqTipoPersona=2;
-        if($AdqTipoDocumento==31 or $AdqTipoDocumento==44){
-            $AdqTipoPersona=1; //1 Juridica 2 Persona Natural
-        }
-        $adqNumTipoRegimen=0;
-        $AdqRazonSocial= str_replace("'", "", $DatosCliente["RazonSocial"]);
-        $AdqRazonSocial= str_replace('"', "", $AdqRazonSocial);
-        $AdqDireccion=str_replace("'", "",$DatosCliente["Direccion"]);
-        $AdqDireccion=str_replace('"', "",$AdqDireccion);
-        $AdqTipoOrganizacion= $DatosCliente["TipoOrganizacion"];
-        if($DatosCliente["TipoOrganizacion"]==0){
-            $AdqTipoOrganizacion=2;  //Juridico
-        }
-        if($AdqDireccion==''){
-            $AdqDireccion="CALLE 1 1 106";
-        }
-        $DatosMunicipio=$this->DevuelveValores("catalogo_municipios", "CodigoDANE", $DatosCliente["Cod_Dpto"].$DatosCliente["Cod_Mcipio"]);
-        $AdqCiudad=$DatosMunicipio["ID"];
-        $AdqContactoTelefono=$DatosCliente["Telefono"];
-        if($AdqContactoTelefono==''){
-            $AdqContactoTelefono=3117222619;
-        }
-        $AdqContactoMail=$DatosCliente["Email"];
-        if($AdqContactoMail==""){
-            $AdqContactoMail='no@gmail.com';
-        }
-        $idFormaPago=2;
-        if($DatosFactura["FormaPago"]=="Contado"){
-            $idFormaPago=1;
-        }
-        $Sinc="false";
-        if($MetodoEnvio==1){
-            $Sinc="true";
-        }
-        $FlagMail="false";
-        if($EnviarXMail==1){
-            $FlagMail="true";
-        }
-        $json_factura='{
-            "number": '.$NumeroFactura.',
-            "sync": '.$Sinc.',
-            "send": '.$FlagMail.',
-            "date": "'.$FechaFactura.'", 
-            "time": "'.$HoraFactura.'", 
-            "type_document_id": '.$TipoDocumento.',
-            "type_organization_id": '.$EmpresaTipoCompania.', 
-            "type_regime_id": '.$EmpresaTipoCompania.', 
-            "customer": {
-                "identification_number": '.$AdqNit.',
-                "type_organization_id": '.$AdqTipoOrganizacion.', 
-                "type_regime_id": '.$AdqTipoOrganizacion.',     
-                "name": "'.$AdqRazonSocial.'",
-                "phone": "'.$AdqContactoTelefono.'",
-                "address": "'.$AdqDireccion.'",
-                "email": "'.$AdqContactoMail.'",
-                "municipality_id": "'.$municipio_id.'",
-                "merchant_registration": "NA"
-            },
-            "order_reference": {
-                "id": "'.$OrdenCompra.'" 
-            },
-            "payment_forms": [{
-                "payment_form_id": "'.$idFormaPago.'",
-                "payment_method_id": "10",
-                "payment_due_date": "'.$FechaVencimiento.'",
-                "duration_measure": "30"
-            }],
-            ';
-        if($DatosFactura["ObservacionesFact"]<>''){
-            $json_factura.=' 
-            "notes": [{
-                "text":"'.$DatosFactura["ObservacionesFact"].'"
-            }],';
-        }
-        $json_factura.='"tax_totals": [';
-        $sql="SELECT SUM(SubtotalItem) as Subtotal, SUM(IVAItem) as IVA, SUM(TotalItem) as Total,PorcentajeIVA FROM facturas_items 
-                WHERE idFactura='$idFactura' GROUP BY PorcentajeIVA ";
-        $Consulta= $this->Query($sql);
-        $SubtotalFactura=0;
-        $BaseGravable=0;
-        $ImpuestosFactura=0;
-        $TotalAPagar=0;
-        while($DatosItems= $this->FetchAssoc($Consulta)){
-            $PorcentajeIVA=$DatosItems["PorcentajeIVA"];
-            $SubtotalFactura=$SubtotalFactura+$DatosItems["Subtotal"];
-            $BaseGravable=$BaseGravable+$DatosItems["Subtotal"];
-            $ImpuestosFactura=$ImpuestosFactura+$DatosItems["IVA"];
-            
-            if($PorcentajeIVA=="Exc" or $PorcentajeIVA=="0%"){
-                $json_factura.='
-                    {
-                        "tax_id": 15,
-                        "percent": "0.00",
-                        "tax_amount": "0.00",
-                        "taxable_amount": "'.round($DatosItems["Total"],2).'"
-                    },';
-            }else{
-                $PorcentajeIVA = str_replace("%", "", $PorcentajeIVA);                
-                $PorcentajeIVA = round($PorcentajeIVA/100,2);
-                $DatosImpuestos= $this->DevuelveValores("porcentajes_iva", "Valor", $PorcentajeIVA);
-                $idImpuestoAPI=$DatosImpuestos["idImpuestoAPIFE"];
-                if(is_numeric($idImpuestoAPI)){
-                    $Impuesto=round($DatosItems["PorcentajeIVA"],2);
-                    $json_factura.='
-                    {
-                        "tax_id": '.$idImpuestoAPI.',
-                        "percent": "'.round($Impuesto,2).'",
-                        "tax_amount": "'.round($DatosItems["IVA"],2).'",
-                        "taxable_amount": "'.round($DatosItems["Subtotal"],2).'"
-                    },';
-                }
-            }
-        }
-            $TotalAPagar=round($SubtotalFactura+$ImpuestosFactura,2);
-            $json_factura=substr($json_factura, 0, -1);
-            $json_factura.='],';
-            $json_factura.='"legal_monetary_totals":
-                { 
-                    "line_extension_amount": "'.round($SubtotalFactura,2).'",
-                    "tax_exclusive_amount": "'.round($BaseGravable,2).'",
-                    "tax_inclusive_amount": "'.round($TotalAPagar,2).'",
-                    "allowance_total_amount": "0.00",
-                    "charge_total_amount": "0.00",    
-                    "payable_amount": "'.round($TotalAPagar,2).'"
-                },';
-            
-            $json_factura.='"invoice_lines":[';
-            
-            $sql="SELECT * FROM facturas_items WHERE idFactura='$idFactura'";
-            $Consulta= $this->Query($sql);
-            while($DatosItemsFactura = $this->FetchAssoc($Consulta)){
-                $PorcentajeIVA=$DatosItemsFactura["PorcentajeIVA"];
-                if($PorcentajeIVA=="Exc" or $PorcentajeIVA=="0%" or $PorcentajeIVA=="0"){
-                    $idImpuestoAPI=15;
-                    $Impuestos="0.00";
-                    $Subtotal=round($DatosItemsFactura["SubtotalItem"],2);
-                    $Porcentaje="0.00";
-                    $Total=round($Subtotal+$Impuestos,2);
-                }else{
-                    $PorcentajeIVA = str_replace("%", "", $PorcentajeIVA); 
-                    $Porcentaje=$PorcentajeIVA;
-                    $PorcentajeIVA = round($PorcentajeIVA/100,2);
-                    
-                    $DatosImpuestos= $this->DevuelveValores("porcentajes_iva", "Valor", $PorcentajeIVA);
-                    $idImpuestoAPI=$DatosImpuestos["idImpuestoAPIFE"];
-                    $Subtotal=round($DatosItemsFactura["SubtotalItem"],2);
-                    $Impuestos=round($DatosItemsFactura["IVAItem"],2);
-                    $Total=round($Subtotal+$Impuestos,2);                    
-                }
-                if(!isset($Totales[$idImpuestoAPI]["Subtotal"])){
-                    $Totales[$idImpuestoAPI]["Subtotal"]=0;
-                    $Totales[$idImpuestoAPI]["Impuestos"]=0;
-                    $Totales[$idImpuestoAPI]["Total"]=0;
-                }
-                $Totales[$idImpuestoAPI]["Subtotal"]=$Totales[$idImpuestoAPI]["Subtotal"]+$Subtotal;
-                $Totales[$idImpuestoAPI]["Impuestos"]=$Totales[$idImpuestoAPI]["Impuestos"]+$Impuestos;
-                $Totales[$idImpuestoAPI]["Total"]=$Totales[$idImpuestoAPI]["Total"]+$Total;
-                $NombreItem= str_replace('"', "", $DatosItemsFactura["Nombre"]);
-                $NombreItem= str_replace("'", "", $NombreItem);
-                $NombreItem= str_replace("*", "", $NombreItem);
-                $NombreItem= preg_replace("[\n|\r|\n\r]", '', $NombreItem);
-                $NombreItem= $this->EliminarAcentos($NombreItem);
-                $NombreItem = preg_replace("/[^a-zA-Z0-9\_\ \-]+/", "", $NombreItem);
-                $ReferenciaItem= str_replace('"', "", $DatosItemsFactura["Referencia"]);
-                $ReferenciaItem= str_replace("'", "", $ReferenciaItem);
-                $ReferenciaItem= str_replace("*", "", $ReferenciaItem);
-                $json_factura.='{ 
-                    "unit_measure_id": 642, 
-                    "invoiced_quantity": "'.round($DatosItemsFactura["Cantidad"]*$DatosItemsFactura["Dias"],6).'", 
-                    "line_extension_amount": "'.round($DatosItemsFactura["SubtotalItem"],2).'", 
-                    "free_of_charge_indicator": false,
-                    "tax_totals": [{
-                        "tax_id": '.$idImpuestoAPI.',
-                        "tax_amount": "'.round($DatosItemsFactura["IVAItem"],2).'",  
-                        "taxable_amount": "'.round($DatosItemsFactura["SubtotalItem"],2).'",
-                        "percent": "'.round($Porcentaje,2).'" 
-                    }],                    
-                    "description": "'. str_replace("\n","",$NombreItem).'",
-                        "code": "'.trim(preg_replace("/[\r\n|\n|\r]+/", "", $ReferenciaItem)).'",
-                        "type_item_identification_id": 3,
-                        "price_amount": "'.round($DatosItemsFactura["ValorUnitarioItem"],2).'",
-                        "base_quantity": "1.000000"
-                    },';
-                
-            }
-            
-            $json_factura=substr($json_factura, 0, -1);
-            $json_factura.=']}';
-            
-        return($json_factura);
-    }
-    
-    public function JSONNotaCredito($idNota) {
-        $DatosNota=$this->DevuelveValores("notas_credito", "ID", $idNota);
-        $idFactura=$DatosNota["idFactura"];
-        $DatosFactura=$this->DevuelveValores("facturas", "idFacturas", $idFactura);
-        $DatosFacturaElectronica=$this->DevuelveValores("facturas_electronicas_log", "ID", $DatosNota["idFacturaElectronica"]);
-        $Cufe=$DatosFacturaElectronica["UUID"];
-        $idEmpresaPro=$DatosFactura["EmpresaPro_idEmpresaPro"];
-        $DatosEmpresaPro=$this->DevuelveValores("empresapro", "idEmpresaPro", $idEmpresaPro);
-        $Parametros=$this->DevuelveValores("configuracion_general", "ID", 27); //Contiene el metodo de envio del documento a la DIAN
-        $MetodoEnvio=$Parametros["Valor"]; //1 sincrono 2 asincrono
-        $Parametros=$this->DevuelveValores("configuracion_general", "ID", 28); //Determina si se envia al mail del cliente
-        $EnviarXMail=$Parametros["Valor"]; //1 se envia 0 no se envia
-        $DatosCliente=$this->DevuelveValores("clientes", "idClientes", $DatosFactura["Clientes_idClientes"]);
-        $NumeroFactura=$DatosFactura["NumeroFactura"];
-        $TipoDocumento=5; // 5 nota credito
-        $FechaFactura=$DatosFactura["Fecha"];
-        $HoraFactura=$DatosFactura["Hora"];
-        
-        $MonedaFactura="COP";
-        $Datos["Fecha"]=$DatosFactura["Fecha"];
-        $Datos["Dias"]=30;
-        $FechaVencimiento=$this->SumeDiasFecha($Datos);
-        
-        //Datos Adquiriente
-        
-        $AdqNit=$DatosCliente["Num_Identificacion"];
-        $AdqTipoDocumento=$DatosCliente["Tipo_Documento"];
-        $AdqTipoPersona=2;
-        if($AdqTipoDocumento==31 or $AdqTipoDocumento==44){
-            $AdqTipoPersona=1; //1 Juridica 2 Persona Natural
-        }
-        $adqNumTipoRegimen=0;
-        $AdqRazonSocial= str_replace("'", "", $DatosCliente["RazonSocial"]);
-        $AdqRazonSocial= str_replace('"', "", $AdqRazonSocial);
-        $AdqDireccion=str_replace("'", "",$DatosCliente["Direccion"]);
-        $AdqDireccion=str_replace('"', "",$AdqDireccion);
-        if($AdqDireccion==''){
-            $AdqDireccion="CALLE 1 1 106";
-        }
-        $DatosMunicipio=$this->DevuelveValores("catalogo_municipios", "CodigoDANE", $DatosCliente["Cod_Dpto"].$DatosCliente["Cod_Mcipio"]);
-        $AdqCiudad=$DatosMunicipio["ID"];
-        $AdqContactoTelefono=$DatosCliente["Telefono"];
-        if($AdqContactoTelefono==''){
-            $AdqContactoTelefono=3117222619;
-        }
-        $AdqContactoMail=$DatosCliente["Email"];
-        if($AdqContactoMail==""){
-            $AdqContactoMail='no@gmail.com';
-        }
-        $idFormaPago=2;
-        if($DatosFactura["FormaPago"]=="Contado"){
-            $idFormaPago=1;
-        }
-        
-        $json_factura='{
-                "billing_reference": {
-                    "number": "'.$DatosFactura["Prefijo"].$NumeroFactura.'",
-                    "uuid": "'.$Cufe.'",
-                    "issue_date": "'.$FechaFactura.'"
-                },
-                "discrepancy_response": {
-                    "correction_concept_id": 1
-                },';
-        $Sinc="false";
-        if($MetodoEnvio==1){
-            $Sinc="true";
-        }
-        $FlagMail="false";
-        if($EnviarXMail==1){
-            $FlagMail="true";
-        }
-        $json_factura.='
-            "number": '.$idNota.',
-            "sync": '.$Sinc.',
-            "send": '.$FlagMail.',
-            "type_document_id": '.$TipoDocumento.',
-            "customer": {
-                "identification_number": '.$AdqNit.',
-                "name": "'.$AdqRazonSocial.'",
-                "phone": "'.$AdqContactoTelefono.'",
-                "address": "'.$AdqDireccion.'",
-                "email": "'.$AdqContactoMail.'",
-                "merchant_registration": "NA"
-            },
-            
-            ';
-        
-        $json_factura.='"tax_totals": [';
-        $sql="SELECT SUM(SubtotalItem) as Subtotal, SUM(IVAItem) as IVA, SUM(TotalItem) as Total,PorcentajeIVA FROM notas_credito_items 
-                WHERE idNotaCredito='$idNota' GROUP BY PorcentajeIVA ";
-        $Consulta= $this->Query($sql);
-        $SubtotalFactura=0;
-        $BaseGravable=0;
-        $ImpuestosFactura=0;
-        $TotalAPagar=0;
-        while($DatosItems= $this->FetchAssoc($Consulta)){
-            $PorcentajeIVA=$DatosItems["PorcentajeIVA"];
-            $SubtotalFactura=$SubtotalFactura+$DatosItems["Subtotal"];
-            $BaseGravable=$BaseGravable+$DatosItems["Subtotal"];
-            $ImpuestosFactura=$ImpuestosFactura+$DatosItems["IVA"];
-            
-            if($PorcentajeIVA=="Exc" or $PorcentajeIVA=="0%"){
-                $json_factura.='
-                    {
-                        "tax_id": 15,
-                        "percent": "0.00",
-                        "tax_amount": "0.00",
-                        "taxable_amount": "'.round($DatosItems["Total"],2).'"
-                    },';
-            }else{
-                $PorcentajeIVA = str_replace("%", "", $PorcentajeIVA);                
-                $PorcentajeIVA = round($PorcentajeIVA/100,2);
-                $DatosImpuestos= $this->DevuelveValores("porcentajes_iva", "Valor", $PorcentajeIVA);
-                $idImpuestoAPI=$DatosImpuestos["idImpuestoAPIFE"];
-                if(is_numeric($idImpuestoAPI)){
-                    $Impuesto=round($DatosItems["PorcentajeIVA"],2);
-                    $json_factura.='
-                    {
-                        "tax_id": '.$idImpuestoAPI.',
-                        "percent": "'.round($Impuesto,2).'",
-                        "tax_amount": "'.round($DatosItems["IVA"],2).'",
-                        "taxable_amount": "'.round($DatosItems["Subtotal"],2).'"
-                    },';
-                }
-            }
-        }
-            $TotalAPagar=round($SubtotalFactura+$ImpuestosFactura,2);
-            $json_factura=substr($json_factura, 0, -1);
-            $json_factura.='],';
-            $json_factura.='"legal_monetary_totals":
-                { 
-                    "line_extension_amount": "'.round($SubtotalFactura,2).'",
-                    "tax_exclusive_amount": "'.round($BaseGravable,2).'",
-                    "tax_inclusive_amount": "'.round($TotalAPagar,2).'",
-                    "allowance_total_amount": "0.00",
-                    "charge_total_amount": "0.00",    
-                    "payable_amount": "'.round($TotalAPagar,2).'"
-                },';
-            
-            $json_factura.='"credit_note_lines":[';
-            
-            $sql="SELECT * FROM notas_credito_items WHERE idNotaCredito='$idNota'";
-            $Consulta= $this->Query($sql);
-            while($DatosItemsFactura = $this->FetchAssoc($Consulta)){
-                $PorcentajeIVA=$DatosItemsFactura["PorcentajeIVA"];
-                if($PorcentajeIVA=="Exc" or $PorcentajeIVA=="0%" or $PorcentajeIVA=="0"){
-                    $idImpuestoAPI=15;
-                    $Impuestos="0.00";
-                    $Subtotal=round($DatosItemsFactura["SubtotalItem"],2);
-                    $Porcentaje="0.00";
-                    $Total=round($Subtotal+$Impuestos,2);
-                }else{
-                    $PorcentajeIVA = str_replace("%", "", $PorcentajeIVA); 
-                    $Porcentaje=$PorcentajeIVA;
-                    $PorcentajeIVA = round($PorcentajeIVA/100,2);
-                    
-                    $DatosImpuestos= $this->DevuelveValores("porcentajes_iva", "Valor", $PorcentajeIVA);
-                    $idImpuestoAPI=$DatosImpuestos["idImpuestoAPIFE"];
-                    $Subtotal=round($DatosItemsFactura["SubtotalItem"],2);
-                    $Impuestos=round($DatosItemsFactura["IVAItem"],2);
-                    $Total=round($Subtotal+$Impuestos,2);                    
-                }
-                if(!isset($Totales[$idImpuestoAPI]["Subtotal"])){
-                    $Totales[$idImpuestoAPI]["Subtotal"]=0;
-                    $Totales[$idImpuestoAPI]["Impuestos"]=0;
-                    $Totales[$idImpuestoAPI]["Total"]=0;
-                }
-                $Totales[$idImpuestoAPI]["Subtotal"]=$Totales[$idImpuestoAPI]["Subtotal"]+$Subtotal;
-                $Totales[$idImpuestoAPI]["Impuestos"]=$Totales[$idImpuestoAPI]["Impuestos"]+$Impuestos;
-                $Totales[$idImpuestoAPI]["Total"]=$Totales[$idImpuestoAPI]["Total"]+$Total;
-                $NombreItem= str_replace('"', "", $DatosItemsFactura["Nombre"]);
-                $NombreItem= str_replace("'", "", $NombreItem);
-                $NombreItem= str_replace("*", "", $NombreItem);
-                $NombreItem= preg_replace("[\n|\r|\n\r]", '', $NombreItem);
-                $NombreItem= $this->EliminarAcentos($NombreItem);
-                $NombreItem = preg_replace("/[^a-zA-Z0-9\_\ \-]+/", "", $NombreItem);
-                $ReferenciaItem= str_replace('"', "", $DatosItemsFactura["Referencia"]);
-                $ReferenciaItem= str_replace("'", "", $ReferenciaItem);
-                $ReferenciaItem= str_replace("*", "", $ReferenciaItem);
-                $json_factura.='{ 
-                    "unit_measure_id": 642, 
-                    "invoiced_quantity": "'.round($DatosItemsFactura["Cantidad"]*$DatosItemsFactura["Dias"],6).'", 
-                    "line_extension_amount": "'.round($DatosItemsFactura["SubtotalItem"],2).'", 
-                    "free_of_charge_indicator": false,
-                    "tax_totals": [{
-                        "tax_id": '.$idImpuestoAPI.',
-                        "tax_amount": "'.round($DatosItemsFactura["IVAItem"],2).'",  
-                        "taxable_amount": "'.round($DatosItemsFactura["SubtotalItem"],2).'",
-                        "percent": "'.round($Porcentaje,2).'" 
-                    }],                    
-                    "description": "'. str_replace("\n","",$NombreItem).'",
-                        "code": "'.trim(preg_replace("/[\r\n|\n|\r]+/", "", $ReferenciaItem)).'",
-                        "type_item_identification_id": 3,
-                        "price_amount": "'.round($DatosItemsFactura["ValorUnitarioItem"],2).'",
-                        "base_quantity": "1.000000"
-                    },';
-                
-            }
-            
-            $json_factura=substr($json_factura, 0, -1);
-            $json_factura.=']}';
-            
-        return($json_factura);
-    }
-    
-    public function FacturaElectronica_Registre_Respuesta_Server($idFactura,$RespuestaServidor,$Estado) {
-        //$RespuestaServidor=str_replace(PHP_EOL, '', $RespuestaServidor);
-        //$RespuestaServidor=str_replace("\n", '', $RespuestaServidor);
-        //$RespuestaServidor=str_replace("\r", '', $RespuestaServidor);        
-        $RespuestaServidor=str_replace("'", '', $RespuestaServidor);
-        $Datos["idFactura"]=$idFactura;
-        $Datos["Estado"]=$Estado;
-        $Datos["RespuestaCompletaServidor"]=$RespuestaServidor;
-        $Datos["Created"]=date("Y-m-d H:i:s");
-        $sql=$this->getSQLInsert("facturas_electronicas_log", $Datos);
-        $this->Query($sql);
-    }
-    
     public function CrearPDFDesdeBase64($pdf_base64,$NumeroFactura) {
         
         $DatosRuta=$this->DevuelveValores("configuracion_general", "ID", 16);
@@ -654,6 +179,338 @@ class Factura_Electronica extends conexion{
         return($NombreArchivo);
     }
     
+    public function registra_documento_electronico($db,$resolucion_id,$tipo_documento_id,$prefijo,$numero,$tercero_id,$usuario_id,$notas,$orden_compra,$forma_pago) {
+        $tab="$db.documentos_electronicos";
+        if($tipo_documento_id==1){
+            $prefijo_llave="fv_";
+        }
+        if($tipo_documento_id==5){
+            $prefijo_llave="nc_";
+        }
+        if($tipo_documento_id==6){
+            $prefijo_llave="nd_";
+        }
+        
+        $documento_electronico_id=$this->getUniqId($prefijo_llave);
+        $Datos["documento_electronico_id"]=$documento_electronico_id;
+        $Datos["fecha"]=date("Y-m-d");
+        $Datos["hora"]=date("H:i:s");
+        $Datos["tipo_documento_id"]=$tipo_documento_id;
+        $Datos["resolucion_id"]=$resolucion_id;
+        $Datos["prefijo"]=$prefijo;
+        $Datos["numero"]=$numero;
+        $Datos["tercero_id"]=$tercero_id;
+        $Datos["usuario_id"]=$usuario_id;
+        $Datos["notas"]=$notas;  
+        $Datos["orden_compra"]=$orden_compra;  
+        $Datos["forma_pago"]=$forma_pago;  
+        $sql=$this->getSQLInsert($tab, $Datos);
+        $this->Query($sql);
+        return($documento_electronico_id);
+    }
+    
+    public function copiar_items_prefactura_items_documento($db,$prefactura_id,$documento_electronico_id) {
+        $sql="INSERT INTO $db.documentos_electronicos_items (`documento_electronico_id`,`item_id`,`valor_unitario`,`cantidad`,`subtotal`,`impuestos`,`total`,`porcentaje_iva_id`,`usuario_id`) 
+                SELECT '$documento_electronico_id',item_id,valor_unitario,cantidad,subtotal,impuestos,total,porcentaje_iva_id,usuario_id 
+                FROM $db.factura_prefactura_items WHERE prefactura_id='$prefactura_id' 
+                
+                ";
+        $this->Query($sql);
+    }
+    
+    public function crear_factura_electronica_desde_prefactura($empresa_id,$prefactura_id,$tercero_id,$resolucion_id,$usuario_id) {
+        $datos_empresa=$this->DevuelveValores("empresapro", "ID", $empresa_id);
+        $empresa_db=$datos_empresa["db"];
+        $datos_prefactura=$this->DevuelveValores("$empresa_db.factura_prefactura", "ID", $prefactura_id);
+        $datos_tercero=$this->DevuelveValores("$empresa_db.terceros", "ID", $tercero_id);
+        $datos_resolucion=$this->DevuelveValores("empresa_resoluciones", "ID", $resolucion_id);
+        
+        if($datos_resolucion["estado"]==2){
+            exit("E1;La resolución seleccionada ya fué completada");
+        }
+        if($datos_resolucion["estado"]==3){
+            exit("E1;La resolución seleccionada ya está vencida");
+        }
+        $sql="SELECT MAX(numero) as numero FROM $empresa_db.documentos_electronicos WHERE tipo_documento_id=1";
+        $datos_validacion=$this->FetchAssoc($this->Query($sql));
+        if($datos_validacion["numero"]=='' or $datos_validacion["numero"]==0){
+            $datos_validacion["numero"]=$datos_resolucion["proximo_numero_documento"]-1;
+        }
+        $numero=$datos_validacion["numero"]+1;
+        if($numero>$datos_resolucion["hasta"]){
+            exit("E1;la resolución no ya fué completada");
+        }
+        $notas=$this->limpiar_cadena($datos_prefactura["observaciones"]);
+        $orden_compra=$this->limpiar_cadena($datos_prefactura["orden_compra"]);
+        
+        $documento_electronico_id=$this->registra_documento_electronico($empresa_db,$resolucion_id,$datos_resolucion["tipo_documento_id"],$datos_resolucion["prefijo"],$numero,$tercero_id,$usuario_id,$notas,$orden_compra,$datos_prefactura["forma_pago"]);
+        $this->copiar_items_prefactura_items_documento($empresa_db, $prefactura_id, $documento_electronico_id);
+        return($documento_electronico_id);
+        
+    }
+    
+    public function json_datos_generales_documento($numero_documento,$sync,$send,$fecha,$hora,$tipo_documento,$tipo_organizacion_id,$tipo_regimen_id,$resolution_id) {
+        $json=' 
+            "number": '.$numero_documento.',
+            "sync": '.$sync.',
+            "send": '.$send.',
+            "date": "'.$fecha.'", 
+            "time": "'.$hora.'", 
+            "type_document_id": '.$tipo_documento.',
+            "type_organization_id": '.$tipo_organizacion_id.',
+            "type_regime_id": '.$tipo_regimen_id.',
+            "resolution_id": '.$resolution_id.'    
+    
+                   ';
+        return($json);
+    }
+    
+    public function json_datos_tercero($identification_number,$type_organization_id,$type_document_identification_id,$type_regime_id,$name,$phone,$address,$email,$municipality_id,$merchant_registration="NA") {
+        $json='
+            
+            "customer": {
+                "identification_number": '.$identification_number.',
+                "type_organization_id": '.$type_organization_id.',
+                "type_document_identification_id": '.$type_document_identification_id.',    
+                "type_regime_id": '.$type_regime_id.',     
+                "name": "'.$name.'",
+                "phone": "'.$phone.'",
+                "address": "'.$address.'",
+                "email": "'.$email.'",
+                "municipality_id": "'.$municipality_id.'",
+                "merchant_registration": "'.$merchant_registration.'"
+            } 
+    
+                   ';
+        return($json);
+    }
+    
+    public function json_orden_compra($orden_compra) {
+        $json='
+            "order_reference": {
+                "id": "'.$orden_compra.'" 
+            }';
+        return($json);
+    }
+    
+    public function json_forma_pago($forma_pago_id,$fecha_vencimiento,$payment_method_id=10,$duration_measure=30) {
+        $json='
+            "payment_forms": [{
+                "payment_form_id": "'.$forma_pago_id.'",
+                "payment_method_id": "'.$payment_method_id.'",
+                "payment_due_date": "'.$fecha_vencimiento.'",
+                "duration_measure": "'.$duration_measure.'"
+            }]';
+        return($json);
+    }
+    
+    public function json_notas($notas) {
+        $json=' 
+            "notes": [{
+                "text":"'.$notas.'"
+            }]';
+        return($json);
+    }
+    
+    public function json_impuestos_totales($db,$documento_electronico_id) {
+        
+        $Totales["subtotal"]=0;
+        $Totales["base_gravable"]=0;
+        $Totales["impuestos"]=0;
+        $json=' 
+                "tax_totals": [';
+        
+        $sql="SELECT SUM(t1.subtotal) as subtotal, SUM(t1.impuestos) as impuestos, SUM(t1.total) as total,t1.porcentaje_iva_id, 
+                (SELECT impuesto_api_id FROM porcentajes_iva t2 WHERE t2.ID=t1.porcentaje_iva_id) as impuesto_api_id,
+                (SELECT round(porcentaje,2) FROM porcentajes_iva t2 WHERE t2.ID=t1.porcentaje_iva_id) as porcentaje
+                FROM $db.documentos_electronicos_items t1 
+                WHERE t1.documento_electronico_id='$documento_electronico_id' GROUP BY t1.porcentaje_iva_id ";
+        $Consulta=$this->Query($sql);
+        
+        while($datos_consulta=$this->FetchAssoc($Consulta)){
+            
+            $Totales["subtotal"]=$Totales["subtotal"]+$datos_consulta["subtotal"];
+            //if($datos_consulta["impuestos"]>0){
+            $Totales["base_gravable"]=$Totales["base_gravable"]+$datos_consulta["subtotal"];
+            //}            
+            $Totales["impuestos"]=$Totales["impuestos"]+$datos_consulta["impuestos"];
+            
+            $json.='
+                    {
+                        "tax_id": '.$datos_consulta["impuesto_api_id"].',
+                        "percent": "'.$datos_consulta["porcentaje"].'",
+                        "tax_amount": "'.round($datos_consulta["impuestos"],2).'",
+                        "taxable_amount": "'.round($datos_consulta["subtotal"],2).'"
+                    },';
+        }
+        $json= substr($json, 0,-1);
+        $json.="]";
+        $Totales["json"]=$json;
+        return($Totales);
+    }
+    
+    public function json_totales_documento($subtotal,$base_gravable,$total_pagar) {
+        
+        $json='
+            "legal_monetary_totals":
+                { 
+                    "line_extension_amount": "'.round($subtotal,2).'",
+                    "tax_exclusive_amount": "'.round($base_gravable,2).'",
+                    "tax_inclusive_amount": "'.round($total_pagar,2).'",
+                    "allowance_total_amount": "0.00",
+                    "charge_total_amount": "0.00",    
+                    "payable_amount": "'.round($total_pagar,2).'"
+                }';
+        return($json);
+    }
+    
+    public function json_items_documento_electronico($db,$documento_electronico_id) {
+        $json='
+                "invoice_lines":[';
+        
+        $sql="SELECT t1.subtotal, t1.impuestos , t1.total ,t1.porcentaje_iva_id,t1.cantidad, t1.valor_unitario,
+                (SELECT impuesto_api_id FROM porcentajes_iva t2 WHERE t2.ID=t1.porcentaje_iva_id) as impuesto_api_id,
+                (SELECT round(porcentaje,2) FROM porcentajes_iva t2 WHERE t2.ID=t1.porcentaje_iva_id) as porcentaje,
+                (SELECT t3.Descripcion FROM $db.inventario_items_general t3 WHERE t3.ID=t1.item_id) as nombre_item,
+                (SELECT t3.Referencia FROM $db.inventario_items_general t3 WHERE t3.ID=t1.item_id) as referencia_item 
+                FROM $db.documentos_electronicos_items t1 
+                WHERE t1.documento_electronico_id='$documento_electronico_id' ";
+        $Consulta=$this->Query($sql);
+        
+        while($datos_consulta=$this->FetchAssoc($Consulta)){
+            
+            $json.='{ 
+                    "unit_measure_id": 642, 
+                    "invoiced_quantity": "'.round($datos_consulta["cantidad"],6).'", 
+                    "line_extension_amount": "'.round($datos_consulta["subtotal"],2).'", 
+                    "free_of_charge_indicator": false,
+                    "tax_totals": [{
+                        "tax_id": '.$datos_consulta["impuesto_api_id"].',
+                        "tax_amount": "'.round($datos_consulta["impuestos"],2).'",  
+                        "taxable_amount": "'.round($datos_consulta["subtotal"],2).'",
+                        "percent": "'.round($datos_consulta["porcentaje"],2).'" 
+                    }],                    
+                    "description": "'.str_replace("\n","",$this->limpiar_cadena($datos_consulta["nombre_item"])).'",
+                        "code": "'.trim(preg_replace("/[\r\n|\n|\r]+/", "", $this->limpiar_cadena($datos_consulta["referencia_item"]))).'",
+                        "type_item_identification_id": 3,
+                        "price_amount": "'.round($datos_consulta["valor_unitario"],2).'",
+                        "base_quantity": "1.000000"
+                    },';
+        }
+        
+        $json=substr($json, 0, -1);
+        $json.=']';
+        return($json);
+    }
+    
+    public function json_factura_electronica($datos_empresa,$db,$documento_electronico_id) {
+        
+        $datos_documento_electronico=$this->DevuelveValores("$db.documentos_electronicos", "documento_electronico_id", $documento_electronico_id);
+        $datos_resolucion= $this->DevuelveValores("empresa_resoluciones", "ID", $datos_documento_electronico["resolucion_id"]);
+        $datos_tercero=$this->DevuelveValores("$db.terceros", "ID", $datos_documento_electronico["tercero_id"]);
+        
+        $fecha_vencimiento=$this->SumeDiasFecha($datos_documento_electronico["fecha"],30);
+        $sync="false";
+        if($datos_empresa["metodo_envio"]==1){
+            $sync="true";
+        }
+        $send="false";
+        if($datos_empresa["enviar_documento"]==1){
+            $send="true";
+        }
+        $json="{ 
+                   ";
+        $json.=$this->json_datos_generales_documento($datos_documento_electronico["numero"], $sync, $send, $datos_documento_electronico["fecha"], $datos_documento_electronico["hora"], $datos_documento_electronico["tipo_documento_id"], $datos_empresa["TipoPersona"],  $datos_empresa["Regimen"], $datos_resolucion["resolucion_id_api"]);
+        $json.=",";
+        
+        $json.=$this->json_datos_tercero($datos_tercero["identificacion"], $datos_tercero["tipo_organizacion_id"], $datos_tercero["tipo_documento_id"], $datos_tercero["tipo_regimen_id"], $this->limpiar_cadena($datos_tercero["razon_social"]), $datos_tercero["telefono"], $datos_tercero["direccion"], $datos_tercero["email"], $datos_tercero["municipio_id"]);
+        if($datos_documento_electronico["orden_compra"]<>''){
+            $json.=",";
+            $json.=$this->json_orden_compra($this->limpiar_cadena($datos_documento_electronico["orden_compra"]));
+        }
+        if($datos_documento_electronico["notas"]<>''){
+            $json.=",";
+            $json.=$this->json_notas($this->limpiar_cadena($datos_documento_electronico["notas"]));
+        }
+        
+        $json.=",";
+        $json.= $this->json_forma_pago($datos_documento_electronico["forma_pago"], $fecha_vencimiento);
+        
+        $json.=",";
+        $totales= $this->json_impuestos_totales($db, $documento_electronico_id);
+        $json.=$totales["json"];
+        
+        $json.=",";
+        $json.=$this->json_totales_documento($totales["subtotal"], $totales["base_gravable"], ($totales["subtotal"]+$totales["impuestos"]));
+        
+        $json.=",";
+        $json.=$this->json_items_documento_electronico($db, $documento_electronico_id);
+        
+        $json.="}";
+        return($json);
+       
+    }
+    
+    public function reporta_factura_electronica($datos_empresa,$db,$documento_electronico_id) {
+        $json_factura=$this->json_factura_electronica($datos_empresa,$db,$documento_electronico_id);
+        
+        $parametros=$this->DevuelveValores("servidores", "ID", 104); //Ruta para reportar una factura electronica
+        $url=$parametros["IP"];
+        if($datos_empresa["test_set_dian"]<>''){
+            $url.=$datos_empresa["test_set_dian"]."/";
+        }
+        $TokenTS5=$datos_empresa["TokenAPIFE"];
+        $respuesta=$this->callAPI("POST", $url, $TokenTS5, $json_factura);
+        
+        $arrayRespuesta = json_decode($respuesta,true);
+        if($datos_empresa["metodo_envio"]==1){
+            if(isset($arrayRespuesta["isValid"])){
+                if($arrayRespuesta["isValid"]==1){
+                    $uuid=$arrayRespuesta["uuid"];
+                    $zipBase64Bytes=$arrayRespuesta["zipBase64Bytes"];
+                    $pdfBase64Bytes=$arrayRespuesta["pdfBase64Bytes"];
+                    $sql="UPDATE $db.documentos_electronicos SET uuid='$uuid', 
+                            base64_pdf='$pdfBase64Bytes', 
+                            base64_zip='$zipBase64Bytes',
+                            is_valid='1' 
+                         WHERE documento_electronico_id='$documento_electronico_id'";
+                    $this->Query($sql);
+
+                }else{
+                    $error=$arrayRespuesta["responseDian"]["Envelope"]["Body"]["SendBillSyncResponse"]["SendBillSyncResult"]["ErrorMessage"]["string"];
+                    exit("E1;$error");
+                }
+            }
+        }
+        
+        if($datos_empresa["metodo_envio"]==2){
+            if(isset($arrayRespuesta["uuid"])){
+                if($arrayRespuesta["uuid"]<>''){
+                    $uuid=$arrayRespuesta["uuid"];
+                    $zipBase64Bytes=$arrayRespuesta["zipBase64Bytes"];
+                    $pdfBase64Bytes=$arrayRespuesta["pdfBase64Bytes"];
+                    $sql="UPDATE $db.documentos_electronicos SET uuid='$uuid', 
+                            base64_pdf='$pdfBase64Bytes', 
+                            base64_zip='$zipBase64Bytes',
+                            is_valid='1' 
+                         WHERE documento_electronico_id='$documento_electronico_id'";
+                    $this->Query($sql);
+                }
+            }else{
+                exit("E1;El documento no se pudo procesar");
+            }
+        }
+        
+        if(isset($arrayRespuesta["errors"])){
+            $error="<strong>Error en la estructura de los datos: </strong><ul>";
+            foreach ($arrayRespuesta["errors"] as $key => $value) {
+                $error.="<li>$key : ".$value[0]." </li>";
+            }
+            $error.="</ul>";
+            exit("E1;$error");
+        }
+        
+    }
     
     //Fin Clases
 }

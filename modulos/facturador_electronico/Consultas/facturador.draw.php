@@ -20,7 +20,8 @@ if( !empty($_REQUEST["Accion"]) ){
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
             $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
             $db=$datos_empresa["db"];
-            
+            $sql="UPDATE empresa_resoluciones SET estado=3 WHERE fecha_hasta < CURDATE() AND empresa_id='$empresa_id' AND tipo_documento_id=1";
+            $obCon->Query($sql);
             $css->div("", "row", "", "", "", "", "");
                 $css->div("", "col-md-12", "", "", "", "style='text-align:center'", "");
                     print("<strong>MODULO FACTURADOR</strong>");
@@ -79,9 +80,16 @@ if( !empty($_REQUEST["Accion"]) ){
 
                                 $sql="select * from empresa_resoluciones where empresa_id='$empresa_id' and tipo_documento_id=1 and estado=1";
                                 $Consulta=$obCon->Query($sql);
+                                $entra=0;
                                 while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                                    $entra=1;
                                     $css->option("", "", "", $datos_consulta["ID"], "", "");
                                         print($datos_consulta["prefijo"]." ".$datos_consulta["numero_resolucion"]);
+                                    $css->Coption();
+                                }
+                                if($entra==0){
+                                    $css->option("", "", "", "", "", "");
+                                        print("No hay Resoluciones disponibles");
                                     $css->Coption();
                                 }
                             $css->Cselect();
@@ -145,6 +153,101 @@ if( !empty($_REQUEST["Accion"]) ){
                 $css->Cdiv();
             $css->Cdiv();
         break; //Fin caso 1
+        
+        case 2://Dibuja el listado de items de la prefactura
+            
+            $prefactura_id=$obCon->normalizar($_REQUEST["prefactura_id"]);            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $datos_prefactura=$obCon->DevuelveValores("$db.factura_prefactura", "ID", $prefactura_id);
+            $css->CrearTabla();
+                $css->FilaTabla(16);
+                    $css->ColTabla("<strong>ITEMS DE LA PREFACTURA No. $prefactura_id</strong>", 8,"C");
+                $css->CierraFilaTabla();
+                $css->FilaTabla(16);
+                    $css->ColTabla("<strong>Acciones</strong>", 1);
+                    $css->ColTabla("<strong>Código</strong>", 1);
+                    $css->ColTabla("<strong>Descripción</strong>", 1);
+                    $css->ColTabla("<strong>Vr. Unitario</strong>", 1);
+                    $css->ColTabla("<strong>Cantidad</strong>", 1);
+                    $css->ColTabla("<strong>Subtotal</strong>", 1);
+                    $css->ColTabla("<strong>Impuestos</strong>", 1);
+                    $css->ColTabla("<strong>Total</strong>", 1);
+                $css->CierraFilaTabla();
+                
+                $sql="SELECT t1.*,(SELECT Descripcion FROM $db.inventario_items_general t2 WHERE t2.ID=t1.item_id) as nombre_item FROM $db.factura_prefactura_items t1 WHERE prefactura_id='$prefactura_id' ORDER BY ID DESC";
+                $Consulta=$obCon->Query($sql);
+                $subtotal=0;
+                $impuestos=0;
+                $total=0;
+                while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                    $idItem=$datos_consulta["ID"];
+                    $subtotal=$subtotal+$datos_consulta["subtotal"];
+                    $impuestos=$impuestos+$datos_consulta["impuestos"];
+                    $total=$total+$datos_consulta["total"];
+                    $css->FilaTabla(16);
+                        print("<td style='font-size:16px;text-align:center;color:red' title='Borrar'>");                           
+                            $css->li("", "far fa-times-circle", "", "onclick=EliminarItem(`1`,`$idItem`) style=font-size:16px;cursor:pointer;text-align:center;color:red");
+                            $css->Cli();
+                        print("</td>");
+                        $css->ColTabla($datos_consulta["item_id"], 1);
+                        $css->ColTabla($datos_consulta["nombre_item"], 1);
+                        $css->ColTabla(number_format($datos_consulta["valor_unitario"]), 1,"R");
+                        $css->ColTabla(number_format($datos_consulta["cantidad"]), 1,"R");
+                        $css->ColTabla(number_format($datos_consulta["subtotal"]), 1,"R");
+                        $css->ColTabla(number_format($datos_consulta["impuestos"]), 1,"R");
+                        $css->ColTabla(number_format($datos_consulta["total"]), 1,"R");
+                    $css->CierraFilaTabla();
+                }
+                
+                $css->FilaTabla(14);
+                    print("<td colspan=6 rowspan=4>");
+                        print("<div class='row'>");
+                            print("<div class='col-md-9'>");
+                                $css->textarea("txt_observaciones", "form-control", "txt_observaciones", "", "Observaciones de la Factura", "", "onkeyup=editar_registro_prefactura(`$empresa_id`,`factura_prefactura`,`$prefactura_id`,`observaciones`,`txt_observaciones`)");
+                                    print($datos_prefactura["observaciones"]);
+                                $css->Ctextarea();
+                            print("</div>");
+                            print("<div class='col-md-3'>");
+                                $css->input("text", "orden_compra", "form-control", "orden_compra", "", $datos_prefactura["orden_compra"], "Orden de Compra", "off", "", "onkeyup=editar_registro_prefactura(`$empresa_id`,`factura_prefactura`,`$prefactura_id`,`orden_compra`,`orden_compra`)");
+                                
+                                $css->select("forma_pago", "form-control", "forma_pago", "", "", "onchange=editar_registro_prefactura(`$empresa_id`,`factura_prefactura`,`$prefactura_id`,`forma_pago`,`forma_pago`)", "");
+                                    $sel=0;
+                                    if($datos_prefactura["forma_pago"]==1){
+                                        $sel=1;
+                                    }
+                                    $css->option("", "", "", 1, "", "",$sel);
+                                        print("Contado");
+                                    $css->Coption();
+                                    $sel=0;
+                                    if($datos_prefactura["forma_pago"]==2){
+                                        $sel=1;
+                                    }
+                                    $css->option("", "", "", 2, "", "",$sel);
+                                        print("Crédito");
+                                    $css->Coption();
+                                $css->Cselect();
+                                print('<button id="btn_guardar_factura" class="btn btn-success" style="cursor:pointer;width:100%" >Guardar Factura</button>');
+                            print("</div>");
+                        print("</div>");
+                        
+                    print("</td>");
+                $css->FilaTabla(14);                
+                    $css->ColTabla("<strong>Subtotal</strong>", 1,"R");
+                    $css->ColTabla(number_format($subtotal), 1,"R");
+                $css->CierraFilaTabla(); 
+                $css->FilaTabla(14);
+                    $css->ColTabla("<strong>Impuestos</strong>", 1,"R");
+                    $css->ColTabla(number_format($impuestos), 1,"R");
+                $css->CierraFilaTabla(); 
+                $css->FilaTabla(16);    
+                    $css->ColTabla("<strong>Total</strong>", 1,"R");
+                    $css->ColTabla(number_format($total), 1,"R");
+                $css->CierraFilaTabla();
+                
+            $css->CerrarTabla();
+        break;//Fin caso 2   
         
                   
     }

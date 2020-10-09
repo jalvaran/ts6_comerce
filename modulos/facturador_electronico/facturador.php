@@ -38,6 +38,9 @@ $css->PageInit($myTitulo);
         $css->Cdiv();
         
     $css->CModal("btnModalView", "", "", "Enviar");
+    $css->div("div_spinner", "", "", "", "", "", "");
+    
+    $css->Cdiv();
     
     $css->div("", "row", "", "", "", "", "");
         

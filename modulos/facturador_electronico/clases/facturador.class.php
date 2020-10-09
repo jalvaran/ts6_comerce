@@ -23,6 +23,9 @@ class Facturador extends conexion{
     public function agregar_item_prefactura($prefactura_id,$db,$item_id,$precio,$cantidad,$impuestos_incluidos,$usuario_id) {
         
         $datos_item=$this->DevuelveValores($db.".inventario_items_general", "ID", $item_id);
+        if($datos_item["ID"]==''){
+            exit("E1;El Código enviado no existe en la base de datos");
+        }
         $datos_impuestos=$this->DevuelveValores("porcentajes_iva", "ID", $datos_item["porcentajes_iva_id"]);
         $valor_unitario=$datos_item["Precio"];
         if($precio<>''){
