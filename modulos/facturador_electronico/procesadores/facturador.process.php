@@ -93,13 +93,15 @@ if( !empty($_REQUEST["Accion"]) ){
             print("OK;Registro Editado");
         break;//Fin caso 5
             
-        case 6://crea una factura electronica
+        case 6://crea un documento electronico
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
             $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
             $db=$datos_empresa["db"];
             $prefactura_id=$obCon->normalizar($_REQUEST["prefactura_id"]);
             $tercero_id=$obCon->normalizar($_REQUEST["tercero_id"]);
             $resolucion_id=$obCon->normalizar($_REQUEST["resolucion_id"]);
+            $tipo_documento_id=$obCon->normalizar($_REQUEST["tipo_documento_id"]);
+            $documento_asociado_id=$obCon->normalizar($_REQUEST["documento_asociado_id"]);
             if($empresa_id==''){
                 exit("E1;No se recibió el id de la empresa");
             }
@@ -112,6 +114,16 @@ if( !empty($_REQUEST["Accion"]) ){
             if($resolucion_id==''){
                 exit("E1;Debe Seleccionar una resolución;resolucion_id");
             }
+            if($tipo_documento_id==''){
+                exit("E1;Debe Seleccionar un tipo de documento;tipo_documento_id");
+            }
+            
+            if($tipo_documento_id=='5' or $tipo_documento_id=='6'){
+                if($documento_asociado_id==''){
+                    exit("E1;Debe Seleccionar una factura electrónica a asociar;select2-documento_asociado_id-container");
+                }
+                
+            }
             
             $sql="SELECT COUNT(*) total_items FROM $db.factura_prefactura_items WHERE prefactura_id='$prefactura_id'";
             $datos_validacion=$obCon->FetchAssoc($obCon->Query($sql));
@@ -119,7 +131,9 @@ if( !empty($_REQUEST["Accion"]) ){
                 exit("E1;El documento no tiene items agregados");
             }
             
-            $documento_electronico_id=$obFe->crear_factura_electronica_desde_prefactura($empresa_id, $prefactura_id, $tercero_id, $resolucion_id, $idUser);
+            $documento_electronico_id=$obFe->crear_documento_electronico_desde_prefactura($empresa_id,$tipo_documento_id, $prefactura_id, $tercero_id, $resolucion_id,$documento_asociado_id, $idUser);
+            
+            
             $obCon->BorraReg("$db.factura_prefactura_items", "prefactura_id", $prefactura_id);
             $obCon->ActualizaRegistro("$db.factura_prefactura", "observaciones", "", "ID", $prefactura_id);
             $obCon->ActualizaRegistro("$db.factura_prefactura", "orden_compra", "", "ID", $prefactura_id);
@@ -136,10 +150,10 @@ if( !empty($_REQUEST["Accion"]) ){
             if($datos_documento["ID"]==''){
                 exit("E1;El documento no existe en la base de datos");
             }
-            if($datos_documento["tipo_documento_id"]==1){
-                $obFe->reporta_factura_electronica($datos_empresa,$db, $documento_electronico_id);
-                exit("OK;Documento Reportado");
-            }
+            
+            $obFe->reporta_documento_electronico($datos_empresa,$db, $documento_electronico_id,$datos_documento["tipo_documento_id"]);
+            exit("OK;Documento Electrónico Reportado");
+            
             
         break;//Fin caso 7    
         
@@ -183,6 +197,9 @@ if( !empty($_REQUEST["Accion"]) ){
             if($datos_documento["tipo_documento_id"]==1){
                 $json=$obFe->json_factura_electronica($datos_empresa, $db, $documento_electronico_id);
             }
+            if($datos_documento["tipo_documento_id"]==5 or $datos_documento["tipo_documento_id"]==6){
+                $json=$obFe->json_nota_credito_debito($datos_empresa, $db, $documento_electronico_id);
+            }
             print("<pre>".$json."</pre>");
         break;//Fin caso 10    
             
@@ -207,6 +224,24 @@ if( !empty($_REQUEST["Accion"]) ){
             print("OK;".$terceros.";".$items.";".$documentos_ok.";".$documentos_error);
             
         break;//Fin caso 11    
+    
+        case 12://Obtiene los datos de las resoluciones
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $tipo_documento_id=$obCon->normalizar($_REQUEST["tipo_documento_id"]);
+            
+            $sql="SELECT * FROM empresa_resoluciones where empresa_id='$empresa_id'  and tipo_documento_id='$tipo_documento_id' and estado=1";
+            $consulta=$obCon->Query($sql);
+            $i=0;
+            while($datos_consulta=$obCon->FetchAssoc($consulta)){
+                $resoluciones[$i]=$datos_consulta;
+            }
+            if(!isset($resoluciones[0])){
+                exit("E1;No hay resoluciones disponibles para este tipo de documento");
+            }
+            
+            $json_resoluciones= json_encode($resoluciones, true);
+            print("OK;".$json_resoluciones);
+        break;//Fin caso 12    
         
     }
     

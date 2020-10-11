@@ -430,15 +430,20 @@ if( !empty($_REQUEST["Accion"]) ){
                                                 <span class="form-text">ID en el API de la Resolución</span> 
                                             </div>');
                                     $css->Cdiv();
-                                    
-                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                    $css->div("", "col-md-2", "", "", "", "", "");
+                                        print('<div class="form-group">
+                                                <label class="col-form-label">Obtener Numeracion Numeraciones</label>');
+                                            $css->CrearBotonEvento("btnObtenerNumeraciones", "Obtener Numeraciones", 1, "onclick", "obtenerNumeraciones(`$empresa_id`)", "naranja");
+                                        $css->Cdiv();
+                                    $css->Cdiv();
+                                    $css->div("", "col-md-2", "", "", "", "", "");
                                         print('<div class="form-group">
                                                 <label class="col-form-label">Obtener las resoluciones</label>');
                                             $css->CrearBotonEvento("btnObtenerResoluciones", "Obtener Resoluciones", 1, "onclick", "obtenerResoluciones(`$empresa_id`)", "verde");
                                         $css->Cdiv();
                                     $css->Cdiv();
                                     
-                                    $css->div("", "col-md-3", "", "", "", "", "");
+                                    $css->div("", "col-md-2", "", "", "", "", "");
                                         print('<div class="form-group">
                                                 <label class="col-form-label">Click para Crear una resolución</label>');
                                             $css->CrearBotonEvento("btnCrearResolucion", "Ejecutar", 1, "onclick", "confirmaAccion(`4`,`$empresa_id`)", "rojo");

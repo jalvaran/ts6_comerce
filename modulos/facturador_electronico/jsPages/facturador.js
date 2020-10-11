@@ -12,6 +12,7 @@ evento_busqueda();
 function add_events_frms(){
     
     var empresa_id=document.getElementById("empresa_id").value;
+    var tipo_documento_id=document.getElementById("tipo_documento_id").value;
     
     $("#btn_agregar_prefactura").unbind();
     $("#prefactura_id").unbind();
@@ -20,9 +21,8 @@ function add_events_frms(){
     $("#codigo_id").unbind();
     $("#tercero_id").unbind();
     $("#item_id").unbind();
-    
-    
-    
+    $("#tipo_documento_id").unbind();
+        
     $('#tercero_id').select2({		  
         placeholder: 'Seleccione un Tercero',
         ajax: {
@@ -55,7 +55,33 @@ function add_events_frms(){
         }
       });
       
-      
+      $('#tipo_documento_id').on('change',function () {
+            if($(this).val()==5 || $(this).val()==6){
+                $('#div_documento_asociar').show("slow");
+            }else{
+                $('#div_documento_asociar').hide("slow");
+            }
+            $("#documento_asociado_id").unbind();
+            $('#documento_asociado_id').select2({		  
+                placeholder: 'Seleccione una factura a asociar',
+                ajax: {
+                  url: 'buscadores/vista_documentos_electronicos.search.php?empresa_id='+empresa_id,
+                  dataType: 'json',
+                  delay: 250,
+                  processResults: function (data) {
+
+                    return {                     
+                      results: data
+                    };
+                  },
+                 cache: true
+                }
+              });
+              
+            obtenga_resoluciones();
+                  
+            
+        });
       
         $('#btn_agregar_prefactura').on('click',function () {
             agregar_prefactura();
@@ -168,7 +194,7 @@ function confirma_crear_documento_electronico(funcion_id){
         }, function(isConfirm){   
             if (isConfirm) {
                 if(funcion_id==1){
-                    crear_factura_electronica();
+                    crear_documento_electronico();
                 }
                 
                               
@@ -177,6 +203,58 @@ function confirma_crear_documento_electronico(funcion_id){
             } 
         });
 }
+
+
+function obtenga_resoluciones(){
+    
+    var empresa_id = document.getElementById('empresa_id').value;   
+    var tipo_documento_id = document.getElementById('tipo_documento_id').value;    
+        
+    var form_data = new FormData();
+        form_data.append('Accion', 12);        
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('tipo_documento_id', tipo_documento_id);        
+         
+        $.ajax({
+        url: './procesadores/facturador.process.php',
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+           mostrar_spinner("Obteniento resoluciones..");
+        },
+        complete: function(){
+           
+        },
+        success: function(data){
+            ocultar_spinner();
+            var respuestas = data.split(';'); 
+            if(respuestas[0]=="OK"){
+                var resoluciones=$("#resolucion_id");
+                resoluciones.find('option').remove();
+                var opciones_resolucion=jQuery.parseJSON(respuestas[1]);
+                $(opciones_resolucion).each(function(i, v){ // indice, valor
+                    resoluciones.append('<option value="' + v.ID + '">' + v.prefijo +' '+v.numero_resolucion +' || '+v.desde+' - '+v.hasta+ '</option>');
+                });
+                
+            }else if(respuestas[0]=="E1"){                
+                alert(respuestas[1]);
+            }else{
+                alert(data);
+            }
+                       
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            ocultar_spinner();            
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
 
 function reportar_documento_electronico_api(documento_electronico_id){
     
@@ -224,7 +302,7 @@ function reportar_documento_electronico_api(documento_electronico_id){
       });
 }
 
-function crear_factura_electronica(){
+function crear_documento_electronico(){
     
     var btnEnviar = "btn_guardar_factura";
     document.getElementById(btnEnviar).disabled=true;
@@ -233,7 +311,9 @@ function crear_factura_electronica(){
     var empresa_id = document.getElementById('empresa_id').value;  
     var prefactura_id = document.getElementById('prefactura_id').value;  
     var tercero_id = document.getElementById('tercero_id').value;  
-    var resolucion_id = document.getElementById('resolucion_id').value;  
+    var resolucion_id = document.getElementById('resolucion_id').value; 
+    var tipo_documento_id = document.getElementById('tipo_documento_id').value; 
+    var documento_asociado_id = document.getElementById('documento_asociado_id').value; 
         
     var form_data = new FormData();
         form_data.append('Accion', 6);        
@@ -241,6 +321,8 @@ function crear_factura_electronica(){
         form_data.append('prefactura_id', prefactura_id);        
         form_data.append('tercero_id', tercero_id);
         form_data.append('resolucion_id', resolucion_id);
+        form_data.append('tipo_documento_id', tipo_documento_id);
+        form_data.append('documento_asociado_id', documento_asociado_id);
                 
         
         $.ajax({
@@ -252,7 +334,7 @@ function crear_factura_electronica(){
         data: form_data,
         type: 'post',
         beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
-           mostrar_spinner("Creando Factura Electrónica..");
+           mostrar_spinner("Creando Documento Electrónico..");
         },
         complete: function(){
            ocultar_spinner();
@@ -522,6 +604,46 @@ function formulario_facturador(){
     urlQuery='Consultas/facturador.draw.php';    
     var form_data = new FormData();
         form_data.append('Accion', 1);  
+        form_data.append('empresa_id', empresa_id);       
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            add_events_frms();
+            dibuje_prefactura();
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+
+}
+
+
+function formulario_nota_credito_debito(empresa_id,documento_electronico_id){
+    
+    var empresa_id=document.getElementById("empresa_id").value;
+    var idDiv="DivListados";
+    urlQuery='Consultas/facturador.draw.php';    
+    var form_data = new FormData();
+        form_data.append('Accion', 5);  
         form_data.append('empresa_id', empresa_id);       
        $.ajax({// se arma un objecto por medio de ajax  
         url: urlQuery,// se indica donde llegara la informacion del objecto

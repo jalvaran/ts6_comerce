@@ -179,7 +179,7 @@ class Factura_Electronica extends conexion{
         return($NombreArchivo);
     }
     
-    public function registra_documento_electronico($db,$resolucion_id,$tipo_documento_id,$prefijo,$numero,$tercero_id,$usuario_id,$notas,$orden_compra,$forma_pago) {
+    public function registra_documento_electronico($db,$resolucion_id,$tipo_documento_id,$prefijo,$numero,$tercero_id,$usuario_id,$notas,$orden_compra,$forma_pago,$documento_asociado_id) {
         $tab="$db.documentos_electronicos";
         if($tipo_documento_id==1){
             $prefijo_llave="fv_";
@@ -204,6 +204,7 @@ class Factura_Electronica extends conexion{
         $Datos["notas"]=$notas;  
         $Datos["orden_compra"]=$orden_compra;  
         $Datos["forma_pago"]=$forma_pago;  
+        $Datos["documento_asociado_id"]=$documento_asociado_id;  
         $sql=$this->getSQLInsert($tab, $Datos);
         $this->Query($sql);
         return($documento_electronico_id);
@@ -218,11 +219,12 @@ class Factura_Electronica extends conexion{
         $this->Query($sql);
     }
     
-    public function crear_factura_electronica_desde_prefactura($empresa_id,$prefactura_id,$tercero_id,$resolucion_id,$usuario_id) {
+    public function crear_documento_electronico_desde_prefactura($empresa_id,$tipo_documento_id,$prefactura_id,$tercero_id,$resolucion_id,$documento_asociado_id,$usuario_id) {
         $datos_empresa=$this->DevuelveValores("empresapro", "ID", $empresa_id);
         $empresa_db=$datos_empresa["db"];
         $datos_prefactura=$this->DevuelveValores("$empresa_db.factura_prefactura", "ID", $prefactura_id);
-        $datos_tercero=$this->DevuelveValores("$empresa_db.terceros", "ID", $tercero_id);
+        //$datos_tercero=$this->DevuelveValores("$empresa_db.terceros", "ID", $tercero_id);
+        
         $datos_resolucion=$this->DevuelveValores("empresa_resoluciones", "ID", $resolucion_id);
         
         if($datos_resolucion["estado"]==2){
@@ -231,7 +233,7 @@ class Factura_Electronica extends conexion{
         if($datos_resolucion["estado"]==3){
             exit("E1;La resolución seleccionada ya está vencida");
         }
-        $sql="SELECT MAX(numero) as numero FROM $empresa_db.documentos_electronicos WHERE tipo_documento_id=1";
+        $sql="SELECT MAX(numero) as numero FROM $empresa_db.documentos_electronicos WHERE tipo_documento_id='$tipo_documento_id' and resolucion_id='$resolucion_id'";
         $datos_validacion=$this->FetchAssoc($this->Query($sql));
         if($datos_validacion["numero"]=='' or $datos_validacion["numero"]==0){
             $datos_validacion["numero"]=$datos_resolucion["proximo_numero_documento"]-1;
@@ -243,7 +245,7 @@ class Factura_Electronica extends conexion{
         $notas=$this->limpiar_cadena($datos_prefactura["observaciones"]);
         $orden_compra=$this->limpiar_cadena($datos_prefactura["orden_compra"]);
         
-        $documento_electronico_id=$this->registra_documento_electronico($empresa_db,$resolucion_id,$datos_resolucion["tipo_documento_id"],$datos_resolucion["prefijo"],$numero,$tercero_id,$usuario_id,$notas,$orden_compra,$datos_prefactura["forma_pago"]);
+        $documento_electronico_id=$this->registra_documento_electronico($empresa_db,$resolucion_id,$tipo_documento_id,$datos_resolucion["prefijo"],$numero,$tercero_id,$usuario_id,$notas,$orden_compra,$datos_prefactura["forma_pago"],$documento_asociado_id);
         $this->copiar_items_prefactura_items_documento($empresa_db, $prefactura_id, $documento_electronico_id);
         return($documento_electronico_id);
         
@@ -348,11 +350,15 @@ class Factura_Electronica extends conexion{
         $Totales["json"]=$json;
         return($Totales);
     }
-    
-    public function json_totales_documento($subtotal,$base_gravable,$total_pagar) {
         
+    public function json_totales_documento($subtotal,$base_gravable,$total_pagar,$tipo_documento_id=1) {
+        
+        $titulo="legal_monetary_totals";
+        if($tipo_documento_id==6){//si es una nota credito
+            $titulo="requested_monetary_totals";
+        }
         $json='
-            "legal_monetary_totals":
+            "'.$titulo.'":
                 { 
                     "line_extension_amount": "'.round($subtotal,2).'",
                     "tax_exclusive_amount": "'.round($base_gravable,2).'",
@@ -364,9 +370,20 @@ class Factura_Electronica extends conexion{
         return($json);
     }
     
-    public function json_items_documento_electronico($db,$documento_electronico_id) {
-        $json='
-                "invoice_lines":[';
+    public function json_items_documento_electronico($db,$documento_electronico_id,$tipo_documento_id=1) {
+        if($tipo_documento_id==1){//Factura electronica
+            $json='
+                    "invoice_lines":[';
+        }
+        if($tipo_documento_id==5){//nota credito
+            $json='
+                    "credit_note_lines":[';
+        }
+        
+        if($tipo_documento_id==6){//nota debito
+            $json='
+                    "debit_note_lines":[';
+        }
         
         $sql="SELECT t1.subtotal, t1.impuestos , t1.total ,t1.porcentaje_iva_id,t1.cantidad, t1.valor_unitario,
                 (SELECT impuesto_api_id FROM porcentajes_iva t2 WHERE t2.ID=t1.porcentaje_iva_id) as impuesto_api_id,
@@ -402,7 +419,7 @@ class Factura_Electronica extends conexion{
         $json.=']';
         return($json);
     }
-    
+        
     public function json_factura_electronica($datos_empresa,$db,$documento_electronico_id) {
         
         $datos_documento_electronico=$this->DevuelveValores("$db.documentos_electronicos", "documento_electronico_id", $documento_electronico_id);
@@ -451,10 +468,99 @@ class Factura_Electronica extends conexion{
        
     }
     
-    public function reporta_factura_electronica($datos_empresa,$db,$documento_electronico_id) {
-        $json_factura=$this->json_factura_electronica($datos_empresa,$db,$documento_electronico_id);
+    public function json_documento_referencia($numero_documento,$uuid,$fecha) {
+        $json=' 
+            "billing_reference": {
+                "number": "'.$numero_documento.'",
+                "uuid": "'.$uuid.'",
+                "issue_date": "'.$fecha.'"
+                    
+                }';
+        return($json);
+    }
+    
+    public function json_concepto_correccion($correction_concept_id) {
+        $json=' 
+            "discrepancy_response": {
+                "correction_concept_id": '.$correction_concept_id.'                                    
+            }';
+        return($json);
+    }
+    
+    public function json_numero_nota_credito_debito($number,$sync,$send,$type_document_id) {
+        $json='             
+                "number": '.$number.',
+                "sync": '.$sync.',
+                "send": '.$send.',
+                "type_document_id": '.$type_document_id.'
+            ';
+        return($json);
+    }
+    
+    public function json_nota_credito_debito($datos_empresa,$db,$documento_electronico_id) {
         
-        $parametros=$this->DevuelveValores("servidores", "ID", 104); //Ruta para reportar una factura electronica
+        $datos_documento_electronico=$this->DevuelveValores("$db.documentos_electronicos", "documento_electronico_id", $documento_electronico_id);
+        $datos_resolucion= $this->DevuelveValores("empresa_resoluciones", "ID", $datos_documento_electronico["resolucion_id"]);
+        $datos_tercero=$this->DevuelveValores("$db.terceros", "ID", $datos_documento_electronico["tercero_id"]);
+        
+        $sync="false";
+        if($datos_empresa["metodo_envio"]==1){
+            $sync="true";
+        }
+        $send="false";
+        if($datos_empresa["enviar_documento"]==1){
+            $send="true";
+        }
+        $json="{ 
+                   ";
+        $datos_documento_referencia=$this->DevuelveValores("$db.documentos_electronicos", "documento_electronico_id", $datos_documento_electronico["documento_asociado_id"]);
+        if(!isset($datos_documento_referencia["uuid"]) or $datos_documento_referencia["uuid"]==''){
+            exit("E1;No existe un documento referencia valido");
+        }
+        $json.=$this->json_documento_referencia($datos_documento_referencia["prefijo"].$datos_documento_referencia["numero"],$datos_documento_referencia["uuid"],$datos_documento_electronico["fecha"]);
+        $json.=",";
+        if($datos_documento_electronico["tipo_documento_id"]==5){
+            $concepto_correccion_id=1;
+        }else{
+            $concepto_correccion_id=10;
+        }
+        $json.=$this->json_concepto_correccion($concepto_correccion_id);
+        $json.=",";
+        $json.=$this->json_numero_nota_credito_debito($datos_documento_electronico["numero"],$sync,$send,$datos_documento_electronico["tipo_documento_id"]);
+        $json.=",";
+        $json.=$this->json_datos_tercero($datos_tercero["identificacion"], $datos_tercero["tipo_organizacion_id"], $datos_tercero["tipo_documento_id"], $datos_tercero["tipo_regimen_id"], $this->limpiar_cadena($datos_tercero["razon_social"]), $datos_tercero["telefono"], $datos_tercero["direccion"], $datos_tercero["email"], $datos_tercero["municipio_id"]);
+          
+        $json.=",";        
+        $totales= $this->json_impuestos_totales($db, $documento_electronico_id);        
+        $json.=$totales["json"];
+        
+        $json.=",";        
+        $json.=$this->json_totales_documento($totales["subtotal"], $totales["base_gravable"], ($totales["subtotal"]+$totales["impuestos"]),$datos_documento_electronico["tipo_documento_id"]);
+        
+        $json.=",";        
+        $json.=$this->json_items_documento_electronico($db, $documento_electronico_id,$datos_documento_electronico["tipo_documento_id"]);
+        
+        $json.="}";
+        return($json);
+       
+    }
+    public function reporta_documento_electronico($datos_empresa,$db,$documento_electronico_id,$tipo_documento) {
+        
+        if($tipo_documento==1){
+            $json_factura=$this->json_factura_electronica($datos_empresa,$db,$documento_electronico_id);        
+            $parametros=$this->DevuelveValores("servidores", "ID", 104); //Ruta para reportar una factura electronica
+            
+        }
+        
+        if($tipo_documento==5){
+            $json_factura=$this->json_nota_credito_debito($datos_empresa,$db,$documento_electronico_id);
+            $parametros=$this->DevuelveValores("servidores", "ID", 105); //Ruta para reportar una factura electronica
+        }
+        if($tipo_documento==6){
+            $json_factura=$this->json_nota_credito_debito($datos_empresa,$db,$documento_electronico_id);
+            $parametros=$this->DevuelveValores("servidores", "ID", 108); //Ruta para reportar una factura electronica
+        }
+        
         $url=$parametros["IP"];
         if($datos_empresa["test_set_dian"]<>''){
             $url.=$datos_empresa["test_set_dian"]."/";

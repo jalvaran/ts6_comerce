@@ -65,6 +65,7 @@ CREATE TABLE `api_fe_software` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 INSERT INTO `api_fe_software` (`ID`, `empresa_id`, `software_id`, `software_pin`, `created`) VALUES
+(5,	3,	'8088cfcc-7e70-4fa2-9047-7335eb9adf89',	12345,	'0000-00-00 00:00:00'),
 (4,	2,	'99c98d5f-6ea8-48e7-9a56-ddc57cd99bd5',	12345,	'0000-00-00 00:00:00');
 
 SET NAMES utf8mb4;
@@ -76,21 +77,22 @@ CREATE TABLE `api_fe_tipo_documentos` (
   `code` char(255) COLLATE utf8_spanish_ci DEFAULT NULL,
   `cufe_algorithm` char(255) COLLATE utf8_spanish_ci DEFAULT NULL,
   `prefix` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `activo` int(11) NOT NULL,
   `created` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `updated` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`ID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
-INSERT INTO `api_fe_tipo_documentos` (`ID`, `name`, `code`, `cufe_algorithm`, `prefix`, `created`, `updated`) VALUES
-(1,	'Factura electrónica',	'01',	'CUFE-SHA384',	'fv',	'2019-09-26 18:54:07',	'2020-07-13 20:01:28'),
-(2,	'Factura electrónica de exportación',	'02',	'CUFE-SHA384',	'fv',	'2019-09-26 18:54:07',	'2020-07-13 20:01:28'),
-(3,	'Factura electrónica de contingencia',	'03',	'CUDE-SHA384',	'fv',	'2019-09-26 18:54:07',	'2020-07-13 20:01:28'),
-(4,	'Factura electrónica de contingencia',	'04',	'CUFE-SHA384',	'fv',	'2019-09-26 18:54:07',	'2020-07-13 20:01:28'),
-(5,	'Nota de crédito electrónica',	'91',	'CUDE-SHA384',	'nc',	'2019-09-26 18:54:07',	'2020-07-13 20:01:28'),
-(6,	'Nota de débito electrónica',	'92',	'CUDE-SHA384',	'nd',	'2019-09-26 18:54:07',	'2020-07-13 20:01:28'),
-(7,	'ZIP',	'',	'',	'z',	'2019-09-26 18:54:07',	'2019-09-26 23:54:07'),
-(8,	'Application Response',	'',	'',	'ar',	'2019-12-12 15:08:11',	'2019-12-12 20:08:11'),
-(9,	'Attached Document',	'',	'',	'ad',	'2019-12-12 15:08:11',	'2019-12-12 20:08:11');
+INSERT INTO `api_fe_tipo_documentos` (`ID`, `name`, `code`, `cufe_algorithm`, `prefix`, `activo`, `created`, `updated`) VALUES
+(1,	'Factura electrónica',	'01',	'CUFE-SHA384',	'fv',	1,	'2020-10-11 08:41:19',	'2020-10-11 13:41:19'),
+(2,	'Factura electrónica de exportación',	'02',	'CUFE-SHA384',	'fv',	0,	'2019-09-26 18:54:07',	'2020-07-13 20:01:28'),
+(3,	'Factura electrónica de contingencia',	'03',	'CUDE-SHA384',	'fv',	0,	'2019-09-26 18:54:07',	'2020-07-13 20:01:28'),
+(4,	'Factura electrónica de contingencia',	'04',	'CUFE-SHA384',	'fv',	0,	'2019-09-26 18:54:07',	'2020-07-13 20:01:28'),
+(5,	'Nota de crédito electrónica',	'91',	'CUDE-SHA384',	'nc',	1,	'2020-10-11 08:41:19',	'2020-10-11 13:41:19'),
+(6,	'Nota de débito electrónica',	'92',	'CUDE-SHA384',	'nd',	1,	'2020-10-11 08:41:19',	'2020-10-11 13:41:19'),
+(7,	'ZIP',	'',	'',	'z',	0,	'2019-09-26 18:54:07',	'2019-09-26 23:54:07'),
+(8,	'Application Response',	'',	'',	'ar',	0,	'2019-12-12 15:08:11',	'2019-12-12 20:08:11'),
+(9,	'Attached Document',	'',	'',	'ad',	0,	'2019-12-12 15:08:11',	'2019-12-12 20:08:11');
 
 DROP TABLE IF EXISTS `backups`;
 CREATE TABLE `backups` (
@@ -1389,7 +1391,8 @@ CREATE TABLE `empresapro` (
 
 INSERT INTO `empresapro` (`ID`, `RazonSocial`, `NIT`, `DigitoVerificacion`, `Direccion`, `Barrio`, `Telefono`, `Celular`, `Ciudad`, `CodigoDaneCiudad`, `ResolucionDian`, `Regimen`, `TipoPersona`, `TipoDocumento`, `MatriculoMercantil`, `ActividadesEconomicas`, `Obligaciones`, `Email`, `WEB`, `ObservacionesLegales`, `PuntoEquilibrio`, `DatosBancarios`, `RutaImagen`, `FacturaSinInventario`, `CXPAutomaticas`, `TokenAPIFE`, `test_set_dian`, `metodo_envio`, `enviar_documento`, `db`, `Estado`, `Updated`, `Sync`) VALUES
 (1,	'TECHNO SOLUCIONES SAS',	900833180,	7,	'CARRERA 17 7 24',	'JOSE MARIA CABAL',	'3177740609',	'3177740609',	'BUGA',	76111,	NULL,	1,	'1',	31,	321321,	'321321',	23,	'jalvaran@gmail.com',	'www.technosoluciones.com.co',	NULL,	0,	NULL,	'LogosEmpresas/logotipo1.png',	NULL,	'SI',	NULL,	NULL,	NULL,	NULL,	'techno_ts6_comerce_900833180',	0,	'2020-10-08 00:12:57',	'0000-00-00 00:00:00'),
-(2,	'DISTRIBUIDORA PADILLA SPORT',	34606612,	3,	'CARRERA 3 8 30',	'PADILLA',	'3207001207',	'3207001207',	'PADILLA',	19513,	NULL,	1,	'2',	31,	70196,	'4711',	29,	'padillasportfe@gmail.com',	'www.technosoluciones.com.co',	NULL,	0,	NULL,	'LogosEmpresas/logotipo1.png',	NULL,	'SI',	'ttuPDi4OL6BybXdJNZ0ylxrLBDQDXkDC6rhz3I5KU3nN0Kg9Nt9nRsoAwR0N1LAE8BjPwrZVKJVbJZX0',	'8272943b-1ffa-48c5-9e35-4bd2bb61b9b8',	1,	1,	'techno_ts6_comerce_34606612',	1,	'2020-10-09 03:12:47',	'0000-00-00 00:00:00');
+(2,	'DISTRIBUIDORA PADILLA SPORT',	34606612,	3,	'CARRERA 3 8 30',	'PADILLA',	'3207001207',	'3207001207',	'PADILLA',	19513,	NULL,	1,	'2',	31,	70196,	'4711',	29,	'padillasportfe@gmail.com',	'www.technosoluciones.com.co',	NULL,	0,	NULL,	'LogosEmpresas/logotipo1.png',	NULL,	'SI',	'ttuPDi4OL6BybXdJNZ0ylxrLBDQDXkDC6rhz3I5KU3nN0Kg9Nt9nRsoAwR0N1LAE8BjPwrZVKJVbJZX0',	'8272943b-1ffa-48c5-9e35-4bd2bb61b9b8',	1,	1,	'techno_ts6_comerce_34606612',	1,	'2020-10-09 03:12:47',	'0000-00-00 00:00:00'),
+(3,	'FERRETERIA BOTEROS PALMIRA',	94320059,	9,	'CALLE 30 18 81',	'PALMIRA',	'3127526061',	'3127526061',	'PALMIRA',	76520,	NULL,	1,	'2',	31,	80688,	'4752',	29,	'jalvaran@gmail.com',	'www.technosoluciones.com.co',	NULL,	0,	NULL,	'LogosEmpresas/logotipo1.png',	NULL,	'SI',	'Ki1hYvuTAmPUj4u2Mn9BsGU13Svq9K5IElaDlKa8MhBNXfQn3FCFrBOQWxFeckXuayIwCtUVM98EWpfn',	' ',	1,	1,	'techno_ts6_comerce_94320059',	1,	'2020-10-11 17:35:11',	'0000-00-00 00:00:00');
 
 DROP TABLE IF EXISTS `empresa_obligaciones`;
 CREATE TABLE `empresa_obligaciones` (
@@ -1548,7 +1551,7 @@ CREATE TABLE `empresa_resoluciones` (
 
 INSERT INTO `empresa_resoluciones` (`ID`, `empresa_id`, `tipo_documento_id`, `prefijo`, `numero_resolucion`, `fecha_resolucion`, `llave_tecnica`, `desde`, `hasta`, `fecha_desde`, `fecha_hasta`, `proximo_numero_documento`, `resolucion_id_api`, `estado`, `created`) VALUES
 (1,	2,	1,	'SETP',	'18760000001',	'0001-01-01',	'fc8eac422eba16e22ffd8c6f94b3f40a6e38162c',	990000000,	995000000,	'2019-01-19',	'2030-01-19',	990000003,	37,	1,	'2020-10-08 22:01:33'),
-(2,	2,	5,	'NOTC',	'',	'0000-00-00',	'',	1,	1000,	'0000-00-00',	'0000-00-00',	1,	38,	1,	'2020-10-08 09:35:51'),
+(2,	2,	5,	'NOTC',	'',	'0000-00-00',	'',	1,	1000,	'0000-00-00',	'0000-00-00',	1,	38,	1,	'2020-10-11 10:08:00'),
 (3,	2,	6,	'NOTD',	'',	'0000-00-00',	'',	1,	1000,	'0000-00-00',	'0000-00-00',	1,	39,	1,	'2020-10-08 09:35:51');
 
 DROP TABLE IF EXISTS `empresa_tipo_organizacion`;
@@ -1756,6 +1759,8 @@ INSERT INTO `servidores` (`ID`, `IP`, `Nombre`, `Usuario`, `Password`, `DataBase
 (105,	'http://35.238.236.240/api/ubl2.1/credit-note/',	'SERVIDOR NOTAS CREDITO ELECTRONICAS',	'',	'',	'',	0,	'REST',	'Ruta para la el envío de una nota credito electronica, para habilitar el servidor real dejar la ruta solo hasta invoice  ver: http://35.238.236.240/api/ubl2.1/documentation',	'2020-10-05 14:24:48',	'2020-07-25 10:06:36'),
 (106,	'http://35.238.236.240/api/ubl2.1/logs/',	'VALIDAR LOGS DE UN DOCUMENTO ELECTRONICO',	'',	'',	'',	0,	'REST',	'Esta ruta devuelve el log de un documento, debe acompañarse por el uuid, ver documentacion: http://35.238.236.240/api/ubl2.1/documentation',	'2020-07-25 15:06:36',	'2020-07-25 10:06:36'),
 (107,	'http://35.238.236.240/api/ubl2.1/config/multiple-resolutions/',	'SERVIDOR FACTURACION ELECTRONICA',	'',	'',	'',	0,	'REST',	'Ruta para la configuracion de la multiples resolucion de facturacion electronica en el servidor de Facturacion electronica, ver: http://35.238.236.240/api/ubl2.1/documentation',	'2020-10-06 14:28:42',	'2020-07-25 10:06:36'),
+(108,	'http://35.238.236.240/api/ubl2.1/debit-note/',	'SERVIDOR NOTAS DEBITO ELECTRONICAS',	'',	'',	'',	0,	'REST',	'Ruta para la el envío de una nota debito electronica, para habilitar el servidor real dejar la ruta solo hasta invoice  ver: http://35.238.236.240/api/ubl2.1/documentation',	'2020-10-05 14:24:48',	'2020-07-25 10:06:36'),
+(109,	'http://35.238.236.240/api/ubl2.1/numbering/range/',	'obtener numeraciones disponibles en la DIAN',	'',	'',	'',	0,	'REST',	'Esta ruta devuelve el log de un documento, debe acompañarse por el uuid, ver documentacion: http://35.238.236.240/api/ubl2.1/documentation',	'2020-07-25 15:06:36',	'2020-07-25 10:06:36'),
 (1000,	'35.226.201.57',	'SERVIDOR PARA PLATAFORMA DOMI',	'root',	'pirlo1985',	'ts_domi',	0,	'MYSQL',	'Administrar la plataforma DOMI',	'2020-07-25 15:06:36',	'2020-07-25 10:06:36');
 
 DROP TABLE IF EXISTS `tablas_campos_asociados`;
@@ -2086,4 +2091,4 @@ INSERT INTO `usuarios_tipo` (`ID`, `Tipo`, `Updated`, `Sync`) VALUES
 (4,	'cajero',	'2019-01-13 14:14:14',	'2019-01-13 09:14:14'),
 (5,	'bodega',	'2019-01-13 14:14:14',	'2019-01-13 09:14:14');
 
--- 2020-10-09 15:22:26
+-- 2020-10-11 17:46:38

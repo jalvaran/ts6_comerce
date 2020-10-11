@@ -68,8 +68,8 @@ $css->PageInit($myTitulo);
                 $css->Coption();
             }
         $css->Cselect();
-        //print('<span class="btn btn-light fom-control text-dark">Facturador: </span>');
-        $css->CrearBotonEvento("btnFacturar", "Módulo Facturador", 1, "onclick", "formulario_facturador()", "azul");
+        
+        $css->CrearBotonEvento("btnFacturar", "Hacer un Documento Electrónico", 1, "onclick", "formulario_facturador()", "azul");
         print('</div>');
         $html=$css->getHtmlPanelInfo("Terceros", 0, "sp_terceros", 2, "icon-people", "onclick=dibuja_tabla(`get`,`terceros`,`1`,`DivListados`)", "style=cursor:pointer", "primary", 1, "p_terceros");
         $html.=$css->getHtmlPanelInfo("Items", 0, "sp_inventario_items", 2, "icon-layers", "onclick=dibuja_tabla(`get`,`inventario_items_general`,`1`,`DivListados`)", "style=cursor:pointer", "warning", 1, "p_inventario_items");

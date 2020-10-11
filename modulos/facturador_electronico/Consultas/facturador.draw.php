@@ -22,17 +22,54 @@ if( !empty($_REQUEST["Accion"]) ){
             $db=$datos_empresa["db"];
             $sql="UPDATE empresa_resoluciones SET estado=3 WHERE fecha_hasta < CURDATE() AND empresa_id='$empresa_id' AND tipo_documento_id=1";
             $obCon->Query($sql);
-            $css->div("", "row", "", "", "", "", "");
-                $css->div("", "col-md-12", "", "", "", "style='text-align:center'", "");
-                    print("<strong>MODULO FACTURADOR</strong>");
-                $css->Cdiv(); 
+            $css->div("", "row widget-separator-1 mb-1", "", "", "", "", "");
+                
+                print('<div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="col-form-label">Tipo de Documento</label>
+                                    <div class="input-group">'); 
+                        $css->select("tipo_documento_id", "form-control", "tipo_documento_id", "", "", "", "");
+
+                            $sql="select * from api_fe_tipo_documentos where activo='1'";
+                            $Consulta=$obCon->Query($sql);
+                            while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                                $css->option("", "", "", $datos_consulta["ID"], "", "");
+                                    print($datos_consulta["name"]);
+                                $css->Coption();
+                            }
+                        $css->Cselect();
+
+                        print('        
+                                    </div>
+                                </div>
+                            </div>');
+                        
+                
+                print('<div id="div_documento_asociar" class="col-md-9" style="display:none">
+                                <div class="form-group">
+                                    <label class="col-form-label">Asociar una factura electrónica a éste documento:</label>
+                                    <div class="input-group">'); 
+                        $css->select("documento_asociado_id", "form-control", "documento_asociado_id", "", "", "", "");
+
+                            $css->option("", "", "", "", "", "");
+                                print("Seleccione una Factura");
+                            $css->Coption();
+                           
+                        $css->Cselect();
+
+                        print('        
+                                    </div>
+                                </div>
+                            </div>');        
+                        
+                
             $css->Cdiv();
             $css->linea();
             ///$css->form("frm_prefactura_general", "form-control", "frm_prefactura_general", "post", "", "", "", "style=border:0px;");
                 $css->div("", "row widget-separator-1 mb-1", "", "", "", "", "");
                     print('<div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="col-form-label">Pre Factura</label>
+                                        <label class="col-form-label">Pre Documento</label>
                                         <div class="input-group">'); 
                             $css->select("prefactura_id", "form-control", "prefactura_id", "", "", "", "");
                                 $css->option("", "", "", "", "", "");
@@ -44,7 +81,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                     $sel=$datos_consulta["activa"];
 
                                     $css->option("", "", "", $datos_consulta["ID"], "", "",$sel);
-                                        print("Prefactura No. ".$datos_consulta["ID"]);
+                                        print("Predocumento No. ".$datos_consulta["ID"]);
                                     $css->Coption();
                                 }
                             $css->Cselect();
@@ -205,7 +242,7 @@ if( !empty($_REQUEST["Accion"]) ){
                     print("<td colspan=6 rowspan=4>");
                         print("<div class='row'>");
                             print("<div class='col-md-9'>");
-                                $css->textarea("txt_observaciones", "form-control", "txt_observaciones", "", "Observaciones de la Factura", "", "onkeyup=editar_registro_prefactura(`$empresa_id`,`factura_prefactura`,`$prefactura_id`,`observaciones`,`txt_observaciones`)");
+                                $css->textarea("txt_observaciones", "form-control", "txt_observaciones", "", "Observaciones del documento", "", "onkeyup=editar_registro_prefactura(`$empresa_id`,`factura_prefactura`,`$prefactura_id`,`observaciones`,`txt_observaciones`)");
                                     print($datos_prefactura["observaciones"]);
                                 $css->Ctextarea();
                             print("</div>");
@@ -228,7 +265,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                         print("Crédito");
                                     $css->Coption();
                                 $css->Cselect();
-                                print('<button id="btn_guardar_factura" class="btn btn-success" style="cursor:pointer;width:100%" >Guardar Factura</button>');
+                                print('<button id="btn_guardar_factura" class="btn btn-success" style="cursor:pointer;width:100%" >Guardar Documento</button>');
                             print("</div>");
                         print("</div>");
                         
@@ -284,11 +321,11 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $totales = $obCon->FetchAssoc($Consulta);
             $ResultadosTotales = $totales['Items'];
-                        
+                     
             $sql="SELECT t1.*
                   FROM $tabla t1 $Condicion LIMIT $PuntoInicio,$Limit;";
             $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
-                    
+              
             $css->div("", "box-body no-padding", "", "", "", "", "");
                 $css->div("", "mailbox-controls", "", "", "", "", "");
                 
@@ -383,7 +420,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                         <th>Orden de Compra</th>   
                                         <th>Observaciones</th>                                       
                                         <th>Usuario</th>
-                                        <th>Nota Crédito</th>
+                                        
                                         <th>UUID</th>
                                                                                 
                                     </tr>
@@ -435,11 +472,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                 print("<td class='mailbox-name'>");
                                     print($RegistrosTabla["nombre_usuario"]);
                                 print("</td>");
-                                print("<td style='text-align:center'>");
-                                    if($RegistrosTabla["tipo_documento_id"]==1){
-                                        print('<a style="font-size:25px;text-align:center" title="Ver PDF" onclick="formulario_nota_credito(`'.$empresa_id.'`,`'.$idItem.'`)" ><i class="fa fa-info-circle text-danger"></i></a>');
-                                    }
-                                print("</td>");
+                                
                                 print("<td class='mailbox-name'>");
                                     print($RegistrosTabla["uuid"]);
                                 print("</td>");
@@ -650,7 +683,7 @@ if( !empty($_REQUEST["Accion"]) ){
             
         break;//Fin caso 4
         
-        
+             
     }
     
     

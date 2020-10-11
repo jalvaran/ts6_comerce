@@ -384,6 +384,123 @@ if( !empty($_REQUEST["Accion"]) ){
             }
         break;//Fin caso 7
         
+        case 8://Obtener las resoluciones de facturacion creadas en el software
+            $obFe=new Factura_Electronica($idUser);            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            
+            if($empresa_id==""){
+                exit("E1;No se recibió el id de la empresa");
+            }
+                        
+            $DatosEmpresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $TokenTS5=$DatosEmpresa["TokenAPIFE"];
+            $datos_software=$obCon->DevuelveValores("api_fe_software", "empresa_id", $empresa_id);
+            
+            $parametros=$obCon->DevuelveValores("servidores", "ID", 109); //Ruta para crear una resolucion multiple
+            $url=$parametros["IP"].$DatosEmpresa["NIT"]."/".$DatosEmpresa["NIT"]."/".$datos_software["software_id"];               
+            $metodo_envio="POST";
+            $respuesta=$obFe->callAPI($metodo_envio, $url, $TokenTS5, "");                
+            $arrayRespuesta = json_decode($respuesta,true);
+            if(is_array($arrayRespuesta)){
+                foreach ($arrayRespuesta as $key => $value) {
+                    if(is_array($value)){
+                        print("<ul>");
+                        foreach ($value as $key2 => $value2) {
+                            if(is_array($value2)){
+                                print("<ul>");
+                                foreach ($value2 as $key => $value3) {
+                                    
+                                    if(is_array($value3)){
+                                        print("<ul>");
+                                        foreach ($value3 as $key => $value4) {
+                                            if(is_array($value4)){
+                                                print("<ul>");
+                                                foreach ($value4 as $key => $value5) {
+                                                    if(is_array($value5)){
+                                                        print("<ul>");
+                                                        foreach ($value5 as $key => $value6) {
+                                                            if(is_array($value6)){
+                                                                print("<ul>");
+                                                                foreach ($value6 as $key => $value7) {
+                                                                    if(is_array($value7)){
+                                                                        print("<ul>");
+                                                                        foreach ($value7 as $key => $value8) {
+                                                                            if(is_array($value8)){
+                                                                                print("<ul>");
+                                                                                foreach ($value8 as $key => $value9) {
+                                                                                    if(is_array($value9)){
+                                                                                        print("<ul>");
+                                                                                        foreach ($value9 as $key => $value10) {
+                                                                                            if(is_array($value10)){
+                                                                                                print("<ul>");
+                                                                                                foreach ($value10 as $key => $value11) {
+                                                                                                    print("<li><strong>$key: </strong> ".$value11."</li>");
+                                                                                                }
+                                                                                                print("</ul>");
+                                                                                            }else{
+                                                                                                print("<li><strong>$key: </strong> ".$value10."</li>");
+                                                                                            }
+                                                                                        }
+                                                                                        print("</ul>");
+                                                                                    }else{
+                                                                                        print("<li><strong>$key: </strong> ".$value9."</li>");
+                                                                                    }
+                                                                                    
+                                                                                    
+                                                                                }
+                                                                                print("</ul>");
+                                                                            }else{
+                                                                                print("<li><strong>$key: </strong> ".$value8."</li>");
+                                                                            }
+                                                                            
+                                                                        }
+                                                                        print("</ul>");
+                                                                    }else{
+                                                                        print("<li><strong>$key: </strong> ".$value7."</li>");
+                                                                    }
+                                                                    
+                                                                }
+                                                                print("</ul>");
+                                                            }else{
+                                                                print("<li><strong>$key: </strong> ".$value6."</li>");
+                                                            }
+                                                            
+                                                        }
+                                                        print("</ul>");
+                                                    }else{
+                                                        print("<li><strong>$key: </strong> ".$value5."</li>");
+                                                    }
+                                                    
+                                                }
+                                                print("</ul>");
+                                            }else{
+                                                print("<li><strong>$key: </strong> ".$value4."</li>");
+                                            }
+                                            
+                                        }
+                                        print("</ul>");
+                                    }else{
+                                        print("<li><strong>$key: </strong> ".$value3."</li>");
+                                    }
+                                    
+                                }
+                                print("</ul>");
+                            }else{
+                                print("<li><strong>$key2: </strong> ".$value2."</li>");
+                            }
+                            
+                        }
+                        print("</ul>");
+                    }else{
+                        print("<br><strong>$key: </strong> ".$value);
+                    }
+
+                }
+            }else{
+                print("No se obtuvo respuesta del API");
+            }
+        break;//Fin caso 8
+        
     }
     
     

@@ -67,7 +67,7 @@ class Facturador extends conexion{
                     (SELECT identificacion FROM terceros t4 WHERE t4.ID=t1.tercero_id LIMIT 1) AS nit_tercero,
                     (SELECT CONCAT(Nombre,' ',Apellido) FROM $principalDb.usuarios t5 WHERE t5.idUsuarios=t1.usuario_id LIMIT 1) AS nombre_usuario 
                     
-                FROM `documentos_electronicos` t1 ORDER BY updated,ID DESC;";
+                FROM `documentos_electronicos` t1 ORDER BY updated DESC ";
         
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }

@@ -423,6 +423,46 @@ function obtenerResoluciones(empresa_id){
       });
 }
 
+function obtenerNumeraciones(empresa_id){
+    
+    urlQuery='procesadores/admin_empresas.process.php';    
+    
+    var btnEnviar = "btnObtenerNumeraciones";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Obteniendo...";
+    
+    var idDiv="div_crear_resoluciones";    
+    
+    var form_data = new FormData();
+        form_data.append('Accion', '8');  
+        form_data.append('empresa_id', empresa_id);
+                               
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Obtener Numeraciones";
+            
+                
+            document.getElementById(idDiv).innerHTML=data;
+          
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Obtener Numeraciones";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
 function crear_empresa_api(empresa_id){
     
     urlQuery='procesadores/admin_empresas.process.php';    
