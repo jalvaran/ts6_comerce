@@ -425,8 +425,12 @@ class Factura_Electronica extends conexion{
         $datos_documento_electronico=$this->DevuelveValores("$db.documentos_electronicos", "documento_electronico_id", $documento_electronico_id);
         $datos_resolucion= $this->DevuelveValores("empresa_resoluciones", "ID", $datos_documento_electronico["resolucion_id"]);
         $datos_tercero=$this->DevuelveValores("$db.terceros", "ID", $datos_documento_electronico["tercero_id"]);
+        if($datos_documento_electronico["forma_pago"]==1){
+            $fecha_vencimiento=$this->SumeDiasFecha($datos_documento_electronico["fecha"],1);
+        }else{
+            $fecha_vencimiento=$this->SumeDiasFecha($datos_documento_electronico["fecha"],30);
+        }
         
-        $fecha_vencimiento=$this->SumeDiasFecha($datos_documento_electronico["fecha"],30);
         $sync="false";
         if($datos_empresa["metodo_envio"]==1){
             $sync="true";

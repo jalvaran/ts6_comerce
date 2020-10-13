@@ -23,7 +23,7 @@ $result = $obRest->Query($sql);
 $json = [];
 
 while($row = $obRest->FetchAssoc($result)){
-    $Texto= utf8_encode($row['fecha']." || ".$row['prefijo']." || ".$row['numero']." || ".$row['nombre_tercero']." || ".$row['nit_tercero']);
+    $Texto= ($row['fecha']." || ".$row['prefijo']." || ".$row['numero']." || ".$row['nombre_tercero']." || ".$row['nit_tercero']);
      $json[] = ['id'=>$row['documento_electronico_id'], 'text'=>$Texto];
 }
 echo json_encode($json);

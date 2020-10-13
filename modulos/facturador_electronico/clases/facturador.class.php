@@ -15,7 +15,8 @@ class Facturador extends conexion{
         $Tabla="factura_prefactura";
         $this->ActualizaRegistro($db.".".$Tabla, "activa", 0, "usuario_id", "$usuario_id");          
         $Datos["usuario_id"]=$usuario_id;        
-        $Datos["activa"]=1;        
+        $Datos["activa"]=1;    
+        $Datos["forma_pago"]=1; 
         $sql=$this->getSQLInsert($Tabla, $Datos);
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }

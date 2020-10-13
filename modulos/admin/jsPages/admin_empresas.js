@@ -151,7 +151,7 @@ function GuardarEmpresa(){
     var edit_id=$("#btn_frm_empresapro").data("edit_id");
         
     var jsonFormulario=$('.ts_form').serialize();
-        console.log("Datos: "+jsonFormulario);
+        //console.log("Datos: "+jsonFormulario);
     var form_data = new FormData();
         form_data.append('Accion', '1');  
         form_data.append('edit_id', edit_id);

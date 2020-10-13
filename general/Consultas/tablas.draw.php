@@ -197,7 +197,7 @@ if( !empty($_REQUEST["Accion"]) ){
                         foreach ($Columnas["Field"] as $key => $value) {
                             print("<th>");
                                 print("<strong>");
-                                    print(utf8_encode($Columnas["titleField"][$key]));
+                                    print(($Columnas["titleField"][$key]));
                                 print("</strong>");
                             print("</th>");
                         }                

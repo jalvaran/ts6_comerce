@@ -342,7 +342,7 @@ class PageConstruct extends html_estruct_class{
      * @param type $myTitulo
      */
     public function PageInit($myTitulo) {
-        $NombreUsuario= utf8_encode($_SESSION["nombre"]);
+        $NombreUsuario= ($_SESSION["nombre"]);
         $idUser=$_SESSION["idUser"];
         $this->CabeceraIni($myTitulo,"",""); //Inicia la cabecera de la pagina
         
@@ -1129,7 +1129,7 @@ class PageConstruct extends html_estruct_class{
                 $this->Cth();
             }
             
-            $NombreColumna=utf8_encode($Columnas["Visualiza"][$key]);
+            $NombreColumna=($Columnas["Visualiza"][$key]);
             $this->th("", "", 1, 1, "", "");
                 $js="onclick=EscribirEnCaja('".$Tabla."_ordenColumna','$value');CambiarOrden('$Tabla','$DivTablas');DibujeTablaDB('$Tabla','$DivTablas');";
                 $this->a("", "", "#".$Tabla."_aControlCampos", "", "", "", $js);                    
@@ -1212,7 +1212,7 @@ class PageConstruct extends html_estruct_class{
                 } 
                 print("</td>");
             }            
-            $value= utf8_encode($value);                        
+            $value= ($value);                        
             print("<td>$value</td>");
             
         }
@@ -1536,7 +1536,7 @@ class PageConstruct extends html_estruct_class{
             $Consulta=$obCon->Query($sql);
             $DatosUsuario=$obCon->FetchAssoc($Consulta);
             $TipoUser=$DatosUsuario["TipoUser"];
-            $NombreUsuario= utf8_encode($DatosUsuario["Nombre"]." ".$DatosUsuario["Apellido"]);
+            $NombreUsuario= ($DatosUsuario["Nombre"]." ".$DatosUsuario["Apellido"]);
             
             $this->MenuLateralInit();    
                 $this->PanelInfoUser($NombreUsuario);
@@ -1560,7 +1560,7 @@ class PageConstruct extends html_estruct_class{
                             }
                         }
                         if($Visible==1){
-                            $this->PanelMenuGeneralInit(utf8_encode($DatosMenu["Nombre"]),$DatosMenu["CSS_Clase"],0,"");
+                            $this->PanelMenuGeneralInit(($DatosMenu["Nombre"]),$DatosMenu["CSS_Clase"],0,"");
                                 $ConsultaPestanas=$obCon->ConsultarTabla("menu_pestanas"," WHERE idMenu='$idMenu' AND Estado=1 ORDER BY Orden ASC");
                                 $this->PanelPestanaInit();
                                 while($DatosPestanas=$obCon->FetchAssoc($ConsultaPestanas)){
@@ -1587,7 +1587,7 @@ class PageConstruct extends html_estruct_class{
                                         if($Visible==1){
                                             if($IniciaPestana==1){
                                                 $IniciaPestana=0;
-                                                $this->PanelPestana(utf8_encode($DatosPestanas["Nombre"]), "fa fa-circle-o text-red", "");
+                                                $this->PanelPestana(($DatosPestanas["Nombre"]), "fa fa-circle-o text-red", "");
                                                 $this->PanelSubMenuInit();
                                             }
                                             $DatosCarpeta=$obCon->DevuelveValores("menu_carpetas", "ID", $DatosSubMenu["idCarpeta"]);
@@ -1596,7 +1596,7 @@ class PageConstruct extends html_estruct_class{
                                                 $Ruta='../'.$DatosCarpeta["Ruta"].$DatosSubMenu["Pagina"];
                                             }
                                             
-                                            $this->PanelSubMenu(utf8_encode($DatosSubMenu["Nombre"]), $Ruta, $DatosSubMenu["JavaScript"], "fa fa-circle-o text-aqua",$DatosSubMenu["Target"]);
+                                            $this->PanelSubMenu(($DatosSubMenu["Nombre"]), $Ruta, $DatosSubMenu["JavaScript"], "fa fa-circle-o text-aqua",$DatosSubMenu["Target"]);
                                         }
                                         
                                     }
@@ -1820,7 +1820,7 @@ class PageConstruct extends html_estruct_class{
                             $DatosTipoColumna = explode('(', $Columnas["Type"][$key]);
                             $Tipo=$DatosTipoColumna[0];
                             $TipoCaja="";
-                            $Titulo= utf8_encode($Columnas["Visualiza"][$key]);
+                            $Titulo= ($Columnas["Visualiza"][$key]);
                             $this->label("", "", "name", "", "");
                                 print($Titulo);
                             $this->Clabel();
@@ -1834,8 +1834,8 @@ class PageConstruct extends html_estruct_class{
                                     $sql="SELECT $CampoAsociado as CampoAsociado FROM $TablaAsociada ORDER BY $CampoAsociado";
                                     $Consulta=$obCon->Query($sql);
                                     while($DatosAsociacion=$obCon->FetchAssoc($Consulta)){
-                                        $this->option("", "", utf8_encode($DatosAsociacion["CampoAsociado"]), $DatosAsociacion["CampoAsociado"], "", "");
-                                            print(utf8_encode($DatosAsociacion["CampoAsociado"]));
+                                        $this->option("", "", ($DatosAsociacion["CampoAsociado"]), $DatosAsociacion["CampoAsociado"], "", "");
+                                            print(($DatosAsociacion["CampoAsociado"]));
                                         $this->Coption();
                                         
                                     }
@@ -1940,7 +1940,7 @@ class PageConstruct extends html_estruct_class{
                             $DatosTipoColumna = explode('(', $Columnas["Type"][$key]);
                             $Tipo=$DatosTipoColumna[0];
                             $TipoCaja="";
-                            $Titulo= utf8_encode($Columnas["Visualiza"][$key]);
+                            $Titulo= ($Columnas["Visualiza"][$key]);
                             $this->label("", "", "name", "", "");
                                 print($Titulo);
                             $this->Clabel();
@@ -1958,8 +1958,8 @@ class PageConstruct extends html_estruct_class{
                                         if($DatosRegistro[$value]==$DatosAsociacion["CampoAsociado"]){
                                             $Sel=1;
                                         }
-                                        $this->option("", "", utf8_encode($DatosAsociacion["CampoAsociado"]), $DatosAsociacion["CampoAsociado"], "", "",$Sel);
-                                            print(utf8_encode($DatosAsociacion["CampoAsociado"]));
+                                        $this->option("", "", ($DatosAsociacion["CampoAsociado"]), $DatosAsociacion["CampoAsociado"], "", "",$Sel);
+                                            print(($DatosAsociacion["CampoAsociado"]));
                                         $this->Coption();
                                         
                                     }
@@ -2117,7 +2117,7 @@ class PageConstruct extends html_estruct_class{
 		print('	
               <div class="col-md-3">
                     <a href="'.$link.'" target="'.$target.'" class="gal" '.$js.'><img src="'.$image.'" alt="" style="width: 120px;height: 120px;"><span></span></a>
-                    <div class="col2"><span class="col3"><a href="'.$link.'" target="'.$target.'">'.utf8_encode($SubTitle).'</a></span></div>
+                    <div class="col2"><span class="col3"><a href="'.$link.'" target="'.$target.'">'.($SubTitle).'</a></span></div>
                   </div>
 		');
 	}
@@ -2366,7 +2366,7 @@ class PageConstruct extends html_estruct_class{
                 if(isset($Columnas["Field"][$key])){
 
                     $Nombre=$Columnas["Field"][$key];
-                    $TituloCampo= utf8_encode($Columnas["titleField"][$key]);
+                    $TituloCampo= ($Columnas["titleField"][$key]);
                     $Type=$Columnas["Type"][$key];
                     $Comment=$Columnas["Comment"][$key];
                     $Index=$Columnas["Key"][$key];
@@ -2450,7 +2450,7 @@ class PageConstruct extends html_estruct_class{
                                             foreach ($array_campos_asociados as $key => $value) {
                                                 $textOption.=$DatosCamposAsociados[$value]. " || ";
                                             }
-                                            print(utf8_encode($textOption.$DatosCamposAsociados[$IDCampoAsociado]));
+                                            print(($textOption.$DatosCamposAsociados[$IDCampoAsociado]));
                                         $this->Coption();
                                     }
                                 $this->Cselect();

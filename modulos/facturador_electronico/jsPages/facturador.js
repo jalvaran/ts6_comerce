@@ -22,6 +22,8 @@ function add_events_frms(){
     $("#tercero_id").unbind();
     $("#item_id").unbind();
     $("#tipo_documento_id").unbind();
+    $("#precio_venta").unbind();
+    $("#cantidad").unbind();
         
     $('#tercero_id').select2({		  
         placeholder: 'Seleccione un Tercero',
@@ -102,6 +104,24 @@ function add_events_frms(){
         });
         
         $('#codigo_id').keypress(function(e) {
+            
+            var code = (e.keyCode ? e.keyCode : e.which);
+            if(code==13){
+                agregar_item_prefactura();
+            }
+            
+        });
+        
+        $('#precio_venta').keypress(function(e) {
+            
+            var code = (e.keyCode ? e.keyCode : e.which);
+            if(code==13){
+                agregar_item_prefactura();
+            }
+            
+        });
+        
+        $('#cantidad').keypress(function(e) {
             
             var code = (e.keyCode ? e.keyCode : e.which);
             if(code==13){
@@ -289,12 +309,15 @@ function reportar_documento_electronico_api(documento_electronico_id){
                 
             }else if(respuestas[0]=="E1"){                
                 alert(respuestas[1]);
+                actualizar_contadores();
             }else{
                 alert(data);
+                actualizar_contadores();
             }
                        
         },
         error: function (xhr, ajaxOptions, thrownError) {
+            actualizar_contadores();
             ocultar_spinner();            
             alert(xhr.status);
             alert(thrownError);
