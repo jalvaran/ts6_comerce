@@ -15,7 +15,7 @@ class conexion extends db_conexion{
     function __construct($idUserR){
         
         $idUserR=$this->normalizar($idUserR);		
-        $this->consulta =$this->Query("SELECT Nombre, TipoUser FROM usuarios WHERE idUsuarios='$idUserR'");
+        $this->consulta =$this->Query("SELECT Nombre, TipoUser FROM usuarios WHERE ID='$idUserR'");
         $this->fetch = $this->FetchArray($this->consulta);
         $this->NombreUser = $this->fetch['Nombre'];
         $this->idUser=$idUserR;

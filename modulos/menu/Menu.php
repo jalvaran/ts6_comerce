@@ -24,7 +24,7 @@ $css =  new PageConstruct($myTitulo, ""); //objeto con las funciones del html
 $obCon = new conexion($idUser); //Conexion a la base de datos
 $NombreUser=$_SESSION['nombre'];
 
-$sql="SELECT TipoUser,Role FROM usuarios WHERE idUsuarios='$idUser'";
+$sql="SELECT TipoUser,Role FROM usuarios WHERE ID='$idUser'";
 $DatosUsuario=$obCon->Query($sql);
 $DatosUsuario=$obCon->FetchAssoc($DatosUsuario);
 $TipoUser=$DatosUsuario["TipoUser"];

@@ -15,7 +15,7 @@ include("../modelo/php_conexion.php");
             
             $User=$obCon->normalizar($_POST["US"]);
             $Pass=$obCon->normalizar($_POST["PA"]);
-            //$Pass= md5($Pass);
+            $Pass= md5($Pass);
             $sql="SELECT * FROM usuarios WHERE Login='$User' AND Password='$Pass'";
             
             $sel=$obCon->Query($sql);
@@ -31,7 +31,7 @@ include("../modelo/php_conexion.php");
 			$_SESSION['nombre'] = $sesion["Nombre"];
 			$_SESSION['apellido'] = $sesion["Apellido"];
 			$_SESSION['tipouser'] = $sesion["TipoUser"];
-			$_SESSION['idUser'] = $sesion["idUsuarios"];
+			$_SESSION['idUser'] = $sesion["ID"];
 	        
                         print("OK");
 		}else{

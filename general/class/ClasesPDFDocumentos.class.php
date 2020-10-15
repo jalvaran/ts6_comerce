@@ -166,7 +166,7 @@ $this->PDF->writeHTML("<br>", true, false, false, false, '');
     
     public function FirmasOrdenTrabajo($db,$DatosOrden) {
         
-        $sql="SELECT idUsuarios as ID, CONCAT(Nombre,' ',Apellido) as NombreUsuario,Identificacion FROM usuarios WHERE idUsuarios='".$DatosOrden["usuario_cierre_id"]."'";
+        $sql="SELECT ID as ID, CONCAT(Nombre,' ',Apellido) as NombreUsuario,Identificacion FROM usuarios WHERE ID='".$DatosOrden["usuario_cierre_id"]."'";
         $DatosUsuario=$this->obCon->FetchAssoc($this->obCon->Query($sql));
         $sql="SELECT * FROM $db.catalogo_tecnicos WHERE ID='".$DatosOrden["tecnico_id"]."'";
         $DatosTecnico=$this->obCon->FetchAssoc($this->obCon->Query($sql));
@@ -329,7 +329,7 @@ $this->PDF->writeHTML("<br>", true, false, false, false, '');
     public function EncabezadoOrden($db,$DatosOrden) {
         $datosTipoOrden=$this->obCon->DevuelveValores("ordenes_trabajo_tipo_mantenimiento", "ID", $DatosOrden["tipo_mantenimiento"]);   
         
-        $sql="SELECT CONCAT(Nombre,' ',Apellido) as NombreUsuario FROM usuarios WHERE idUsuarios='".$DatosOrden["usuario_creador_id"]."'";
+        $sql="SELECT CONCAT(Nombre,' ',Apellido) as NombreUsuario FROM usuarios WHERE ID='".$DatosOrden["usuario_creador_id"]."'";
         $DatosUsuario=$this->obCon->FetchAssoc($this->obCon->Query($sql));
         
         $sql="SELECT t1.*,(SELECT NombreSeccion FROM $db.catalogo_secciones t2 WHERE t2.ID=t1.ubicacion_id LIMIT 1) as Ubicacion FROM $db.equipos_maquinas t1 WHERE t1.ID='".$DatosOrden["maquina_id"]."'";

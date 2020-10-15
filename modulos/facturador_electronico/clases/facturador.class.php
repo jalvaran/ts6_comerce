@@ -66,7 +66,7 @@ class Facturador extends conexion{
                     (SELECT name FROM $principalDb.api_fe_tipo_documentos t3 WHERE t3.ID=t1.tipo_documento_id LIMIT 1) AS nombre_tipo_documento,
                     (SELECT razon_social FROM terceros t4 WHERE t4.ID=t1.tercero_id LIMIT 1) AS nombre_tercero, 
                     (SELECT identificacion FROM terceros t4 WHERE t4.ID=t1.tercero_id LIMIT 1) AS nit_tercero,
-                    (SELECT CONCAT(Nombre,' ',Apellido) FROM $principalDb.usuarios t5 WHERE t5.idUsuarios=t1.usuario_id LIMIT 1) AS nombre_usuario 
+                    (SELECT CONCAT(Nombre,' ',Apellido) FROM $principalDb.usuarios t5 WHERE t5.ID=t1.usuario_id LIMIT 1) AS nombre_usuario 
                     
                 FROM `documentos_electronicos` t1 ORDER BY updated DESC ";
         

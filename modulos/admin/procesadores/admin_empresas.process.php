@@ -1,15 +1,11 @@
 <?php
 
-session_start();
+@session_start();
 if (!isset($_SESSION['username'])){
   exit("<a href='../../index.php' ><img src='../../../images/401.png'>Iniciar Sesion </a>");
   
 }
 $idUser=$_SESSION['idUser'];
-function validateDate($date, $format = 'Y-m-d H:i:s'){
-    $d = DateTime::createFromFormat($format, $date);
-    return $d && $d->format($format) == $date;
-}
 
 include_once("../clases/admin_empresas.class.php");
 include_once("../../../general/class/facturacion_electronica.class.php");

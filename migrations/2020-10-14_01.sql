@@ -1,12 +1,4 @@
--- Adminer 4.7.5 MySQL dump
-
-SET NAMES utf8;
-SET time_zone = '+00:00';
-SET foreign_key_checks = 0;
-SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
-
-DROP TABLE IF EXISTS `documentos_electronicos`;
-CREATE TABLE `documentos_electronicos` (
+CREATE TABLE IF NOT EXISTS `documentos_electronicos` (
   `ID` bigint(20) NOT NULL AUTO_INCREMENT,
   `documento_electronico_id` varchar(90) COLLATE utf8_spanish_ci NOT NULL COMMENT 'identificador unico del documento',
   `fecha` date NOT NULL COMMENT 'fecha del documento',
@@ -41,9 +33,7 @@ CREATE TABLE `documentos_electronicos` (
   KEY `documento_electronico_id` (`documento_electronico_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
-
-DROP TABLE IF EXISTS `documentos_electronicos_items`;
-CREATE TABLE `documentos_electronicos_items` (
+CREATE TABLE IF NOT EXISTS `documentos_electronicos_items` (
   `ID` bigint(20) NOT NULL AUTO_INCREMENT,
   `documento_electronico_id` varchar(90) COLLATE utf8_spanish_ci NOT NULL,
   `item_id` bigint(20) NOT NULL,
@@ -61,8 +51,7 @@ CREATE TABLE `documentos_electronicos_items` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 
-DROP TABLE IF EXISTS `factura_prefactura`;
-CREATE TABLE `factura_prefactura` (
+CREATE TABLE IF NOT EXISTS `factura_prefactura` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `usuario_id` int(11) NOT NULL,
   `observaciones` text COLLATE utf8_spanish_ci NOT NULL,
@@ -74,8 +63,7 @@ CREATE TABLE `factura_prefactura` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 
-DROP TABLE IF EXISTS `factura_prefactura_items`;
-CREATE TABLE `factura_prefactura_items` (
+CREATE TABLE IF NOT EXISTS `factura_prefactura_items` (
   `ID` bigint(20) NOT NULL AUTO_INCREMENT,
   `prefactura_id` int(11) NOT NULL,
   `item_id` bigint(20) NOT NULL,
@@ -93,8 +81,7 @@ CREATE TABLE `factura_prefactura_items` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 
-DROP TABLE IF EXISTS `inventario_items_general`;
-CREATE TABLE `inventario_items_general` (
+CREATE TABLE IF NOT EXISTS `inventario_items_general` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `Referencia` varchar(100) COLLATE utf8_spanish_ci NOT NULL COMMENT 'Referencia del Item',
   `Descripcion` varchar(200) COLLATE utf8_spanish_ci NOT NULL COMMENT 'Nombre del Item',
@@ -108,8 +95,7 @@ CREATE TABLE `inventario_items_general` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 
-DROP TABLE IF EXISTS `terceros`;
-CREATE TABLE `terceros` (
+CREATE TABLE IF NOT EXISTS `terceros` (
   `ID` bigint(20) NOT NULL AUTO_INCREMENT,
   `tipo_tercero` int(11) NOT NULL COMMENT 'Tipo de Tercero',
   `tipo_organizacion_id` int(11) NOT NULL COMMENT 'Tipo de Persona',
@@ -128,13 +114,3 @@ CREATE TABLE `terceros` (
   PRIMARY KEY (`ID`),
   KEY `identificacion` (`identificacion`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
-
-
-DROP VIEW IF EXISTS `vista_documentos_electronicos`;
-CREATE TABLE `vista_documentos_electronicos` (`ID` bigint(20), `documento_electronico_id` varchar(90), `fecha` date, `hora` time, `tipo_documento_id` int(11), `resolucion_id` int(11), `prefijo` varchar(45), `numero` bigint(20), `tercero_id` bigint(20), `uuid` varchar(200), `base64_pdf` longtext, `base64_xml` longtext, `base64_zip` longtext, `is_valid` int(11), `errors` text, `usuario_id` int(11), `notas` text, `orden_compra` varchar(100), `forma_pago` int(11), `documento_asociado_id` varchar(90), `created` datetime, `updated` timestamp, `nombre_tipo_documento` varchar(255), `nombre_tercero` varchar(200), `nit_tercero` bigint(20), `nombre_usuario` varchar(91));
-
-
-DROP TABLE IF EXISTS `vista_documentos_electronicos`;
-CREATE ALGORITHM=UNDEFINED DEFINER=`techno`@`%` SQL SECURITY DEFINER VIEW `vista_documentos_electronicos` AS select `t1`.`ID` AS `ID`,`t1`.`documento_electronico_id` AS `documento_electronico_id`,`t1`.`fecha` AS `fecha`,`t1`.`hora` AS `hora`,`t1`.`tipo_documento_id` AS `tipo_documento_id`,`t1`.`resolucion_id` AS `resolucion_id`,`t1`.`prefijo` AS `prefijo`,`t1`.`numero` AS `numero`,`t1`.`tercero_id` AS `tercero_id`,`t1`.`uuid` AS `uuid`,`t1`.`base64_pdf` AS `base64_pdf`,`t1`.`base64_xml` AS `base64_xml`,`t1`.`base64_zip` AS `base64_zip`,`t1`.`is_valid` AS `is_valid`,`t1`.`errors` AS `errors`,`t1`.`usuario_id` AS `usuario_id`,`t1`.`notas` AS `notas`,`t1`.`orden_compra` AS `orden_compra`,`t1`.`forma_pago` AS `forma_pago`,`t1`.`documento_asociado_id` AS `documento_asociado_id`,`t1`.`created` AS `created`,`t1`.`updated` AS `updated`,(select `t3`.`name` from `techno_ts6_comerce`.`api_fe_tipo_documentos` `t3` where (`t3`.`ID` = `t1`.`tipo_documento_id`) limit 1) AS `nombre_tipo_documento`,(select `t4`.`razon_social` from `techno_ts6_comerce_34606612`.`terceros` `t4` where (`t4`.`ID` = `t1`.`tercero_id`) limit 1) AS `nombre_tercero`,(select `t4`.`identificacion` from `techno_ts6_comerce_34606612`.`terceros` `t4` where (`t4`.`ID` = `t1`.`tercero_id`) limit 1) AS `nit_tercero`,(select concat(`t5`.`Nombre`,' ',`t5`.`Apellido`) from `techno_ts6_comerce`.`usuarios` `t5` where (`t5`.`ID` = `t1`.`usuario_id`) limit 1) AS `nombre_usuario` from `techno_ts6_comerce_34606612`.`documentos_electronicos` `t1` order by `t1`.`updated` desc;
-
--- 2020-10-11 17:47:10

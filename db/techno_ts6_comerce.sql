@@ -1832,7 +1832,7 @@ INSERT INTO `tablas_campos_control` (`ID`, `NombreTabla`, `Campo`, `Visible`, `E
 (3,	'usuarios',	'Nombre',	1,	1,	1,	'administrador',	3,	'2019-01-13 14:14:12',	'2019-01-13 09:14:12'),
 (4,	'usuarios',	'Apellido',	1,	1,	1,	'administrador',	3,	'2019-01-13 14:14:12',	'2019-01-13 09:14:12'),
 (6,	'usuarios',	'Sync',	0,	1,	1,	'administrador',	3,	'2019-01-13 14:14:12',	'2019-01-13 09:14:12'),
-(7,	'usuarios',	'idUsuarios',	1,	1,	1,	'administrador',	3,	'2019-01-13 14:14:12',	'2019-01-13 09:14:12'),
+(7,	'usuarios',	'ID',	1,	1,	1,	'administrador',	3,	'2019-01-13 14:14:12',	'2019-01-13 09:14:12'),
 (8,	'usuarios',	'Updated',	0,	1,	1,	'administrador',	3,	'2019-01-13 14:14:12',	'2019-01-13 09:14:12'),
 (9,	'usuarios',	'Telefono',	0,	1,	1,	'administrador',	3,	'2019-01-13 14:14:12',	'2019-01-13 09:14:12'),
 (10,	'usuarios',	'Login',	1,	1,	1,	'administrador',	3,	'2019-01-13 14:14:12',	'2019-01-13 09:14:12'),
@@ -2034,7 +2034,7 @@ INSERT INTO `tipo_documento_identificacion` (`ID`, `nombre`, `codigo`) VALUES
 
 DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE `usuarios` (
-  `idUsuarios` int(11) NOT NULL AUTO_INCREMENT,
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
   `Nombre` varchar(45) COLLATE utf8_spanish_ci DEFAULT NULL,
   `Apellido` varchar(45) COLLATE utf8_spanish_ci DEFAULT NULL,
   `Identificacion` varchar(40) COLLATE utf8_spanish_ci NOT NULL,
@@ -2049,10 +2049,10 @@ CREATE TABLE `usuarios` (
   `Habilitado` varchar(2) COLLATE utf8_spanish_ci NOT NULL DEFAULT 'SI',
   `Updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `Sync` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  PRIMARY KEY (`idUsuarios`)
+  PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
-INSERT INTO `usuarios` (`idUsuarios`, `Nombre`, `Apellido`, `Identificacion`, `Telefono`, `Login`, `Password`, `TipoUser`, `Cargo`, `Proceso`, `Email`, `Role`, `Habilitado`, `Updated`, `Sync`) VALUES
+INSERT INTO `usuarios` (`ID`, `Nombre`, `Apellido`, `Identificacion`, `Telefono`, `Login`, `Password`, `TipoUser`, `Cargo`, `Proceso`, `Email`, `Role`, `Habilitado`, `Updated`, `Sync`) VALUES
 (1,	'TECHNO ',	'SOLUCIONES',	'900833180',	'3177740609',	'admin',	'techno',	'administrador',	00000,	00000,	'info@technosoluciones.com',	'SUPERVISOR',	'SI',	'2019-04-27 15:38:18',	'2019-04-27 10:38:18'),
 (2,	'ADMINISTRADOR',	'SOFTCONTECH',	'1',	'1',	'administrador',	'91f5167c34c400758115c2a6826ec2e3',	'operador',	00000,	00000,	'no@no.com',	'SUPERVISOR',	'SI',	'2019-01-13 14:14:14',	'2019-01-13 09:14:14'),
 (3,	'JULIAN ANDRES',	'ALVARAN',	'94481747',	'3177740609',	'jalvaran',	'pirlo1985',	'administrador',	00000,	00000,	'jalvaran@gmail.com',	'SUPERVISOR',	'SI',	'2020-08-06 21:44:30',	'2019-04-08 15:35:50');

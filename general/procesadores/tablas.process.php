@@ -29,7 +29,12 @@ if( !empty($_REQUEST["Accion"]) ){
                 if($value==''){
                     exit("E1;El campo $key no puede estar vacío;$key");
                 }
+                
+                if($tab=='usuarios' and $key=="Password"){
+                    $DatosFormulario["Password"]=md5($DatosFormulario["Password"]);
+                }
             }
+            
             
             
             if($edit_id==""){

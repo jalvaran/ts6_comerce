@@ -20,10 +20,16 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $Limit=20;
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            if($empresa_id==0){
+                $db=DB;
+            }else{
+                         
+                $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+                $db=$DatosEmpresa["db"];
+            }
             $tab=$obCon->normalizar($_REQUEST["tab"]);
             $idDiv=$obCon->normalizar($_REQUEST["idDiv"]);
-            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
-            $db=$DatosEmpresa["db"];
+            
             $Page=$obCon->normalizar($_REQUEST["page"]);
             $NumPage=$obCon->normalizar($_REQUEST["page"]);
             if($Page==''){

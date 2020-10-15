@@ -24,7 +24,7 @@ $css =  new PageConstruct($myTitulo, ""); //objeto con las funciones del html
 $obCon = new conexion($idUser); //Conexion a la base de datos
 $NombreUser=$_SESSION['nombre'];
 
-$sql="SELECT TipoUser,Role FROM usuarios WHERE idUsuarios='$idUser'";
+$sql="SELECT TipoUser,Role FROM usuarios WHERE ID='$idUser'";
 $DatosUsuario=$obCon->Query($sql);
 $DatosUsuario=$obCon->FetchAssoc($DatosUsuario);
 $TipoUser=$DatosUsuario["TipoUser"];
@@ -58,7 +58,7 @@ $css->PageInit($myTitulo);
             if($TipoUser=="administrador"){
                 $sql="SELECT * FROM empresapro WHERE Estado=1";
             }else{
-                $sql="SELECT t1.* FROM empresapro t1 WHERE t1.Estado=1 AND EXISTS (SELECT 1 FROM usuarios_rel_empresas t2 WHERE t2.usuario_id='$idUser' AND t2.empresa_id=t1.ID) ";
+                $sql="SELECT t1.* FROM empresapro t1 WHERE t1.Estado=1 AND EXISTS (SELECT 1 FROM usuarios_rel_empresas t2 WHERE t2.usuario_id_relacion='$idUser' AND t2.empresa_id=t1.ID) ";
             }
             
             $Consulta=$obCon->Query($sql);

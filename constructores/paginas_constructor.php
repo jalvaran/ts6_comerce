@@ -27,7 +27,7 @@ class PageConstruct extends html_estruct_class{
         $this->obCon=new conexion($idUser);
         $this->Titulo=$Titulo;
         $this->usuario_id=$idUser;
-        $sql="SELECT Nombre,Apellido,Role,TipoUser FROM usuarios WHERE idUsuarios='$idUser'";
+        $sql="SELECT Nombre,Apellido,Role,TipoUser FROM usuarios WHERE ID='$idUser'";
         $Consulta=$this->obCon->Query($sql);
         $this->DatosUsuario=$this->obCon->FetchAssoc($Consulta);
         $this->NombreUsuario=$this->DatosUsuario["Nombre"]." ".$this->DatosUsuario["Apellido"];
@@ -1532,7 +1532,7 @@ class PageConstruct extends html_estruct_class{
          */
         public function ConstruirMenuLateral($idUsuario,$vector) {
             $obCon=new conexion($idUsuario);
-            $sql="SELECT Nombre,Apellido,Identificacion,TipoUser FROM usuarios WHERE idUsuarios='$idUsuario'";
+            $sql="SELECT Nombre,Apellido,Identificacion,TipoUser FROM usuarios WHERE ID='$idUsuario'";
             $Consulta=$obCon->Query($sql);
             $DatosUsuario=$obCon->FetchAssoc($Consulta);
             $TipoUser=$DatosUsuario["TipoUser"];

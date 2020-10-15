@@ -75,7 +75,7 @@ class Factura_Electronica extends conexion{
             "business_name": "'.$DatosEmpresa["RazonSocial"].'",
             "merchant_registration": "'.$DatosEmpresa["MatriculoMercantil"].'",
             "municipality_id": '.$municipality_id.',
-            "address": "'.$DatosEmpresa["RazonSocial"].'",
+            "address": "'.$DatosEmpresa["Direccion"].'",
             "phone": '.$DatosEmpresa["Telefono"].',
             "ciius": "'.$DatosEmpresa["ActividadesEconomicas"].'",    
             "email": "'.$DatosEmpresa["Email"].'"
@@ -233,7 +233,8 @@ class Factura_Electronica extends conexion{
         if($datos_resolucion["estado"]==3){
             exit("E1;La resolución seleccionada ya está vencida");
         }
-        $sql="SELECT MAX(numero) as numero FROM $empresa_db.documentos_electronicos WHERE tipo_documento_id='$tipo_documento_id' and resolucion_id='$resolucion_id'";
+        $prefijo_resolucion=$datos_resolucion["prefijo"];
+        $sql="SELECT MAX(numero) as numero FROM $empresa_db.documentos_electronicos WHERE tipo_documento_id='$tipo_documento_id' and resolucion_id='$resolucion_id' and prefijo='$prefijo_resolucion'";
         $datos_validacion=$this->FetchAssoc($this->Query($sql));
         if($datos_validacion["numero"]=='' or $datos_validacion["numero"]==0){
             $datos_validacion["numero"]=$datos_resolucion["proximo_numero_documento"]-1;
