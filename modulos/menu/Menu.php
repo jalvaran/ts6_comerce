@@ -15,7 +15,7 @@ $urlRequest= explode("/", $urlRequest);
 $VMenu=end($urlRequest);
 
 $myPage=$VMenu;
-$myTitulo="Plataforma TS6 pro";
+$myTitulo="Plataforma TS6";
 include_once("../../sesiones/php_control_usuarios.php");
 include_once("../../constructores/paginas_constructor.php");
 

@@ -27,8 +27,11 @@ if( !empty($_REQUEST["Accion"]) ){
                 $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
                 $db=$DatosEmpresa["db"];
             }
+            
             $tab=$obCon->normalizar($_REQUEST["tab"]);
             $idDiv=$obCon->normalizar($_REQUEST["idDiv"]);
+            
+            $config_tabla=$obCon->DevuelveValores("tablas_configuracion_permisos", "TablaDB", $tab);
             
             $Page=$obCon->normalizar($_REQUEST["page"]);
             $NumPage=$obCon->normalizar($_REQUEST["page"]);
@@ -104,6 +107,8 @@ if( !empty($_REQUEST["Accion"]) ){
                     $campo_asociado_db=$CamposAsociados["dbCampoAsociado"];
                     if($campo_asociado_db==''){
                         $campo_asociado_db=DB;
+                    }else{
+                        $campo_asociado_db=$db;
                     }
                     $sql.="(SELECT $campo_visible FROM $campo_asociado_db.$tabla_asociada t2 WHERE t2.$campo_asociado_id=t1.$campo_tabla_origen LIMIT 1) AS $campo_tabla_origen,";
                 }else{
@@ -119,14 +124,18 @@ if( !empty($_REQUEST["Accion"]) ){
                     
             $css->div("", "box-body no-padding", "", "", "", "", "");
                 $css->div("", "mailbox-controls", "", "", "", "", "");
-                
+                    $html_boton_agregar="";
+                    if($config_tabla["Agregar"]==1 or $config_tabla["Agregar"]==''){
+                        
+                        $html_boton_agregar='<p class="tbl-cell" style="cursor:pointer" onclick="frm_agregar_editar_registro_ts6(`'.$db.'`,`'.$tab.'`,``,`'.$idDiv.'`)"><i class="fa fa-plus-circle text-primary"></i></p>';
+                    }
                     print('<div class="row widget-separator-1 mb-3">
                                 
                                 <div class="col-sm-12 col-md-6 col-lg-3">
                                     <div class="icon-widget">
                                         <h5 class="icon-widget-heading">'.$tab.'</h5>
                                         <div class="icon-widget-body tbl">
-                                            <p class="tbl-cell" style="cursor:pointer" onclick="frm_agregar_editar_registro_ts6(`'.$db.'`,`'.$tab.'`,``,`'.$idDiv.'`)"><i class="fa fa-plus-circle text-primary"></i></p>
+                                            '.$html_boton_agregar.'
                                             <p class="tbl-cell text-right">'.$ResultadosTotales.'</p>
                                         </div>
                                     </div>
@@ -212,13 +221,27 @@ if( !empty($_REQUEST["Accion"]) ){
                         print('    </tr>
                                 </thead>');
                         print('<tbody>');
+                        
                             while($RegistrosTabla=$obCon->FetchAssoc($Consulta)){
                                 
                                 $idItem=$RegistrosTabla["ID"];
                                 
                                 print('<tr>');
                                     print('<td class="mailbox-name">');
-                                        print('<a onclick="frm_agregar_editar_registro_ts6(`'.$db.'`,`'.$tab.'`,`'.$idItem.'`,`'.$idDiv.'`)" title="Editar"><i class="icon-pencil text-info"></i></a>');
+                                        if($config_tabla["Editar"]==1 or $config_tabla["Editar"]==""){
+                                            print('<a onclick="frm_agregar_editar_registro_ts6(`'.$db.'`,`'.$tab.'`,`'.$idItem.'`,`'.$idDiv.'`)" title="Editar"><i class="icon-pencil text-info"></i></a>');
+                                        }else{
+                                            print(' ');
+                                        }
+                                        if($config_tabla["Ver"]=='1'){
+                                            print(" || ");
+                                            $link=$config_tabla["LinkVer"];
+                                            $link= str_replace("@empresa_id", $empresa_id, $link);
+                                            foreach ($Columnas["Field"] as $key => $value) {
+                                                $link= str_replace("@".$value, $RegistrosTabla[$value], $link);
+                                            }
+                                            print('<a href="'.$link.'" target="_blank" title="Ver"><i class="fa fa-eye text-success"></i></a>');
+                                        }
                                     print('</td>');
                                 foreach ($RegistrosTabla as $key => $value) {
                                     print("<td class='mailbox-name'>");

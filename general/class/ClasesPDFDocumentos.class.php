@@ -84,11 +84,11 @@ class Documento{
      * @param type $VectorEncabezado
      * @param type $NumeracionDocumento
      */
-    public function PDF_Encabezado($Fecha,$idEmpresa,$idFormatoCalidad,$VectorEncabezado,$NumeracionDocumento="",$DatosEmpresa) {
+    public function PDF_Encabezado($Fecha,$idEmpresa,$idFormatoCalidad,$VectorEncabezado,$NumeracionDocumento="",$DatosEmpresa,$patch="../../") {
         
         $DatosFormatoCalidad=$this->obCon->DevuelveValores("formatos_calidad", "ID", $idFormatoCalidad);
         
-        $RutaLogo="../../images/header-logo.png";
+        $RutaLogo=$patch."images/header-logo.png";
 ///////////////////////////////////////////////////////
 //////////////encabezado//////////////////
 ////////////////////////////////////////////////////////
@@ -121,7 +121,7 @@ $txt="<strong>".$DatosEmpresa["RazonSocial"]."<br>".$DatosEmpresa["NIT"]."</stro
 $this->PDF->MultiCell(62, 5, $txt, 0, 'L', 1, 0, '', '', true,0, true, true, 10, 'M');
 $txt=$DatosEmpresa["Direccion"]."<br>".$DatosEmpresa["Telefono"]."<br>".$DatosEmpresa["Ciudad"];
 $this->PDF->MultiCell(62, 5, $txt, 0, 'C', 1, 0, '', '', true,0, true, true, 10, 'M');
-$Documento="<strong>$NumeracionDocumento</strong><br><h5>Impreso por TS6 Pro </h5><br>";
+$Documento="<strong>$NumeracionDocumento</strong><br><h5>Impreso por TS6 </h5><br>";
 $this->PDF->MultiCell(62, 5, $Documento, 0, 'R', 1, 0, '', '', true,0, true ,true, 10, 'M');
 $this->PDF->writeHTML("<br>", true, false, false, false, '');
 //Close and output PDF document
@@ -611,6 +611,89 @@ $this->PDF->writeHTML("<br>", true, false, false, false, '');
         $tbl.='</table>'; 
         return($tbl);
     }
+    
+    //HTML Movimientos Contables condicionado simple
+    public function HTML_Movimientos_Resumen($sql,$Vector) {
+       $Consulta= $this->obCon->Query($sql);
+        //$Consulta=$this->obCon->ConsultarTabla("librodiario", $Condicion);
+        $html = '   
+            <table border="0" cellpadding="2" cellspacing="2" align="left" style="border-radius: 10px;">
+                <tr align="center">
+                    <td><strong>Tercero</strong></td>
+                    <td><strong>Referencia</strong></td>
+                    <td><strong>Cuenta PUC</strong></td>
+                    <td><strong>Nombre Cuenta</strong></td>
+                   
+                    <td><strong>Débitos</strong></td>
+                    <td><strong>Créditos</strong></td>
+                </tr>
+
+            
+        ';
+        $h=0;
+        $Debitos=0;
+        $Creditos=0;
+        while($DatosLibro=$this->obCon->FetchArray($Consulta)){
+            $Debitos=$Debitos+$DatosLibro["Debito"];
+            $Creditos=$Creditos+$DatosLibro["Credito"];
+            if(!($DatosLibro["Debito"]==0 and $DatosLibro["Credito"]==0)){
+                //$NumeroDocInt=$DatosLibro["Num_Documento_Interno"];
+                //if($DatosLibro["Tipo_Documento_Intero"]=='FACTURA'){
+                  //  $DatosNumeroDocInt=$this->obCon->DevuelveValores("facturas","idFacturas",$DatosLibro["Num_Documento_Interno"]);
+                    //$NumeroDocInt=$DatosNumeroDocInt["NumeroFactura"];
+
+                //}
+                //$DatosDocumentoInterno=$this->obCon->DevuelveValores("documentos_generados","Libro",$DatosLibro["Tipo_Documento_Intero"]);
+                //$DocInt=$DatosDocumentoInterno["Abreviatura"];
+                if($h==0){
+                    $Back="#f2f2f2";
+                    $h=1;
+                }else{
+                    $Back="white";
+                    $h=0;
+                } 
+                $html.= '  
+
+                    <tr align="left">
+                        <td style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">'.$DatosLibro["Tercero_Identificacion"].'<br>'.utf8_encode($DatosLibro["Tercero_Razon_Social"]).'</td>
+                        <td style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">'.$DatosLibro["Num_Documento_Externo"].'</td>
+                        <td style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">'.$DatosLibro["CuentaPUC"].'</td>
+                        <td style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">'.utf8_encode($DatosLibro["NombreCuenta"]).'</td>
+                        
+                        <td style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">'.number_format($DatosLibro["Debito"]).'</td>
+                        <td style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">'.number_format($DatosLibro["Credito"]).'</td>
+                    </tr>
+                ';
+
+            }
+        }
+        $Back='#F7F8E0';
+        $html.='<tr > '
+                . '<td align="rigth" colspan="4" style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">Totales:</td>'
+                . '<td style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">'.number_format($Debitos).'</td>
+                   <td style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">'.number_format($Creditos).'</td>'
+                . '</tr>';
+        $html.='</table>';
+        return($html);
+    }
+    
+    
+    /**
+     * Firma para los documentos
+     * @return type
+     */
+    public function FirmaDocumentos() {
+        $html = '<table border="1" cellpadding="2" cellspacing="0" align="left">
+            <tr align="left" >
+                <td style="height: 100px;" >Recibe:</td>
+                <td style="height: 100px;" >Revisado:</td>
+                <td style="height: 100px;" >Aprobado:</td>
+                <td style="height: 100px;" >Contabilizado:</td>
+            </tr>
+        </table>';
+        return($html);
+    }
+    
    //Fin Clases
 }
     
