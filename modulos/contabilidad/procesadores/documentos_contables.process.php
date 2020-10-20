@@ -164,8 +164,8 @@ if( !empty($_REQUEST["Accion"]) ){
                 
             }
             $obCon->CrearDocumentoContable($db,$datos_predocumento["documento_contable_id"],$datos_predocumento["tipo_documento_contable_id"], $datos_predocumento["Fecha"], $datos_predocumento["observaciones"], $datos_predocumento["sucursal_id"], $datos_predocumento["centro_costo_id"], "", $idUser);
-           
-            $sql="UPDATE $db.contabilidad_predocumento_contable SET documento_contable_id='', tipo_documento_contable_id='',Fecha='',observaciones='' where ID='$predocumento_id'  ";
+            $nuevo_id=$obCon->getUniqId("dc_");
+            $sql="UPDATE $db.contabilidad_predocumento_contable SET documento_contable_id='$nuevo_id', tipo_documento_contable_id='',Fecha='',observaciones='' where ID='$predocumento_id'  ";
             $obCon->Query($sql);
             
             print("OK;Documento Contable Creado");
@@ -190,6 +190,32 @@ if( !empty($_REQUEST["Accion"]) ){
             print("OK;".$terceros.";".$cuentas.";".$documentos);
             
         break;//Fin caso 8
+    
+        case 9://Anular un documento contable
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $documento_id=$obCon->normalizar($_REQUEST["documento_id"]);
+            $observaciones=$obCon->normalizar($_REQUEST["observaciones_anulacion"]);
+            $obCon->anular_documento_contable($db, $documento_id, $observaciones, $idUser);
+            
+            print("OK;Documento $documento_id Anulado");
+            
+        break;//Fin caso 9
+    
+        case 10://Copiar un documento contable
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $documento_id=$obCon->normalizar($_REQUEST["documento_id"]);
+            
+            $obCon->copiar_documento_contable($db, $documento_id, $idUser);
+            
+            print("OK;Documento $documento_id Copiado");
+            
+        break;//Fin caso 10
         
     }
     

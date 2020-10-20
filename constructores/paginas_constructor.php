@@ -54,9 +54,9 @@ class PageConstruct extends html_estruct_class{
                         
                         <!-- Sweetalert CSS -->
                         <link rel="stylesheet" href="../../assets/plugin/sweetalert/sweetalert.css" />
-                        <!-- alertify CSS 
+                        <!-- alertify CSS -->
                         <link rel="stylesheet" href="../../assets/plugin/alertify/themes/alertify.core.css" />
-                        <link rel="stylesheet" href="../../assets/plugin/alertify/themes/alertify.default.css" id="toggleCSS" />  -->
+                        <link rel="stylesheet" href="../../assets/plugin/alertify/themes/alertify.default.css" id="toggleCSS" /> 
                         <!-- Custom Stylesheet -->
                         
                         <link rel="stylesheet" href="../../dist/css/style.css" />
@@ -976,8 +976,8 @@ class PageConstruct extends html_estruct_class{
                 
                 <!-- bootstrap select -->
                 <script type="text/javascript" src="../../assets/plugin/bootstrap_select/js/bootstrap-select.js"></script>
-                <!-- Alertify Plugin 
-                <script type="text/javascript" src="../../assets/plugin/alertify/lib/alertify.min.js"></script> -->
+                <!-- Alertify Plugin -->
+                <script type="text/javascript" src="../../assets/plugin/alertify/lib/alertify.min.js"></script> 
                 <!-- Custom Script Plugin -->
                 <script type="text/javascript" src="../../dist/js/custom.js"></script>
                 

@@ -237,6 +237,55 @@ class DocumentosContables extends conexion{
             $this->ActualizaRegistro("documentos_contables_control", "Estado", "ABIERTO", "ID", $idDocumento);
         }
         
+        public function anular_documento_contable($db,$documento_id,$observaciones,$idUser) {
+            $datos_documento=$this->DevuelveValores("$db.contabilidad_documentos_contables", "ID", $documento_id);
+            $datos_tipo_documento= $this->DevuelveValores("$db.contabilidad_catalogo_documentos_contables", "ID", $datos_documento["tipo_documento_contable_id"]);
+            
+            $this->anule_movimientos_libro_diario($db, $datos_tipo_documento["Nombre"], $datos_documento["Consecutivo"]);
+            $sql="UPDATE $db.contabilidad_documentos_contables SET Estado=2, observaciones_anulacion='$observaciones', usuario_anulacion_id='$idUser' WHERE ID='$documento_id'";
+            $this->Query($sql);
+        }
+        
+        public function anule_movimientos_libro_diario($db,$DocumentoInterno,$NumDocumentoInterno) {
+            $sql="UPDATE $db.contabilidad_librodiario SET Debito=0,Credito=0,Neto=0,Estado='2' WHERE Tipo_Documento_Interno='$DocumentoInterno' AND Num_Documento_Interno='$NumDocumentoInterno'";
+            $this->Query($sql);
+        }
+        
+        public function copiar_documento_contable($db,$documento_id,$idUser) {
+            
+            $datos_predocumento=$this->DevuelveValores("$db.contabilidad_predocumento_contable", "Activo", 1);
+            if($datos_predocumento["ID"]==''){
+                exit("E1;Para poder copiar este documento debe tener un predocumento activo");
+            }
+            $llave_nueva=$datos_predocumento["documento_contable_id"];
+            /*
+            $sql="SELECT COUNT(ID) as Total FROM $db.contabilidad_documentos_contables_items WHERE documento_contable_id='$llave_nueva'";
+            $datos_validacion=$this->FetchAssoc($this->Query($sql));
+            if($datos_validacion["Total"]>0){
+                exit("E1;Para poder copiar este documento el predocumento que está activo debe estar vacío");
+            }
+             * 
+             */
+            $datos_documento=$this->DevuelveValores("$db.contabilidad_documentos_contables", "ID", $documento_id);
+            $llave_anterior=$datos_documento["documento_contable_id"];
+            //$datos_tipo_documento= $this->DevuelveValores("$db.contabilidad_catalogo_documentos_contables", "ID", $datos_documento["tipo_documento_contable_id"]);
+            
+            $sql="UPDATE $db.contabilidad_predocumento_contable 
+                    SET tipo_documento_contable_id='".$datos_documento["tipo_documento_contable_id"]."' 
+                        
+                    WHERE documento_contable_id='$llave_nueva'
+
+                    ";
+            $this->Query($sql);
+            
+            $sql="INSERT INTO $db.contabilidad_documentos_contables_items (`documento_contable_id`,`Fecha`,`Tercero`,`CuentaPUC`,`NombreCuenta`,`Debito`,`Credito`,`Concepto`,`NumDocSoporte`,`Soporte`)  
+                    SELECT '$llave_nueva',`Fecha`,`Tercero`,`CuentaPUC`,`NombreCuenta`,`Debito`,`Credito`,`Concepto`,`NumDocSoporte`,`Soporte` 
+                    FROM  $db.contabilidad_documentos_contables_items WHERE documento_contable_id='$llave_anterior'
+                    ";
+            
+            $this->Query($sql);
+        }
+        
     /**
      * Fin Clase
      */

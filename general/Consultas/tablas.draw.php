@@ -33,6 +33,14 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $config_tabla=$obCon->DevuelveValores("tablas_configuracion_permisos", "TablaDB", $tab);
             
+            $sql="SELECT * FROM tablas_acciones_adicionales WHERE TablaDB='$tab'";
+            $Consulta=$obCon->Query($sql);
+            $i=0;
+            while($datos_acciones_adicionales=$obCon->FetchAssoc($Consulta)){
+                $acciones_adicionales[$i]=$datos_acciones_adicionales;
+                $i=$i+1;
+            }
+            
             $Page=$obCon->normalizar($_REQUEST["page"]);
             $NumPage=$obCon->normalizar($_REQUEST["page"]);
             if($Page==''){
@@ -228,6 +236,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                 
                                 print('<tr>');
                                     print('<td class="mailbox-name">');
+                                        
                                         if($config_tabla["Editar"]==1 or $config_tabla["Editar"]==""){
                                             print('<a onclick="frm_agregar_editar_registro_ts6(`'.$db.'`,`'.$tab.'`,`'.$idItem.'`,`'.$idDiv.'`)" title="Editar"><i class="icon-pencil text-info"></i></a>');
                                         }else{
@@ -240,7 +249,28 @@ if( !empty($_REQUEST["Accion"]) ){
                                             foreach ($Columnas["Field"] as $key => $value) {
                                                 $link= str_replace("@".$value, $RegistrosTabla[$value], $link);
                                             }
-                                            print('<a href="'.$link.'" target="_blank" title="Ver"><i class="fa fa-eye text-success"></i></a>');
+                                            print('<a href="'.$link.'" target="_blank" title="Ver" style="font-size:20px;"><i class="fa fa-eye text-success"></i></a>');
+                                        }
+                                        if(isset($acciones_adicionales[0])){
+                                            foreach ($acciones_adicionales as $key => $datos_acciones) {
+                                                print(" || ");
+                                                $js=$datos_acciones["JavaScript"];
+                                                $js= str_replace("@empresa_id", $empresa_id, $js);
+                                                $link=$datos_acciones["Ruta"];
+                                                $link= str_replace("@empresa_id", $empresa_id, $link);
+                                                foreach ($Columnas["Field"] as $key => $value) {
+                                                    $js= str_replace("@".$value, $RegistrosTabla[$value], $js);
+                                                    $link= str_replace("@".$value, $RegistrosTabla[$value], $link);
+                                                }
+                                                $ruta="";
+                                                if($js==''){
+                                                    $ruta='href="'.$link.'" target="'.$datos_acciones["Target"].'"';
+                                                }
+                                                if($datos_acciones["Ruta"]<>''){
+                                                    $js='';
+                                                }
+                                                print('<a '.$ruta.' title="'.$datos_acciones["Titulo"].'" '.$js.' style="font-size:20px;"><i class="'.$datos_acciones["ClaseIcono"].' text-'.$datos_acciones["Color"].'"></i></a>');
+                                            }
                                         }
                                     print('</td>');
                                 foreach ($RegistrosTabla as $key => $value) {

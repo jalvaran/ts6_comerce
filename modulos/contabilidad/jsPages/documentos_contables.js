@@ -199,6 +199,135 @@ function confirma_crear_documento_contable(funcion_id){
         });
 }
 
+function confirma_copiar_documento(empresa_id, documento_id){
+    swal({   
+            title: "Seguro que desea copiar este documento?",   
+            //text: "You will not be able to recover this imaginary file!",   
+            type: "warning",   
+            showCancelButton: true,  
+            
+            confirmButtonColor: "#DD6B55",   
+            confirmButtonText: "Claro que Siii!",   
+            cancelButtonText: "Espera voy a revisar algo!",   
+            closeOnConfirm: true,   
+            closeOnCancel: true 
+        }, function(isConfirm){   
+            if (isConfirm) {
+                
+                copiar_documento_contable(empresa_id, documento_id);
+                              
+            } else {     
+                swal("Cancelado", "Se ha cancelado el proceso :)", "error");   
+            } 
+        });
+}
+
+function confirma_anular_documento(empresa_id,documento_id){
+    alertify.prompt('Por qué anula este documento?:',
+    
+    function(evt, value) { 
+        if(value==undefined){
+            alertify.error("Accion cancelada");
+        }else{
+            anular_documento_contable(empresa_id,documento_id,value);
+            
+        }
+    }
+            
+            
+    );
+}
+
+function copiar_documento_contable(empresa_id,documento_id){    
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 10);        
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('documento_id', documento_id);
+                
+        $.ajax({
+        url: 'procesadores/documentos_contables.process.php',
+        //dataType: 'json',
+        async: false,
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            mostrar_spinner("Guardando...");
+        },
+        success: function(data){
+            ocultar_spinner();
+            
+            var respuestas = data.split(';'); 
+            if(respuestas[0]=="OK"){
+                toastr.success(respuestas[1]);
+                formulario_documento_contable();
+                                
+            }else if(respuestas[0]=="E1"){                
+                
+                alert(respuestas[1]);   
+            }else{
+                alert(data);
+            }
+                       
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            ocultar_spinner();
+            
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function anular_documento_contable(empresa_id,documento_id,observaciones_anulacion){
+    
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 9);        
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('documento_id', documento_id);
+        form_data.append('observaciones_anulacion', observaciones_anulacion);
+        
+        $.ajax({
+        url: 'procesadores/documentos_contables.process.php',
+        //dataType: 'json',
+        async: false,
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            mostrar_spinner("Guardando...");
+        },
+        success: function(data){
+            ocultar_spinner();
+            
+            var respuestas = data.split(';'); 
+            if(respuestas[0]=="OK"){
+                toastr.error(respuestas[1]);
+                dibujeListadoSegunID();
+                                
+            }else if(respuestas[0]=="E1"){                
+                toastr.error(respuestas[1]);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                alert(data);
+            }
+                       
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            ocultar_spinner();
+            
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
 
 function crear_documento_contable(){
     var boton_id="btn_guardar_documento";
