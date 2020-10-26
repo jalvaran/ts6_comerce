@@ -293,6 +293,20 @@ if( !empty($_REQUEST["Accion"]) ){
                         $css->ColTabla(($datos_consulta["NumDocSoporte"]), 1,"L");
                         
                     $css->CierraFilaTabla();
+                    $datos_bases=$obCon->DevuelveValores("$db.contabilidad_documentos_contables_registro_bases", "idItemDocumentoContable", $idItem);
+                    if($datos_bases["ID"]>0){
+                        $css->FilaTabla(12);
+                            $css->ColTabla("Base de este item:", 3,"R");
+                            $css->ColTabla("Porcentaje:", 1,"R");
+                            $css->ColTabla($datos_bases["Porcentaje"], 1,"R");
+                            $css->ColTabla("Valor:", 1,"R");
+                            $css->ColTabla(number_format($datos_bases["Valor"],2), 1,"R");
+                        $css->CierraFilaTabla();
+                        $css->FilaTabla(12);
+                            
+                            $css->ColTabla("___________________________________", 7,"C");
+                        $css->CierraFilaTabla();
+                    }
                 }
                 
                

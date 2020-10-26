@@ -103,8 +103,8 @@ class DocumentosContables extends conexion{
         
         $sql= $this->getSQLInsert($Tabla, $Datos);
         $this->Query($sql);
-        
-        
+        $ID=$this->ObtenerMAX($Tabla, "ID", 1, "");
+        return($ID);
           
     }
     /**
@@ -200,11 +200,11 @@ class DocumentosContables extends conexion{
             
         }
         
-        function AgregueBaseAMovimientoContable($idDocumento,$Concepto,$Base,$Porcentaje,$Valor,$idUser,$idItem){
+        function agrega_base_documento_contable($db,$idDocumento,$Concepto,$Base,$Porcentaje,$Valor,$idUser,$idItem){
         
-            $Tabla="documentos_contables_registro_bases";
+            $Tabla="$db.contabilidad_documentos_contables_registro_bases";
             
-            $Datos["idDocumentoContable"]=$idDocumento;
+            $Datos["documento_contable_id"]=$idDocumento;
             
             $Datos["Concepto"]=$Concepto;
             $Datos["Base"]=$Base;
@@ -213,7 +213,7 @@ class DocumentosContables extends conexion{
             $Datos["Valor"]=$Valor;
             $Datos["idUser"]=$idUser;
             $Datos["idItemDocumentoContable"]=$idItem;
-            $Datos["Estado"]="ABIERTO";
+            $Datos["Estado"]=1;
             $sql= $this->getSQLInsert($Tabla, $Datos);
             $this->Query($sql);
 
@@ -243,6 +243,9 @@ class DocumentosContables extends conexion{
             
             $this->anule_movimientos_libro_diario($db, $datos_tipo_documento["Nombre"], $datos_documento["Consecutivo"]);
             $sql="UPDATE $db.contabilidad_documentos_contables SET Estado=2, observaciones_anulacion='$observaciones', usuario_anulacion_id='$idUser' WHERE ID='$documento_id'";
+            $this->Query($sql);
+            
+            $sql="UPDATE $db.contabilidad_documentos_contables_registro_bases SET Estado=2 WHERE documento_contable_id='".$datos_documento["documento_contable_id"]."'";
             $this->Query($sql);
         }
         
@@ -278,12 +281,22 @@ class DocumentosContables extends conexion{
                     ";
             $this->Query($sql);
             
-            $sql="INSERT INTO $db.contabilidad_documentos_contables_items (`documento_contable_id`,`Fecha`,`Tercero`,`CuentaPUC`,`NombreCuenta`,`Debito`,`Credito`,`Concepto`,`NumDocSoporte`,`Soporte`)  
-                    SELECT '$llave_nueva',`Fecha`,`Tercero`,`CuentaPUC`,`NombreCuenta`,`Debito`,`Credito`,`Concepto`,`NumDocSoporte`,`Soporte` 
-                    FROM  $db.contabilidad_documentos_contables_items WHERE documento_contable_id='$llave_anterior'
-                    ";
+            $sql="SELECT * FROM $db.contabilidad_documentos_contables_items WHERE documento_contable_id='$llave_anterior'";
+            $Consulta=$this->Query($sql);
+            while($datos_consulta=$this->FetchAssoc($Consulta)){
+                $TipoMovimiento="DB";
+                $Valor=$datos_consulta["Debito"];
+                if($datos_consulta["Credito"]>0){
+                    $TipoMovimiento="CR";
+                    $Valor=$datos_consulta["Credito"];
+                }
+                $item_id=$this->AgregaMovimientoDocumentoContable($db, $llave_nueva, $datos_consulta["Tercero"], $datos_consulta["CuentaPUC"], $TipoMovimiento, $Valor, $datos_consulta["Concepto"], $datos_consulta["NumDocSoporte"], $datos_consulta["Soporte"]);
+                $datos_base=$this->DevuelveValores("$db.contabilidad_documentos_contables_registro_bases", "idItemDocumentoContable", $datos_consulta["ID"]);
+                if($datos_base["ID"]>0){
+                    $this->agrega_base_documento_contable($db, $llave_nueva, $datos_base["Concepto"], $datos_base["Base"], $datos_base["Porcentaje"], $datos_base["Valor"], $idUser, $item_id);
+                }
+            }
             
-            $this->Query($sql);
         }
         
     /**

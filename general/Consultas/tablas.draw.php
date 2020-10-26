@@ -126,8 +126,10 @@ if( !empty($_REQUEST["Accion"]) ){
                 
             }
             $sql= substr($sql, 0,-1);
-            $sql.=" FROM $tab t1 $Condicion ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
-            
+            $order_by="ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
+            $sql.=" FROM $tab t1 $Condicion ";
+            $statement=$sql;
+            $sql.=$order_by;
             $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
                     
             $css->div("", "box-body no-padding", "", "", "", "", "");
@@ -136,6 +138,20 @@ if( !empty($_REQUEST["Accion"]) ){
                     if($config_tabla["Agregar"]==1 or $config_tabla["Agregar"]==''){
                         
                         $html_boton_agregar='<p class="tbl-cell" style="cursor:pointer" onclick="frm_agregar_editar_registro_ts6(`'.$db.'`,`'.$tab.'`,``,`'.$idDiv.'`)"><i class="fa fa-plus-circle text-primary"></i></p>';
+                    }
+                    $html_exportar="";
+                    if($config_tabla["Exportar"]==1 or $config_tabla["Exportar"]==''){
+                        $statement= base64_encode(urlencode($statement));
+                        $html_boton_exportar='<a target="_blank" href="../../general/procesadores/GeneradorCSV.process.php?Opcion=2&empresa_id='.$empresa_id.'&tb='.$tab.'&st='.$statement.'" style="font-size:40px;"><i class="far fa-file-excel text-success"></i></a>';
+                    
+                        $html_exportar='<div class="icon-widget">
+                                            <h5 class="icon-widget-heading">Exportar</h5>
+                                            <div class="icon-widget-body tbl">
+                                                '.$html_boton_exportar.'
+                                                <p class="tbl-cell text-right">CSV</p>
+                                            </div>
+                                        </div>';
+                        
                     }
                     print('<div class="row widget-separator-1 mb-3">
                                 
@@ -150,8 +166,9 @@ if( !empty($_REQUEST["Accion"]) ){
                                 </div>
                            
                                 <div class="col-sm-12 col-md-6 col-lg-3">
-                                    
+                                    '.$html_exportar.'
                                 </div>
+                                
                                 <div class="col-sm-12 col-md-6 col-lg-3">
                                 
                                 </div>

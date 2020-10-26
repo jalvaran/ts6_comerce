@@ -305,10 +305,10 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $BusquedasGenerales=$obCon->normalizar($_REQUEST["txtBusquedasGenerales"]);
             
-            $Condicion=" WHERE t1.is_valid='1' ";
+            $Condicion=" WHERE is_valid='1' ";
             
             if($BusquedasGenerales<>''){
-                $Condicion.=" AND ( t1.numero = '$BusquedasGenerales' or t1.uuid = '$BusquedasGenerales' or t1.nombre_tercero like '%$BusquedasGenerales%' or t1.nit_tercero = '$BusquedasGenerales')";
+                $Condicion.=" AND ( numero = '$BusquedasGenerales' or uuid = '$BusquedasGenerales' or nombre_tercero like '%$BusquedasGenerales%' or nit_tercero = '$BusquedasGenerales')";
             }
             
             
@@ -321,9 +321,13 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $totales = $obCon->FetchAssoc($Consulta);
             $ResultadosTotales = $totales['Items'];
-                     
-            $sql="SELECT t1.*
-                  FROM $tabla t1 $Condicion LIMIT $PuntoInicio,$Limit;";
+            $limit_condition=" LIMIT $PuntoInicio,$Limit;";
+            $colsQuery="ID, documento_electronico_id,fecha,hora,tipo_documento_id,nombre_tipo_documento,prefijo,numero,nombre_tercero,nit_tercero,subtotal_documento,impuestos_documento,total_documento,documento_asociado,notas,orden_compra,nombre_tercero,uuid,nombre_usuario,nombre_items ";
+            $sql="SELECT $colsQuery 
+                  FROM $tabla t1 $Condicion ";
+            $statement=$sql;
+            $sql.=$limit_condition;
+            
             $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
               
             $css->div("", "box-body no-padding", "", "", "", "", "");
@@ -344,9 +348,21 @@ if( !empty($_REQUEST["Accion"]) ){
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div>');
+                    $statement= base64_encode(urlencode($statement));
+                    $colsQuery= base64_encode(urlencode($colsQuery));
+                    $html_boton_exportar='<a target="_blank" href="../../general/procesadores/GeneradorCSV.process.php?Opcion=3&empresa_id='.$empresa_id.'&tb='.$tabla.'&st='.$statement.'&colsQuery='.$colsQuery.'" style="font-size:40px;"><i class="far fa-file-excel text-success"></i></a>';
+
+                    $html_exportar='<div class="icon-widget">
+                                        <h5 class="icon-widget-heading">Exportar</h5>
+                                        <div class="icon-widget-body tbl">
+                                            '.$html_boton_exportar.'
+                                            <p class="tbl-cell text-right">CSV</p>
+                                        </div>
+                                    </div>';
+                    print(' 
                                 <div class="col-md-3">
-                                
+                                    '.$html_exportar.'
                                 </div>
                                 <div class="col-md-3">
                                 
@@ -416,12 +432,17 @@ if( !empty($_REQUEST["Accion"]) ){
                                         <th>Fecha</th>
                                         <th>Hora</th>
                                         <th>Número</th>
+                                        <th>Subtotal</th>
+                                        <th>Impuestos</th>
+                                        <th>Total</th>
                                         <th>Tercero</th>
                                         <th>Orden de Compra</th>   
                                         <th>Observaciones</th>                                       
                                         <th>Usuario</th>
-                                        
+                                        <th>Documento Asociado</th>
+                                        <th>Items</th>
                                         <th>UUID</th>
+                                        
                                                                                 
                                     </tr>
                                 </thead>');
@@ -458,6 +479,18 @@ if( !empty($_REQUEST["Accion"]) ){
                                     print("<strong>".$RegistrosTabla["prefijo"]."-".$RegistrosTabla["numero"]."</strong>");
                                 print("</td>");   
                                 
+                                print("<td class='mailbox-subject text-flickr'>");
+                                    print("<strong>".number_format($RegistrosTabla["subtotal_documento"])."</strong>");
+                                print("</td>");
+                                
+                                print("<td class='mailbox-subject text-flickr'>");
+                                    print("<strong>".number_format($RegistrosTabla["impuestos_documento"])."</strong>");
+                                print("</td>");
+                                
+                                print("<td class='mailbox-subject text-flickr'>");
+                                    print("<strong>".number_format($RegistrosTabla["total_documento"])."</strong>");
+                                print("</td>");
+                                
                                 print("<td class='mailbox-subject text-success'>");
                                     print(" ".$RegistrosTabla["nombre_tercero"]." || <strong>" .$RegistrosTabla["nit_tercero"]."</strong>");
                                 print("</td>");
@@ -474,8 +507,17 @@ if( !empty($_REQUEST["Accion"]) ){
                                 print("</td>");
                                 
                                 print("<td class='mailbox-name'>");
+                                    print($RegistrosTabla["documento_asociado"]);
+                                print("</td>");
+                                print("<td class='mailbox-name text-primary'>");
+                                    print($RegistrosTabla["nombre_items"]);
+                                print("</td>");
+                                
+                                print("<td class='mailbox-name'>");
                                     print($RegistrosTabla["uuid"]);
                                 print("</td>");
+                                
+                                
 
                             print('</tr>');
 

@@ -113,7 +113,11 @@ if( !empty($_REQUEST["Accion"]) ){
             $datos_predocumento=$obCon->DevuelveValores($db.".contabilidad_predocumento_contable", "ID", $predocumento_id);
             $datos_tercero=$obCon->DevuelveValores($db.".terceros", "ID", $tercero_id);
             
-            $obCon->AgregaMovimientoDocumentoContable($db, $datos_predocumento["documento_contable_id"], $datos_tercero["identificacion"], $cuenta_contable, $tipo_movimiento, $Valor, $concepto, $referencia, "");
+            $item_id=$obCon->AgregaMovimientoDocumentoContable($db, $datos_predocumento["documento_contable_id"], $datos_tercero["identificacion"], $cuenta_contable, $tipo_movimiento, $Valor, $concepto, $referencia, "");
+            if($TxtSolicitaBase==1 and $Base>0){
+                $obCon->agrega_base_documento_contable($db, $datos_predocumento["documento_contable_id"], $concepto, $Base, $Porcentaje, $Valor, $idUser, $item_id);
+            }
+            
             print("OK;Movimiento Agregado");
             
         break;//Fin caso 5
@@ -126,10 +130,9 @@ if( !empty($_REQUEST["Accion"]) ){
             $item_id=$obCon->normalizar($_REQUEST["item_id"]);
             $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
             $db=$datos_empresa["db"];
-            if($tabla_id==1){
-                $tab="contabilidad_documentos_contables_items";
-            }
-            $obCon->BorraReg($db.".".$tab, "ID", $item_id);
+            
+            $obCon->BorraReg($db.".contabilidad_documentos_contables_items", "ID", $item_id);
+            $obCon->BorraReg($db.".contabilidad_documentos_contables_registro_bases", "idItemDocumentoContable", $item_id);
             print("OK;Item Borrado");
         break;//Fin caso 6
         

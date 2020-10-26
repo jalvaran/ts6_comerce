@@ -54,7 +54,7 @@ $css->PageInit($myTitulo);
                             <div class="row">
                             <div class="col-md-4">
                                 ');
-        $css->select("empresa_id", "form-control btn-pill", "empresa_id", "", "", "onchange=formulario_documento_contable();", "");
+        $css->select("empresa_id", "form-control btn-pill", "empresa_id", "", "", "onchange=formulario_documento_contable();actualizar_contadores();", "");
             if($TipoUser=="administrador"){
                 $sql="SELECT * FROM empresapro WHERE Estado=1";
             }else{
@@ -71,9 +71,9 @@ $css->PageInit($myTitulo);
         
         $css->CrearBotonEvento("btnFacturar", "Hacer un Documento Contable", 1, "onclick", "formulario_documento_contable()", "azul");
         print('</div>');
-        $html=$css->getHtmlPanelInfo("Terceros", 0, "sp_terceros", 2, "icon-people", "onclick=dibuja_tabla(`get`,`terceros`,`1`,`DivListados`)", "style=cursor:pointer", "primary", 1, "p_terceros");
-        $html.=$css->getHtmlPanelInfo("Cuentas", 0, "sp_cuentas_contables", 2, "icon-layers", "onclick=dibuja_tabla(`get`,`contabilidad_plan_cuentas_subcuentas`,`1`,`DivListados`)", "style=cursor:pointer", "warning", 1, "p_cuentas_contables");
-        $html.=$css->getHtmlPanelInfo("Documentos", 0, "sp_documentos", 2, "icon-docs", "onclick=dibuja_tabla(`get`,`contabilidad_documentos_contables`,`1`,`DivListados`)", "style=cursor:pointer", "success", 1, "p_documentos");
+        $html=$css->getHtmlPanelInfo("Terceros", 0, "sp_terceros", 2, "icon-people", "onclick=listado_id=1;dibuja_tabla(`get`,`terceros`,`1`,`DivListados`)", "style=cursor:pointer", "primary", 1, "p_terceros");
+        $html.=$css->getHtmlPanelInfo("Cuentas", 0, "sp_cuentas_contables", 2, "icon-layers", "onclick=listado_id=2;dibuja_tabla(`get`,`contabilidad_plan_cuentas_subcuentas`,`1`,`DivListados`)", "style=cursor:pointer", "warning", 1, "p_cuentas_contables");
+        $html.=$css->getHtmlPanelInfo("Documentos", 0, "sp_documentos", 2, "icon-docs", "onclick=listado_id=3;dibuja_tabla(`get`,`contabilidad_documentos_contables`,`1`,`DivListados`)", "style=cursor:pointer", "success", 1, "p_documentos");
         print($html);
         print('</div>');
         print('</div>');

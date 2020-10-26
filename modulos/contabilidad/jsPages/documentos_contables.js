@@ -164,10 +164,13 @@ function CambiePagina(Funcion,Page=""){
 function dibujeListadoSegunID(Page=1){
     
     if(listado_id==1){
-        listar_documentos_enviados(Page);
+        dibuja_tabla(`get`,`terceros`,`1`,`DivListados`);
     }
     if(listado_id==2){
-        listar_documentos_error(Page);
+        dibuja_tabla(`get`,`contabilidad_plan_cuentas_subcuentas`,`1`,`DivListados`);
+    }
+    if(listado_id==3){
+        dibuja_tabla(`get`,`contabilidad_documentos_contables`,`1`,`DivListados`);
     }
     
     

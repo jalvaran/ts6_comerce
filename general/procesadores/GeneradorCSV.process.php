@@ -1,5 +1,5 @@
 <?php 
-session_start();
+@session_start();
 if (!isset($_SESSION['username'])){
   exit("<a href='../../index.php' ><img src='../images/401.png'>Iniciar Sesion </a>");
   
@@ -7,11 +7,11 @@ if (!isset($_SESSION['username'])){
 
 if(isset($_REQUEST["Opcion"])){
     $myPage="GeneradorCSV.php";
-    include_once("../clases/administrador.class.php");
+    include_once("../class/tablas.class.php");
     
        
     $idUser=$_SESSION['idUser'];
-    $obCon = new Administrador($idUser);
+    $obCon = new tablas($idUser);
     
     $DatosRuta=$obCon->DevuelveValores("configuracion_general", "ID", 1);
     $OuputFile=$DatosRuta["Valor"];
@@ -79,69 +79,167 @@ if(isset($_REQUEST["Opcion"])){
             
             case 2: //Exportar CSV directamente
             
-            $Tabla=$obCon->normalizar($_REQUEST["Tabla"]);
-            $FileName=$Tabla."_".$idUser.".csv";
-            $Link.= $FileName;
-            $OuputFile.=$FileName;
-            
-            if(file_exists($Link)){
-                unlink($Link);
-            }
-            $Condicion="";
-            if($_REQUEST["c"]){
-                $Condicion= base64_decode($_REQUEST["c"]);
-                $Condicion=$obCon->normalizar($Condicion);
-            }          
-            
-            
-            $Separador=";";
-            $NumPage="";
-            $limit="";
-            $startpoint="";
-            
-            
-            $sqlColumnas="SELECT  ";
-            $Columnas=$obCon->ShowColums($Tabla);
-            //print_r($Columnas);
-            foreach ($Columnas["Field"] as $key => $value) {
-                $sqlColumnas.="'$value',";
-            }
-            $sqlColumnas=substr($sqlColumnas, 0, -1);
-            $sqlColumnas.=" UNION ALL ";
-            
-            $sql=$sqlColumnas." SELECT * FROM $Tabla $Condicion";
-            $Fecha=date("Ymd_His");
-            
-            $Consulta=$obCon->Query($sql);
-            
-            if($archivo = fopen($Link, "a")){
-                
-                $mensaje="";
-                $r=0;
-                while($DatosExportacion= $obCon->FetchAssoc($Consulta)){
-                    $r++;
-                    foreach ($Columnas["Field"] as $NombreColumna){
-                        $Dato="";
-                        if(isset($DatosExportacion[$NombreColumna])){
-                            $Dato=$DatosExportacion[$NombreColumna];
-                        }
-                        $mensaje.='"'.str_replace(";", "", $Dato).'";'; 
-                    }
-                    $mensaje=substr($mensaje, 0, -1);
-                    $mensaje.="\r\n";
-                    if($r==1000){
-                        $r=0;
-                        fwrite($archivo, $mensaje);
-                        $mensaje="";
-                    }
+                $Tabla=$obCon->normalizar($_REQUEST["tb"]);
+                $st=$obCon->normalizar($_REQUEST["st"]);
+                $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+                $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+                $db=$datos_empresa["db"];
+
+                $FileName=$Tabla."_".$idUser.".csv";
+                $Link.= $FileName;
+                if(!file_exists($OuputFile)){
+                    mkdir($OuputFile);
                 }
-                fwrite($archivo, $mensaje);
-                fclose($archivo);
-            }
-            
-            $NombreArchivo=$Tabla;
-            print("<div id='DivImagenDescargarTablaDB'><a href='$Link' download='$NombreArchivo.csv' target='_top' ><h1>Descargar</h1></a></div>");
+
+                $OuputFile.=$datos_empresa["NIT"]."/";
+                if(!file_exists($OuputFile)){
+                    mkdir($OuputFile);
+                }
+                $NombreArchivo=$Tabla;
+                $Tabla=$db.".".$Tabla;
+                $OuputFile.=$FileName;
+                if(file_exists($OuputFile)){
+                    unlink($OuputFile);
+                }
+                $Condicion="";
+                if(isset($_REQUEST["st"])){
+                    $sql_consulta= urldecode(base64_decode($_REQUEST["st"]));
+                    //$Condicion=$obCon->normalizar($Condicion);
+                }          
+
+
+                $Separador=";";
+                $NumPage="";
+                $limit="";
+                $startpoint="";
+
+
+                $sqlColumnas="SELECT  ";
+                $Columnas=$obCon->ShowColums($Tabla);
+                //print_r($Columnas);
+                foreach ($Columnas["Field"] as $key => $value) {
+                    $sqlColumnas.="'$value',";
+                }
+                $sqlColumnas=substr($sqlColumnas, 0, -1);
+                $sqlColumnas.=" UNION ALL ";
+
+                $sql=$sqlColumnas." ".$sql_consulta;
+                $Fecha=date("Ymd_His");
+
+                //$Consulta=$obCon->Query($sql);
+                $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+                if($archivo = fopen($OuputFile, "a")){
+
+                    $mensaje="";
+                    $r=0;
+                    while($DatosExportacion= $obCon->FetchAssoc($Consulta)){
+                        $r++;
+                        foreach ($Columnas["Field"] as $NombreColumna){
+                            $Dato="";
+                            if(isset($DatosExportacion[$NombreColumna])){
+                                $Dato=$DatosExportacion[$NombreColumna];
+                            }
+                            $mensaje.='"'.str_replace(";", "", $Dato).'";'; 
+                        }
+                        $mensaje=substr($mensaje, 0, -1);
+                        $mensaje.="\r\n";
+                        if($r==1000){
+                            $r=0;
+                            fwrite($archivo, $mensaje);
+                            $mensaje="";
+                        }
+                    }
+                    fwrite($archivo, $mensaje);
+                    fclose($archivo);
+                }
+
+                
+                print("<div id='DivImagenDescargarTablaDB'><a href='$OuputFile' download='$NombreArchivo.csv' target='_top' ><h1>Descargar</h1></a></div>");
             break;//Fin caso 2
+            
+            case 3: //Exportar CSV especificando las columnas
+            
+                $Tabla=$obCon->normalizar($_REQUEST["tb"]);
+                $st=$obCon->normalizar($_REQUEST["st"]);
+                $colsQuery=$obCon->normalizar($_REQUEST["colsQuery"]);
+                $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+                $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+                $db=$datos_empresa["db"];
+
+                $FileName=$Tabla."_".$idUser.".csv";
+                $Link.= $FileName;
+                if(!file_exists($OuputFile)){
+                    mkdir($OuputFile);
+                }
+
+                $OuputFile.=$datos_empresa["NIT"]."/";
+                if(!file_exists($OuputFile)){
+                    mkdir($OuputFile);
+                }
+                $NombreArchivo=$Tabla;
+                $Tabla=$db.".".$Tabla;
+                $OuputFile.=$FileName;
+                if(file_exists($OuputFile)){
+                    unlink($OuputFile);
+                }
+                $Condicion="";
+                if(isset($_REQUEST["st"])){
+                    $sql_consulta= urldecode(base64_decode($_REQUEST["st"]));
+                    //$Condicion=$obCon->normalizar($Condicion);
+                }          
+
+                $colsQuery= urldecode(base64_decode($_REQUEST["colsQuery"]));
+                
+                $Separador=";";
+                $NumPage="";
+                $limit="";
+                $startpoint="";
+
+
+                $sqlColumnas="SELECT  ";
+                $colsQuery= str_replace(" ", "", $colsQuery);
+                $arrayCols= explode(",", $colsQuery);
+                foreach ($arrayCols as $key => $value) {
+                    
+                    $sqlColumnas.="'$value',";
+                }        
+                $sqlColumnas=substr($sqlColumnas, 0, -1);
+                
+                $sqlColumnas.=" UNION ALL ";
+
+                $sql=$sqlColumnas." ".$sql_consulta;
+                $Fecha=date("Ymd_His");
+                
+                //$Consulta=$obCon->Query($sql);
+                $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+                if($archivo = fopen($OuputFile, "a")){
+
+                    $mensaje="";
+                    $r=0;
+                    while($DatosExportacion= $obCon->FetchAssoc($Consulta)){
+                        $r++;
+                        foreach ($arrayCols as $NombreColumna){
+                            $Dato="";
+                            if(isset($DatosExportacion[$NombreColumna])){
+                                $Dato=$DatosExportacion[$NombreColumna];
+                            }
+                            $mensaje.='"'.str_replace(";", "", $Dato).'";'; 
+                        }
+                        $mensaje=substr($mensaje, 0, -1);
+                        $mensaje.="\r\n";
+                        if($r==1000){
+                            $r=0;
+                            fwrite($archivo, $mensaje);
+                            $mensaje="";
+                        }
+                    }
+                    fwrite($archivo, $mensaje);
+                    fclose($archivo);
+                }
+
+                
+                print("<div id='DivImagenDescargarTablaDB'><a href='$OuputFile' download='$NombreArchivo.csv' target='_top' ><h1>Descargar</h1></a></div>");
+            break;//Fin caso 3
         
         }
 }else{

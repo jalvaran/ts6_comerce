@@ -62,11 +62,17 @@ class Facturador extends conexion{
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
         
         $sql="CREATE VIEW vista_documentos_electronicos AS
-                SELECT t1.*,                    
+                SELECT t1.*, 
+                    
+                    (SELECT SUM(subtotal) from documentos_electronicos_items t4 where t4.documento_electronico_id=t1.documento_electronico_id LIMIT 1 ) AS subtotal_documento,
+                    (SELECT SUM(impuestos) from documentos_electronicos_items t4 where t4.documento_electronico_id=t1.documento_electronico_id LIMIT 1 ) AS impuestos_documento,
+                    (SELECT SUM(total) from documentos_electronicos_items t4 where t4.documento_electronico_id=t1.documento_electronico_id LIMIT 1 ) AS total_documento,
                     (SELECT name FROM $principalDb.api_fe_tipo_documentos t3 WHERE t3.ID=t1.tipo_documento_id LIMIT 1) AS nombre_tipo_documento,
                     (SELECT razon_social FROM terceros t4 WHERE t4.ID=t1.tercero_id LIMIT 1) AS nombre_tercero, 
                     (SELECT identificacion FROM terceros t4 WHERE t4.ID=t1.tercero_id LIMIT 1) AS nit_tercero,
-                    (SELECT CONCAT(Nombre,' ',Apellido) FROM $principalDb.usuarios t5 WHERE t5.ID=t1.usuario_id LIMIT 1) AS nombre_usuario 
+                    (SELECT CONCAT(Nombre,' ',Apellido) FROM $principalDb.usuarios t5 WHERE t5.ID=t1.usuario_id LIMIT 1) AS nombre_usuario,
+                    (SELECT CONCAT(prefijo,'-',numero) from documentos_electronicos t5 where t5.documento_electronico_id=t1.documento_asociado_id LIMIT 1 ) AS documento_asociado,
+                    (SELECT GROUP_CONCAT(t5.Descripcion) from inventario_items_general t5 where exists (SELECT 1 FROM documentos_electronicos_items t7 WHERE t7.documento_electronico_id=t1.documento_electronico_id and t7.item_id=t5.ID) ) as nombre_items  
                     
                 FROM `documentos_electronicos` t1 ORDER BY updated DESC ";
         

@@ -54,7 +54,7 @@ $css->PageInit($myTitulo);
                             <div class="row">
                             <div class="col-md-4">
                                 ');
-        $css->select("empresa_id", "form-control btn-pill", "empresa_id", "", "", "onchange=formulario_facturador();", "");
+        $css->select("empresa_id", "form-control btn-pill", "empresa_id", "", "", "onchange=formulario_facturador();actualizar_contadores();", "");
             if($TipoUser=="administrador"){
                 $sql="SELECT * FROM empresapro WHERE Estado=1";
             }else{
