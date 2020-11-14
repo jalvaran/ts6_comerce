@@ -1,7 +1,7 @@
 <?php
 
 include_once("../../modelo/php_conexion.php");
-session_start();
+@session_start();
 $idUser=$_SESSION['idUser'];
 if($idUser==''){
     $json[0]['id']="";

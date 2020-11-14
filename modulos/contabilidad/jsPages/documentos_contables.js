@@ -116,34 +116,6 @@ function add_events_frms(){
         
 }
 
-
-function mostrar_spinner(mensaje){
-    var cadena = '';            
-
-        cadena += '<div id="spinner1" class="m-2 d-inline-block" style="position:fixed;top: 50%;left: 40%;z-index:1;text-align:center;color:red"> ';
-            cadena += '<strong>'+mensaje+'</strong><br> ';
-                cadena += '<div class="spinner-3">';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-            cadena += '</div>';
-        cadena += '</div>'; 
-        var spinner = $(cadena);
-        $("#div_spinner").prepend(spinner);
-}
-
-function ocultar_spinner(){
-    $("#spinner1").remove();    
-}
-
-
-
 function CambiePagina(Funcion,Page=""){
     
     if(Page==""){

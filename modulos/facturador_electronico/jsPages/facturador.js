@@ -142,33 +142,6 @@ function add_event_list_items(){
         
 }
 
-function mostrar_spinner(mensaje){
-    var cadena = '';            
-
-        cadena += '<div id="spinner1" class="m-2 d-inline-block" style="position:fixed;top: 50%;left: 40%;z-index:1;text-align:center;color:red"> ';
-            cadena += '<strong>'+mensaje+'</strong><br> ';
-                cadena += '<div class="spinner-3">';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-                cadena += '<div class="bg-primary"></div>';
-            cadena += '</div>';
-        cadena += '</div>'; 
-        var spinner = $(cadena);
-        $("#div_spinner").prepend(spinner);
-}
-
-function ocultar_spinner(){
-    $("#spinner1").remove();    
-}
-
-
-
 function CambiePagina(Funcion,Page=""){
     
     if(Page==""){
@@ -747,12 +720,14 @@ function listar_documentos_enviados(Page){
     var empresa_id=document.getElementById("empresa_id").value;
     var txtBusquedasGenerales=document.getElementById("txtBusquedasGenerales").value;
     var idDiv="DivListados";
+    var json_busquedas= JSON.stringify(json_filters);
     urlQuery='Consultas/facturador.draw.php';    
     var form_data = new FormData();
         form_data.append('Accion', 3);  
         form_data.append('empresa_id', empresa_id);  
         form_data.append('Page', Page); 
         form_data.append('txtBusquedasGenerales', txtBusquedasGenerales); 
+        form_data.append('json_busquedas', json_busquedas); 
        $.ajax({// se arma un objecto por medio de ajax  
         url: urlQuery,// se indica donde llegara la informacion del objecto
         
@@ -762,13 +737,11 @@ function listar_documentos_enviados(Page){
         data: form_data,
         type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
         beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
-            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+            mostrar_spinner("Cargando...");
         },
-        complete: function(){
-           
-        },
+        
         success: function(data){    
-            
+            ocultar_spinner();
             document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
             
             
@@ -804,13 +777,11 @@ function listar_documentos_error(Page){
         data: form_data,
         type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
         beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
-            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+            mostrar_spinner("Cargando...");
         },
-        complete: function(){
-           
-        },
+        
         success: function(data){    
-            
+            ocultar_spinner();
             document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
             
             

@@ -50,7 +50,18 @@ if( !empty($_REQUEST["Accion"]) ){
             
         break; //Fin caso 1
               
-        
+        case 2:// Consulta si una columna  tiene vinculo o no
+            $tab=$obCon->normalizar($_REQUEST["table"]);
+            $column=$obCon->normalizar($_REQUEST["column"]);
+            
+            $sql="SELECT * FROM tablas_campos_asociados WHERE TablaOrigen='$tab' AND CampoTablaOrigen='$column'";
+            $datos_asociacion=$obCon->FetchAssoc($obCon->Query($sql));
+            if($datos_asociacion["ID"]==''){
+                exit("OK;0");
+            }else{
+                exit("OK;1;".$datos_asociacion["TablaAsociada"].";".$datos_asociacion["CampoAsociado"].";".$datos_asociacion["IDCampoAsociado"].";".$datos_asociacion["dbCampoAsociado"]);
+            }
+        break;//Fin caso dos    
     }
     
     

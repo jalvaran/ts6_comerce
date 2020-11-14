@@ -269,7 +269,7 @@ if( !empty($_REQUEST["Accion"]) ){
                     
                 $css->CierraFilaTabla();
                 $documento_contable_id=$datos_predocumento["documento_contable_id"];
-                $sql="SELECT t1.*,(SELECT razon_social FROM $db.terceros t2 WHERE t2.identificacion=t1.Tercero) as razon_social_tercero FROM $db.contabilidad_documentos_contables_items t1 WHERE documento_contable_id='$documento_contable_id' ORDER BY ID DESC";
+                $sql="SELECT t1.*,(SELECT razon_social FROM $db.terceros t2 WHERE t2.identificacion=t1.Tercero limit 1) as razon_social_tercero FROM $db.contabilidad_documentos_contables_items t1 WHERE documento_contable_id='$documento_contable_id' ORDER BY ID DESC";
                 $Consulta=$obCon->Query($sql);
                 $debitos=0;
                 $creditos=0;

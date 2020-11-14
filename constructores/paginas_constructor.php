@@ -3305,6 +3305,16 @@ class PageConstruct extends html_estruct_class{
             print("<hr style='color: #0056b2;'>");
         }
         
+        
+        public function modal_filtros_acciones($NombreModal,$idDivBodyModal,$TituloModal,$ValorBoton,$JSBoton,$Extras) {        
+           
+            $this->Modal($NombreModal, $TituloModal, "", 0, 0, 1);
+                    $this->CrearDiv($idDivBodyModal, "", "", 1, 1);
+                    $this->CerrarDiv();
+            $this->CModal("BtnModalGuardar", $JSBoton, "submit", $ValorBoton);
+        
+        }
+    
         //////////////////////////////////FIN
 }
 	

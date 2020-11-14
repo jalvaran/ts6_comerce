@@ -21,7 +21,7 @@ if( !empty($_REQUEST["Accion"]) ){
         
         case 2:// dibujo el listado de las empresas
             
-            $Limit=5;
+            $Limit=10;
             $Page=$obCon->normalizar($_REQUEST["Page"]);
             $NumPage=$obCon->normalizar($_REQUEST["Page"]);
             if($Page==''){
@@ -230,9 +230,10 @@ if( !empty($_REQUEST["Accion"]) ){
                                 $css->div("", "row", "", "", "", "", "");  
                                 
                                     $css->div("", "col-md-4", "", "", "", "", "");
+                                        $css->CrearBotonEvento("btnCrearEmpresa", "Crear la Empresa en el API", 1, "onclick", "confirmaAccion(`1`,`$empresa_id`)", "rojo");
                                     $css->Cdiv();
                                     $css->div("", "col-md-4", "", "", "", "", "");
-                                        $css->CrearBotonEvento("btnCrearEmpresa", "Click para Crear la Empresa en el API", 1, "onclick", "confirmaAccion(`1`,`$empresa_id`)", "rojo");
+                                        $css->CrearBotonEvento("btnCrearEmpresa", "Actualizar los Datos de la Empresa", 1, "onclick", "confirmaAccion(`5`,`$empresa_id`)", "verde");
                                     $css->Cdiv();
                                     $css->div("", "col-md-4", "", "", "", "", "");
                                     $css->Cdiv();

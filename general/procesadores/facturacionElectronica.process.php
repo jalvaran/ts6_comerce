@@ -1,5 +1,5 @@
 <?php
-session_start();
+@session_start();
 if (!isset($_SESSION['username'])){
   exit("<a href='../../index.php' ><img src='../images/401.png'>Iniciar Sesion </a>");
   

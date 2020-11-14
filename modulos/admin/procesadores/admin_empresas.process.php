@@ -15,7 +15,7 @@ if( !empty($_REQUEST["Accion"]) ){
     
     switch ($_REQUEST["Accion"]) {
         
-        case 1: //Crear una empresa
+        case 1: //Crear o actualizar una empresa en la base de datos
             
             $jsonForm= $_REQUEST["jsonFormulario"];                    
             parse_str($jsonForm,$DatosFormulario);
@@ -24,7 +24,7 @@ if( !empty($_REQUEST["Accion"]) ){
             
             foreach ($DatosFormulario as $key => $value) {
                 
-                if($value==''){
+                if($value=='' and $key<>'test_set_dian'){
                     exit("E1;El campo $key no puede estar vacío;$key");
                 }
             }
@@ -66,7 +66,12 @@ if( !empty($_REQUEST["Accion"]) ){
             $parametros=$obCon->DevuelveValores("configuracion_general", "ID", 4000); //Ruta con el token del api
             $TokenTS5=$parametros["Valor"];
             $data=$obFe->JSONCrearEmpresa($empresa_id);
-            $respuesta=$obFe->callAPI("POST", $url, $TokenTS5, $data);
+            $method="POST";
+            if(isset($_REQUEST["actualizar"])){
+                $method="PUT";
+                //$TokenTS5=$DatosEmpresa["TokenAPIFE"];
+            }
+            $respuesta=$obFe->callAPI($method, $url, $TokenTS5, $data);
             //$respuesta= json_decode($respuesta);
             $arrayRespuesta = json_decode($respuesta,true);
             if(isset($arrayRespuesta["errors"])){
@@ -82,7 +87,11 @@ if( !empty($_REQUEST["Accion"]) ){
                     $token=$arrayRespuesta["token"];
                     $obCon->ActualizaRegistro("empresapro", "TokenAPIFE", $token, "ID", $empresa_id);
                 }
-                print("OK;Empresa Creada Exitósamente");
+                $msg="Empresa Creada Exitósamente";
+                if(isset($_REQUEST["actualizar"])){
+                    $msg="Empresa Actualizada Exitósamente";
+                }
+                print("OK;$msg");
             }
             
             

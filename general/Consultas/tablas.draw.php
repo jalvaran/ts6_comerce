@@ -18,6 +18,8 @@ if( !empty($_REQUEST["Accion"]) ){
         
         case 1://Dibuja una tabla con todos sus componentes
             
+            
+            
             $Limit=20;
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
             if($empresa_id==0){
@@ -27,6 +29,8 @@ if( !empty($_REQUEST["Accion"]) ){
                 $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
                 $db=$DatosEmpresa["db"];
             }
+            
+            
             
             $tab=$obCon->normalizar($_REQUEST["tab"]);
             $idDiv=$obCon->normalizar($_REQUEST["idDiv"]);
@@ -49,9 +53,29 @@ if( !empty($_REQUEST["Accion"]) ){
             }
             
             $BusquedasGenerales=$obCon->normalizar($_REQUEST["BusquedasGenerales"]);
-            
+            $json_busquedas = json_decode($_REQUEST["json_busquedas"],1);
             $Condicion=" WHERE ID<>'' ";
+            $Condicion_busqueda_general="";
+            $flag_in=0;
+            $filter_active=0;
+            foreach ($json_busquedas as $key => $value) {
+                if($value["tab"]==$tab){
+                    $flag_in=1;
+                    $filter_active=1;
+                    $Condicion_busqueda_general.=" AND (";                
+                    $nombre_campo=$value["col"];
+                    $txt_busqueda_json=$obCon->normalizar($value["txt_fil"]);
+                    $datos_condicion=$obCon->DevuelveValores("catalogo_condiciones", "ID", $value["cond"]);
+                    $condicion_final= str_replace("@busqueda", $txt_busqueda_json, $datos_condicion["Valor"]);
+                    $Condicion_busqueda_general.=" t1.$nombre_campo ".$condicion_final;
+                    
+                    $Condicion_busqueda_general.=")";
+                }
+                
+            }
             
+            $Condicion.=$Condicion_busqueda_general;
+                        
             if($BusquedasGenerales<>''){
                 $sql="SELECT * FROM tablas_campos_busquedas WHERE nombre_tabla='$tab'";
                 $Consulta=$obCon->Query($sql);
@@ -97,7 +121,8 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $totales = $obCon->FetchAssoc($Consulta);
             $ResultadosTotales = $totales['Items'];
-            $Columnas=$obCon->getColumns($db.".".$tab);
+            $Columnas=$obCon->getColumnsVisibles($db.".".$tab);
+            
             
             $sql="SELECT ";
             
@@ -153,6 +178,76 @@ if( !empty($_REQUEST["Accion"]) ){
                                         </div>';
                         
                     }
+                    
+                    $html_filtros='<div class="icon-widget">
+                                            <h5 class="icon-widget-heading" >Filtros <li class="far fa-times-circle text-danger" style="cursor:pointer;" onclick="clean_filter_tab(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`)"></li></h5>
+                                            <div class="icon-widget-body tbl">
+                                                '
+                            . '                     <div class="input-group">';
+                    $html_filtros.='<div class="input-group-prepend">';
+                    $html_filtros.='<div id="div_col_filtro">';
+                    $html_filtros.='<select id="cmb_col_filtro" name="cmb_col_filtros" class="ts_col_filtro form-control" style="width:150px;padding: 12px;" onchange="consultar_vinculo_columna(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`)">';
+                    
+                    foreach ($Columnas["Field"] as $key => $value) {
+                        $html_filtros.='<option value="'.$value.'">'.$Columnas["titleField"][$key].'</option>';                                                
+                    }
+                    $html_filtros.='</select>';
+                    $html_filtros.='</div>';
+                    $html_filtros.='<div id="div_condicion_filtro">';
+                        $html_filtros.='<select id="cmb_condicion_filtro" name="cmb_condicion_filtro" class="ts_condicion_filtro form-control" style="width:100px;padding: 12px;">';
+                            $sql_filtro="SELECT * FROM catalogo_condiciones";
+                            $Consulta_filtro=$obCon->Query($sql_filtro);
+                            while ($data_condicion=$obCon->FetchAssoc($Consulta_filtro)){
+                                $html_filtros.='<option value="'.$data_condicion["ID"].'"> '.$data_condicion["Descripcion"].' </option>';
+                            }
+                        
+                             
+                        $html_filtros.='</select>';
+                    $html_filtros.='</div>';
+                    $html_filtros.='<div id="div_valor_filtro">';    
+                    $html_filtros.='<input type="text" id="txt_filtro" class="form-control ts_busqueda_filtro" style="width:150px;padding: 12px;"></input>';    
+                    $html_filtros.='</div>';
+                    $html_filtros.='<button type="submit" class="btn btn-success input-group-text text-white" style="font-size:24px;height:51px;width:50px;padding: 12px;" onclick="add_filter_tab(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`)"><li class="fa fa-filter" ></li></button>';
+                    
+                    $html_filtros.='</div>';//Fin input group prepend
+                    $html_filtros.='</div>';//Fin input group
+                    if($filter_active==1){
+                        $html_filtros."<div class='row'>";
+                            $html_filtros.='<table class="table table-condensed">';
+                            $html_filtros.='<tr>';
+                                $html_filtros.='<td colspan="3">Filtros Aplicados:</td>';
+                            $html_filtros.='</tr>';
+                            $html_filtros.='<tr>';
+                                $html_filtros.='<td><strong>Borrar:</strong></td>';
+                                $html_filtros.='<td><strong>Columna:</strong></td>';
+                                $html_filtros.='<td><strong>Condición:</strong></td>';
+                                $html_filtros.='<td><strong>Valor:</strong></td>';
+                            $html_filtros.='</tr>';
+                            foreach ($json_busquedas as $key => $value) {
+                                $data_condicion=$obCon->DevuelveValores("catalogo_condiciones", "ID", $value["cond"]);
+                                $data_nombres_campos=$obCon->DevuelveValores("tablas_nombres_campos", "nombreOriginalCampo", $value["col"]);
+                                $nombre_campo=$value["col"];
+                                if($data_nombres_campos["muestre"]<>''){
+                                    $nombre_campo=$data_nombres_campos["muestre"];
+                                }
+                                if($value["tab"]==$tab){
+                                    $html_filtros.='<tr>';
+                                        $html_filtros.='<td><li class="far fa-times-circle text-danger" style="cursor:pointer;" onclick="delete_filter(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`,`'.$key.'`)"></li></td>';
+                                        $html_filtros.='<td>'.$nombre_campo.'</td>';
+                                        $html_filtros.='<td>'.$data_condicion["Descripcion"].'</td>';
+                                        $html_filtros.='<td>'.$value["txt_fil"].'</td>';
+                                    $html_filtros.='</tr>';
+                                }
+
+                            }
+                            $html_filtros.='</table>';
+                        $html_filtros.'</div>';
+                    }
+                    $html_filtros.=            '
+                                
+                                            </div>
+                                        </div>';
+                    
                     print('<div class="row widget-separator-1 mb-3">
                                 
                                 <div class="col-sm-12 col-md-6 col-lg-3">
@@ -165,14 +260,14 @@ if( !empty($_REQUEST["Accion"]) ){
                                     </div>
                                 </div>
                            
-                                <div class="col-sm-12 col-md-6 col-lg-3">
+                                <div class="col-sm-12 col-md-6 col-lg-2">
                                     '.$html_exportar.'
                                 </div>
                                 
-                                <div class="col-sm-12 col-md-6 col-lg-3">
-                                
+                                <div class="col-sm-12 col-md-6 col-lg-5">
+                                    '.$html_filtros.'
                                 </div>
-                                <div class="col-sm-12 col-md-6 col-lg-3">
+                                <div class="col-sm-12 col-md-6 col-lg-2">
                                 
                                                                 
                             ');

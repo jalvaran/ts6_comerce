@@ -115,7 +115,7 @@ if(isset($_REQUEST["Opcion"])){
 
 
                 $sqlColumnas="SELECT  ";
-                $Columnas=$obCon->ShowColums($Tabla);
+                $Columnas=$obCon->getColumnsVisibles($Tabla);
                 //print_r($Columnas);
                 foreach ($Columnas["Field"] as $key => $value) {
                     $sqlColumnas.="'$value',";

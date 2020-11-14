@@ -289,6 +289,8 @@ if( !empty($_REQUEST["Accion"]) ){
         case 3://Listado de documentos electronicos enviados
             
             $tabla="vista_documentos_electronicos";
+            $tab="vista_documentos_electronicos";
+            $idDiv="DivListados";
             $Limit=20;
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
             $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
@@ -304,8 +306,29 @@ if( !empty($_REQUEST["Accion"]) ){
             }
             
             $BusquedasGenerales=$obCon->normalizar($_REQUEST["txtBusquedasGenerales"]);
-            
+            $json_busquedas = json_decode($_REQUEST["json_busquedas"],1);
             $Condicion=" WHERE is_valid='1' ";
+            
+            $Condicion_busqueda_general="";
+            $flag_in=0;
+            $filter_active=0;
+            foreach ($json_busquedas as $key => $value) {
+                if($value["tab"]==$tab){
+                    $flag_in=1;
+                    $filter_active=1;
+                    $Condicion_busqueda_general.=" AND (";                
+                    $nombre_campo=$value["col"];
+                    $txt_busqueda_json=$obCon->normalizar($value["txt_fil"]);
+                    $datos_condicion=$obCon->DevuelveValores("catalogo_condiciones", "ID", $value["cond"]);
+                    $condicion_final= str_replace("@busqueda", $txt_busqueda_json, $datos_condicion["Valor"]);
+                    $Condicion_busqueda_general.=" t1.$nombre_campo ".$condicion_final;
+                    
+                    $Condicion_busqueda_general.=")";
+                }
+                
+            }
+            
+            $Condicion.=$Condicion_busqueda_general;
             
             if($BusquedasGenerales<>''){
                 $Condicion.=" AND ( numero = '$BusquedasGenerales' or uuid = '$BusquedasGenerales' or nombre_tercero like '%$BusquedasGenerales%' or nit_tercero = '$BusquedasGenerales')";
@@ -360,14 +383,99 @@ if( !empty($_REQUEST["Accion"]) ){
                                             <p class="tbl-cell text-right">CSV</p>
                                         </div>
                                     </div>';
+                    
+                    $html_filtros='<div class="icon-widget">
+                                            <h5 class="icon-widget-heading" >Filtros <li class="far fa-times-circle text-danger" style="cursor:pointer;" onclick="clean_filter_tab(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`,`2`)"></li></h5>
+                                            <div class="icon-widget-body tbl">
+                                                '
+                            . '                     <div class="input-group">';
+                    $html_filtros.='<div class="input-group-prepend">';
+                    $html_filtros.='<div id="div_col_filtro">';
+                    $html_filtros.='<select id="cmb_col_filtro" name="cmb_col_filtros" class="ts_col_filtro form-control" style="width:150px;padding: 12px;" onchange="consultar_vinculo_columna(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`)">';
+                    $index_filter=0;
+                    $ColumnasFiltro["Field"][$index_filter]="fecha";
+                    $ColumnasFiltro["titleField"][$index_filter]="Fecha";
+                    $index_filter++;
+                    $ColumnasFiltro["Field"][$index_filter]="numero";
+                    $ColumnasFiltro["titleField"][$index_filter]="Número";
+                    
+                    $index_filter++;
+                    $ColumnasFiltro["Field"][$index_filter]="nombre_tercero";
+                    $ColumnasFiltro["titleField"][$index_filter]="Razón Social";
+                    $index_filter++;
+                    $ColumnasFiltro["Field"][$index_filter]="tipo_documento_id";
+                    $ColumnasFiltro["titleField"][$index_filter]="Tipo de Documento";
+                    $index_filter++;
+                    $ColumnasFiltro["Field"][$index_filter]="documento_asociado";
+                    $ColumnasFiltro["titleField"][$index_filter]="Documento Asociado";
+                    foreach ($ColumnasFiltro["Field"] as $key => $value) {
+                        $html_filtros.='<option value="'.$value.'">'.$ColumnasFiltro["titleField"][$key].'</option>';                                                
+                    }
+                    $html_filtros.='</select>';
+                    $html_filtros.='</div>';
+                    $html_filtros.='<div id="div_condicion_filtro">';
+                        $html_filtros.='<select id="cmb_condicion_filtro" name="cmb_condicion_filtro" class="ts_condicion_filtro form-control" style="width:100px;padding: 12px;">';
+                            $sql_filtro="SELECT * FROM catalogo_condiciones";
+                            $Consulta_filtro=$obCon->Query($sql_filtro);
+                            while ($data_condicion=$obCon->FetchAssoc($Consulta_filtro)){
+                                $html_filtros.='<option value="'.$data_condicion["ID"].'"> '.$data_condicion["Descripcion"].' </option>';
+                            }
+                        
+                             
+                        $html_filtros.='</select>';
+                    $html_filtros.='</div>';
+                    $html_filtros.='<div id="div_valor_filtro">';    
+                    $html_filtros.='<input type="text" id="txt_filtro" class="form-control ts_busqueda_filtro" style="width:150px;padding: 12px;"></input>';    
+                    $html_filtros.='</div>';
+                    $html_filtros.='<button type="submit" class="btn btn-success input-group-text text-white" style="font-size:24px;height:51px;width:50px;padding: 12px;" onclick="add_filter_tab(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`,`2`)"><li class="fa fa-filter" ></li></button>';
+                    
+                    $html_filtros.='</div>';//Fin input group prepend
+                    $html_filtros.='</div>';//Fin input group
+                    if($filter_active==1){
+                        $html_filtros."<div class='row'>";
+                            $html_filtros.='<table class="table table-condensed">';
+                            $html_filtros.='<tr>';
+                                $html_filtros.='<td colspan="3">Filtros Aplicados:</td>';
+                            $html_filtros.='</tr>';
+                            $html_filtros.='<tr>';
+                                $html_filtros.='<td><strong>Borrar:</strong></td>';
+                                $html_filtros.='<td><strong>Columna:</strong></td>';
+                                $html_filtros.='<td><strong>Condición:</strong></td>';
+                                $html_filtros.='<td><strong>Valor:</strong></td>';
+                            $html_filtros.='</tr>';
+                            foreach ($json_busquedas as $key => $value) {
+                                $data_condicion=$obCon->DevuelveValores("catalogo_condiciones", "ID", $value["cond"]);
+                                $data_nombres_campos=$obCon->DevuelveValores("tablas_nombres_campos", "nombreOriginalCampo", $value["col"]);
+                                $nombre_campo=$value["col"];
+                                if($data_nombres_campos["muestre"]<>''){
+                                    $nombre_campo=$data_nombres_campos["muestre"];
+                                }
+                                if($value["tab"]==$tab){
+                                    $html_filtros.='<tr>';
+                                        $html_filtros.='<td><li class="far fa-times-circle text-danger" style="cursor:pointer;" onclick="delete_filter(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`,`'.$key.'`,`2`)"></li></td>';
+                                        $html_filtros.='<td>'.$nombre_campo.'</td>';
+                                        $html_filtros.='<td>'.$data_condicion["Descripcion"].'</td>';
+                                        $html_filtros.='<td>'.$value["txt_fil"].'</td>';
+                                    $html_filtros.='</tr>';
+                                }
+
+                            }
+                            $html_filtros.='</table>';
+                        $html_filtros.'</div>';
+                    }
+                    $html_filtros.=            '
+                                
+                                            </div>
+                                        </div>';
+                    
                     print(' 
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     '.$html_exportar.'
                                 </div>
-                                <div class="col-md-3">
-                                
+                                <div class="col-md-5">
+                                    '.$html_filtros.'
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                 
                                 
                             ');

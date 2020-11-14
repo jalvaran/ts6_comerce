@@ -304,6 +304,10 @@ function confirmaAccion(funcion,empresa_id){
                 if(funcion==4){
                     crear_resolucion_facturacion_api(empresa_id);
                 }
+                
+                if(funcion==5){
+                    actualizar_empresa_api(empresa_id);
+                }
                               
             } else {     
                 swal("Cancelado", "Se ha cancelado el proceso :)", "error");   
@@ -477,6 +481,55 @@ function crear_empresa_api(empresa_id){
         form_data.append('Accion', '2');  
         form_data.append('empresa_id', empresa_id);
                                
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Click para Crear la Empresa en el API";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);
+                
+                dibuje_json_empresa(empresa_id);
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                var idDiv="div_crearEmpresa";
+                document.getElementById(idDiv).innerHTML=data;
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Click para Crear la Empresa en el API";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+function actualizar_empresa_api(empresa_id){
+    
+    urlQuery='procesadores/admin_empresas.process.php';    
+    
+    var btnEnviar = "btnCrearEmpresa";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    
+        
+    
+    var form_data = new FormData();
+        form_data.append('Accion', '2');  
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('actualizar', 1);                 
         $.ajax({
         url: urlQuery,
         //dataType: 'json',

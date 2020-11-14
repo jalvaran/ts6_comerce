@@ -140,7 +140,12 @@ public function VerificaPermisos($VectorPermisos) {
     
     public function getColumns($table) {
         $Cols=$this->ShowColums($table);
-        
+        $array_name_table= explode(".", $table);
+        $count_array=count($array_name_table);
+        $table_name=$array_name_table[0];
+        if($count_array>1){
+            $table_name=$array_name_table[1];
+        }
         foreach ($Cols["Field"] as $key => $value) {
             
             $sql="SELECT muestre FROM tablas_nombres_campos WHERE nombreOriginalCampo='$value'";
@@ -154,5 +159,34 @@ public function VerificaPermisos($VectorPermisos) {
         return($Cols);
         
     }
+    
+    public function getColumnsVisibles($table) {
+        $Cols=$this->ShowColums($table);
+        $array_name_table= explode(".", $table);
+        $count_array=count($array_name_table);
+        $table_name=$array_name_table[0];
+        if($count_array>1){
+            $table_name=$array_name_table[1];
+        }
+        foreach ($Cols["Field"] as $key => $value) {
+            $sql="SELECT ID FROM tablas_campos_control WHERE NombreTabla='$table_name' AND Campo='$value' AND (Visible='0' or Habilitado='0')";
+            $dataQuery=$this->FetchAssoc($this->Query($sql));
+            
+            if($dataQuery["ID"]<>''){
+                unset($Cols["Field"][$key]);
+                continue;
+            }
+            $sql="SELECT muestre FROM tablas_nombres_campos WHERE nombreOriginalCampo='$value'";
+            $dataQuery=$this->FetchAssoc($this->Query($sql));
+            if($dataQuery["muestre"]==''){
+                $Cols["titleField"][$key]=$value;
+            }else{
+                $Cols["titleField"][$key]=$dataQuery["muestre"];
+            }
+        }
+        return($Cols);
+        
+    }
+    
     
 }
