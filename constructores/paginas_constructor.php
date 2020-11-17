@@ -42,7 +42,7 @@ class PageConstruct extends html_estruct_class{
                         <title>'.$Titulo.'</title>
                         <link rel="icon" type="image/x-icon" href="../../images/favicontechno.png">
                         <!-- select 2 CSS -->
-                        <link rel="stylesheet" href="../../assets/plugin/select2/css/select2.min.css"  />
+                        <link rel="stylesheet" href="../../assets/plugin/select2/css/select2.css"  />
                         <!-- bootstrap select CSS -->
                         <link rel="stylesheet" href="../../assets/plugin/bootstrap_select/css/bootstrap-select.css"  />
                         <!-- Switcher CSS -->
