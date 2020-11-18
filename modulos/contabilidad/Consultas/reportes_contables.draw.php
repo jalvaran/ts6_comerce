@@ -8,13 +8,15 @@ if (!isset($_SESSION['username'])){
 $idUser=$_SESSION['idUser'];
 include_once("../../../modelo/php_conexion.php");
 include_once("../../../constructores/paginas_constructor.php");
-
+include_once("../clases/reportes_contables.class.php");
 include_once("../clases/html_reportes_contables.class.php");
+include_once("../clases/PDF_ReportesContables.class.php");
 
 if( !empty($_REQUEST["Accion"]) ){
     $css =  new PageConstruct("", "", 1, "", 1, 0);
-    $obCon = new conexion($idUser);
+    $obCon = new Contabilidad($idUser);
     $obHtml = new html_reportes_contables();
+    $obDoc= new PDF_ReportesContables(DB);
     switch ($_REQUEST["Accion"]) {
         
         case 1:// dibujo los formularios para los diferentes reportes
@@ -80,7 +82,80 @@ if( !empty($_REQUEST["Accion"]) ){
             print($html);
         break;// fin caso 2    
         
+        case 3:// balance de comprobacion
+            
+            $FechaInicial=$obCon->normalizar($_REQUEST["fecha_inicial"]);
+            $FechaFinal=$obCon->normalizar($_REQUEST["fecha_final"]);
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $CentroCostos=$obCon->normalizar($_REQUEST["centro_costos_id"]);
+            $CmbOpciones=$obCon->normalizar($_REQUEST["opciones_reporte"]);
+            $tercero_id=$obCon->normalizar($_REQUEST["tercero_id"]);
+            $cuenta_puc=$obCon->normalizar($_REQUEST["cuenta_puc"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $obCon->construir_vistas_balance_comprobacion($db, $FechaInicial, $FechaFinal, $CentroCostos, $tercero_id, $cuenta_puc, "");
+            $Encabezado=1;
+            if($tercero_id<>'' or $cuenta_puc<>'' ){
+                $Encabezado=0;
+            }
+            $link="procesadores/reportes_contables.process.php?Accion=1&empresa_id=$empresa_id&Opciones=$CmbOpciones&Encabezado=$Encabezado";
+            $html='<div id="" class="box-body no-padding" role=""><div id="" class="mailbox-controls" role=""><div class="row widget-separator-1 mb-3">
+                                
+                                <div class="col-sm-12 col-md-6 col-lg-3">
+                                    
+                                </div>
+                           
+                                <div class="col-sm-12 col-md-6 col-lg-2">
+                                    <div class="icon-widget">
+                                            <h5 class="icon-widget-heading">Exportar</h5>
+                                            <div class="icon-widget-body tbl">
+                                                <a target="_blank" href="'.$link.'" style="font-size:40px;"><i class="far fa-file-excel text-success"></i></a>
+                                                <p class="tbl-cell text-right">Excel</p>
+                                            </div>
+                                        </div>
+                                </div>
+                                
+                                <div class="col-sm-12 col-md-6 col-lg-5">
+                                    
+                                </div>
+                                <div class="col-sm-12 col-md-6 col-lg-2">
+                                
+                                </div>
+                                                                
+                            ';
+            print($html);
+        break;//fin caso 3   
         
+        case 4: // balance x terceros
+            
+            $FechaInicial=$obCon->normalizar($_REQUEST["fecha_inicial"]);
+            $FechaFinal=$obCon->normalizar($_REQUEST["fecha_final"]);
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $CentroCostos=$obCon->normalizar($_REQUEST["centro_costos_id"]);           
+            $CmbTercero=$obCon->normalizar($_REQUEST["tercero_id"]);
+            $TxtCuentaContable=$obCon->normalizar($_REQUEST["cuenta_puc"]);
+            
+            if($FechaInicial==""){
+                exit("E1;Debe elegir una fecha inicial;TxtFechaInicial");
+            }
+            if($FechaFinal==""){
+                exit("E1;Debe elegir una fecha Final;TxtFechaFinal");
+            }
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            
+            $obCon->construir_vista_balance_comprobacion_tercero($db,$FechaInicial, $FechaFinal, $CmbTercero,  $CentroCostos, $TxtCuentaContable);
+            $html=$obDoc->HtmlBalanceComprobacionXTerceros($db);
+            $page="Consultas/PDF_ReportesContables.draw.php?idDocumento=6&TxtFechaInicial=$FechaInicial&TxtFechaFinal=$FechaFinal"; 
+            $page.="&CmbEmpresa=$empresa_id&CmbCentroCosto=$CentroCostos";
+            
+            print("<a href='$page' target='_blank'><button class='btn btn-warning' >Exportar a PDF</button></a>");
+            print("<input type='button' class='btn btn-success' value='Exportar a Excel' onclick=tableToExcel('TableBalanceComprobacionXTerceros','balance','balance_x_terceros.xlsx')> ");
+            
+            print($html);
+            
+            
+        break;///fin caso 4    
              
     }
     

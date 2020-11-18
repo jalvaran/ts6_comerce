@@ -3,8 +3,9 @@ if(isset($_REQUEST["idDocumento"])){
     
     //include_once("../../../modelo/php_conexion.php");
     //include_once("../../modelo/PrintPos.php");
-    include_once("../clases/ReportesContables.class.php");
+    include_once("../clases/reportes_contables.class.php");
     include_once("../clases/PDF_ReportesContables.class.php");
+    include_once("../clases/html_reportes_contables.class.php");
     @session_start();
     $idUser=$_SESSION["idUser"];
     $obCon = new Contabilidad($idUser);
@@ -29,19 +30,32 @@ if(isset($_REQUEST["idDocumento"])){
     
         case 2://Genera el html con los datos del estado de resultados
             
-            $FechaInicial=$obCon->normalizar($_REQUEST["TxtFechaInicial"]);
-            $FechaFinal=$obCon->normalizar($_REQUEST["TxtFechaFinal"]);
-            $idEmpresa=$obCon->normalizar($_REQUEST["CmbEmpresa"]);
-            $CentroCosto=$obCon->normalizar($_REQUEST["CmbCentroCosto"]);             
-            $Anio=$obCon->normalizar($_REQUEST["CmbAnio"]);
-            $obCon->ConstruirVistaEstadoResultados($Anio, $idEmpresa, $CentroCosto, "");
+            $FechaInicial=$obCon->normalizar($_REQUEST["fecha_inicial"]);
+            $FechaFinal=$obCon->normalizar($_REQUEST["fecha_final"]);
+            $idEmpresa=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $CentroCosto=$obCon->normalizar($_REQUEST["centro_costos_id"]);             
+            $Anio=$obCon->normalizar($_REQUEST["cmb_anio"]);
+            if($Anio==''){
+                exit("<h2>Debes seleccionar un año</h2>");
+            }
+            if($FechaInicial==''){
+                exit("<h2>Debes seleccionar una fecha inicial</h2>");
+            }
+            if($FechaFinal==''){
+                exit("<h2>Debes seleccionar una fecha final</h2>");
+            }
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $idEmpresa);
+            $db=$datos_empresa["db"];
+            
+            $obCon->construir_vista_estado_resultados($Anio, $idEmpresa, $CentroCosto, "");
             $FechaReporte="Del $FechaInicial al $FechaFinal";
             $TotalClases=$obDoc->ArmeTemporalSubCuentas("Rango", $FechaFinal, $FechaInicial, $CentroCosto, $idEmpresa, "");
-            $html=$obDoc->HTMLEstadoResultadosDetallado($TotalClases, $FechaReporte);
+            $html=$obDoc->html_estado_resultados_detallado($db,$TotalClases, $FechaReporte);
             $page="Consultas/PDF_ReportesContables.draw.php?idDocumento=1&TxtFechaInicial=$FechaInicial&TxtFechaFinal=$FechaFinal"; 
             $page.="&CmbEmpresa=$idEmpresa&CmbCentroCosto=$CentroCosto&CmbAnio=$Anio";
             print("<a href='$page' target='_blank'><button class='btn btn-warning' >Exportar a PDF</button></a>");
-            print("<input type='button' class='btn btn-success' value='Exportar a Excel' onclick=ExportarTablaToExcel('EstadoResultados')> ");
+            print("<input type='button' class='btn btn-success' value='Exportar a Excel' onclick=tableToExcel('EstadoResultados','estado_resultados','estado_resultado_integral.xlsx')> ");
+            
             //$css->CrearBotonEvento("BtnExportar", "Exportar", 1, "onclick", "ExportarTablaToExcel('TblReporte')", "verde", "");
             print($html);
             //$obDoc->EstadosResultadosAnio_PDF($FechaInicial,$FechaFinal,$idEmpresa,$CentroCosto,"" );
@@ -49,79 +63,36 @@ if(isset($_REQUEST["idDocumento"])){
             
         break;//Fin caso 2
     
-        case 3://Genera el html con los datos del movimiento de cuentas
-            
-            $FechaInicial=$obCon->normalizar($_REQUEST["TxtFechaInicial"]);
-            $FechaFinal=$obCon->normalizar($_REQUEST["TxtFechaFinal"]);
-            $idEmpresa=$obCon->normalizar($_REQUEST["CmbEmpresa"]);
-            $CentroCosto=$obCon->normalizar($_REQUEST["CmbCentroCosto"]);             
-            $CmbTercero=$obCon->normalizar($_REQUEST["CmbTercero"]);
-            $TxtCuentaContable=$obCon->normalizar($_REQUEST["TxtCuentaContable"]);
-            $Condicional="";
-            if($CmbTercero<>""){
-                $Condicional="AND Tercero_Identificacion='$CmbTercero'";
-            }
-            
-            if($FechaInicial==""){
-                exit("E1;Debe Seleccionar una Fecha Inicial");
-            }
-            if($FechaFinal==""){
-                exit("E1;Debe Seleccionar una Fecha Final");
-            }
-            if($idEmpresa==""){
-                exit("E1;Debe Seleccionar una Empresa");
-            }
-            if($CentroCosto==""){
-                exit("E1;Debe Seleccionar un Centro de Costos");
-            }
-            
-            if($TxtCuentaContable==""){
-                //exit("E1;Debe Seleccionar un Cuenta Contable");
-            }
-            
-            $sql="SELECT Fecha,Tipo_Documento_Intero,Num_Documento_Interno,Num_Documento_Externo,
-                Tercero_Identificacion,Tercero_Razon_Social,CuentaPUC, NombreCuenta,Concepto,Detalle,
-                @SaldoInicial as SaldoInicialCuenta,
-                Debito AS Debitos,Credito AS Creditos, ( ((SELECT Debitos) - (SELECT Creditos)) ) as Saldo,
-                 @SaldoFinal := @SaldoFinal + (SELECT Saldo) AS SaldoMovimiento,
-                 
-                @SaldoInicial := @SaldoInicial+(SELECT Saldo) as SaldoFinalCuenta
-
-                FROM librodiario JOIN (SELECT @SaldoFinal:=0) tb2 
-                JOIN (SELECT @SaldoInicial:=(SELECT SUM(Debito-Credito) FROM librodiario WHERE Fecha < '$FechaInicial' AND CuentaPUC like '$TxtCuentaContable%')) tb3 
-                WHERE Fecha>='$FechaInicial' AND Fecha<='$FechaFinal' AND CuentaPUC like '$TxtCuentaContable%' $Condicional ORDER BY Fecha ;";
-            
-            $html=$obDoc->HTMLReporteMovimientoDeCuentas($sql);
-            /*
-            $page="Consultas/PDF_ReportesContables.draw.php?idDocumento=1&TxtFechaInicial=$FechaInicial&TxtFechaFinal=$FechaFinal"; 
-            $page.="&CmbEmpresa=$idEmpresa&CmbCentroCosto=$CentroCosto&CmbAnio=$Anio";
-            print("<a href='$page' target='_blank'><button class='btn btn-warning' >Exportar a PDF</button></a>");
-            
-             * 
-             */
-            print("<input type='button' class='btn btn-success' value='Exportar a Excel' onclick=ExportarTablaToExcel('ReporteMovimientoCuentas')> ");
-            //$css->CrearBotonEvento("BtnExportar", "Exportar", 1, "onclick", "ExportarTablaToExcel('TblReporte')", "verde", "");
-            print($html);
-            //$obDoc->EstadosResultadosAnio_PDF($FechaInicial,$FechaFinal,$idEmpresa,$CentroCosto,"" );
-    
-            
-        break;//Fin caso 3
-        
         case 4://Genera el html con los datos del balance general
             
-            $FechaInicial=$obCon->normalizar($_REQUEST["TxtFechaInicial"]);
-            $FechaFinal=$obCon->normalizar($_REQUEST["TxtFechaFinal"]);
-            $idEmpresa=$obCon->normalizar($_REQUEST["CmbEmpresa"]);
-            $CentroCosto=$obCon->normalizar($_REQUEST["CmbCentroCosto"]);             
-            $Anio=$obCon->normalizar($_REQUEST["CmbAnio"]);
-            $obCon->ConstruirVistaEstadoResultados($Anio, $idEmpresa, $CentroCosto, "");
+            $FechaInicial=$obCon->normalizar($_REQUEST["fecha_inicial"]);
+            $FechaFinal=$obCon->normalizar($_REQUEST["fecha_final"]);
+            $idEmpresa=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $CentroCosto=$obCon->normalizar($_REQUEST["centro_costos_id"]);             
+            $Anio=$obCon->normalizar($_REQUEST["cmb_anio"]);
+            if($Anio==''){
+                exit("<h2>Debes seleccionar un año</h2>");
+            }
+            if($FechaInicial==''){
+                exit("<h2>Debes seleccionar una fecha inicial</h2>");
+            }
+            if($FechaFinal==''){
+                exit("<h2>Debes seleccionar una fecha final</h2>");
+            }
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $idEmpresa);
+            $db=$datos_empresa["db"];
+            
+            $obCon->construir_vista_estado_resultados($Anio, $idEmpresa, $CentroCosto, "");
             $FechaReporte="Del $FechaInicial al $FechaFinal";
             $TotalClases=$obDoc->ArmeTemporalSubCuentas("Rango", $FechaFinal, $FechaInicial, $CentroCosto, $idEmpresa, "");
-            $html=$obDoc->HTMLBalanceGeneralDetallado($TotalClases, $FechaReporte);
+            $html=$obDoc->HTMLBalanceGeneralDetallado($db,$TotalClases, $FechaReporte);
+            
             $page="Consultas/PDF_ReportesContables.draw.php?idDocumento=7&TxtFechaInicial=$FechaInicial&TxtFechaFinal=$FechaFinal"; 
             $page.="&CmbEmpresa=$idEmpresa&CmbCentroCosto=$CentroCosto&CmbAnio=$Anio";
             print("<a href='$page' target='_blank'><button class='btn btn-warning' >Exportar a PDF</button></a>");
-            print("<input type='button' class='btn btn-success' value='Exportar a Excel' onclick=ExportarTablaToExcel('EstadoResultados')> ");
+            
+            print("<input type='button' class='btn btn-success' value='Exportar a Excel' onclick=tableToExcel('BalanceGeneral','balance','estado_situacion_financiera.xlsx')> ");
+            
             //$css->CrearBotonEvento("BtnExportar", "Exportar", 1, "onclick", "ExportarTablaToExcel('TblReporte')", "verde", "");
             print($html);
             //$obDoc->EstadosResultadosAnio_PDF($FechaInicial,$FechaFinal,$idEmpresa,$CentroCosto,"" );
@@ -175,17 +146,17 @@ if(isset($_REQUEST["idDocumento"])){
             $idEmpresa=$obCon->normalizar($_REQUEST["CmbEmpresa"]);
             $CentroCosto=$obCon->normalizar($_REQUEST["CmbCentroCosto"]);             
             $Anio=$obCon->normalizar($_REQUEST["CmbAnio"]);
-            $obCon->ConstruirVistaEstadoResultados($Anio, $idEmpresa, $CentroCosto, "");
+            $obCon->construir_vista_estado_resultados($Anio, $idEmpresa, $CentroCosto, "");
             $FechaReporte="Del $FechaInicial al $FechaFinal";
             //$TotalClases=$obDoc->ArmeTemporalSubCuentas("Rango", $FechaFinal, $FechaInicial, $CentroCosto, $idEmpresa, "");
             //$html=$obDoc->HTMLBalanceGeneralDetallado($TotalClases, $FechaReporte);
             
-            $obDoc->EstadoSituacionFinaciera_PDF($FechaInicial,$FechaFinal,$idEmpresa,$CentroCosto,"" );
+            $obDoc->estado_situacion_finaciera_pdf($FechaInicial,$FechaFinal,$idEmpresa,$CentroCosto,"" );
     
             
         break;//Fin caso 7
     
-        case 8:// pdf de un dcumento contable
+        case 8:// pdf de un documento contable
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);            
             $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
             $db=$datos_empresa["db"];

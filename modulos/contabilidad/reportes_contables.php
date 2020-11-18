@@ -69,9 +69,12 @@ $css->PageInit($myTitulo);
             $css->option("", "", "", 1, "", "");
                 print("Auxiliares Contables");
             $css->Coption();
+            /*
             $css->option("", "", "", 2, "", "");
                 print("Balance de Comprobación");
             $css->Coption();
+             * 
+             */
             $css->option("", "", "", 3, "", "");
                 print("Balance por Terceros");
             $css->Coption();            

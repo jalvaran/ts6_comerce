@@ -8,26 +8,25 @@ class PDF_ReportesContables extends Documento{
     
     public function EstadosResultadosAnio_PDF($FechaInicial,$FechaFinal,$idEmpresa,$CentroCosto,$Vector ) {
         $TipoReporte="Rango";
-        $idEmpresaEncabezado=$idEmpresa;
-        if($idEmpresa=="ALL"){
-            $idEmpresaEncabezado=1;
-        }
+        
+        $datos_empresa=$this->obCon->DevuelveValores("empresapro", "ID", $idEmpresa);
+        $db=$datos_empresa["db"];
         
         $FechaReporte="Del $FechaInicial al $FechaFinal";
         
         
         $this->PDF_Ini("Estado de Resultados", 8, "",1,"../../../");
-        $this->PDF_Encabezado($FechaFinal,$idEmpresaEncabezado, 26, "","","../../../");
+        $this->PDF_Encabezado($FechaFinal,$idEmpresa, 26, "","",$datos_empresa,"../../../");
         $TotalClases=$this->ArmeTemporalSubCuentas($TipoReporte,$FechaFinal,$FechaInicial,$CentroCosto,$idEmpresa,$Vector);
         
-        $html= $this->HTMLEstadoResultadosDetallado($TotalClases,$FechaReporte);
+        $html= $this->html_estado_resultados_detallado($db,$TotalClases,$FechaReporte);
         $this->PDF_Write($html);
              
         $this->PDF_Output("Estado_Resultados_$FechaFinal");
     }
     
     //Armar el html para el estado de resultados
-    public function HTMLEstadoResultadosDetallado($TotalClases,$FechaCorte) {
+    public function html_estado_resultados_detallado($db,$TotalClases,$FechaCorte) {
         $Back="#CEE3F6";
         $html='<table id="EstadoResultados" class="table table-bordered table table-hover" cellspacing="1" cellpadding="2" border="0"  align="center" >';
         $html.='<tr style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">';
@@ -38,7 +37,7 @@ class PDF_ReportesContables extends Documento{
         ///Se dibujan los ingresos
         $h=0;  
         $Back="white";
-        $Consulta=$this->obCon->ConsultarTabla("estadosfinancieros_mayor_temporal", " WHERE Clase=4");
+        $Consulta=$this->obCon->ConsultarTabla("$db.contabilidad_estados_financieros_mayor_temporal", " WHERE Clase=4");
         $html.='<tr align="left" border="0" style="border-bottom: 1px solid #ddd;background-color: '.$Back.';"> ';
         $html.='<td><strong>CUENTA</strong></td><td><strong>NOMBRE</strong></td><td><strong>SALDO ANTERIOR</strong></td><td><strong>SALDO</strong></td><td><strong>SALDO FINAL</strong></td>'; 
         
@@ -77,7 +76,7 @@ class PDF_ReportesContables extends Documento{
         $html.='<tr style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">';
         $html.='<td colspan="5"><strong>COSTOS DE VENTA Y/O PRODUCCION</strong></td></tr>';
         $h=1; 
-        $Consulta=$this->obCon->ConsultarTabla("estadosfinancieros_mayor_temporal", " WHERE Clase=6 OR Clase=7");
+        $Consulta=$this->obCon->ConsultarTabla("$db.contabilidad_estados_financieros_mayor_temporal", " WHERE Clase=6 OR Clase=7");
               
         while($DatosMayor=$this->obCon->FetchArray($Consulta)){
             if($h==0){
@@ -125,7 +124,7 @@ class PDF_ReportesContables extends Documento{
         $html.='<tr style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">';
         $html.='<td colspan="5"><strong>GASTOS</strong></td></tr>';
         $h=1; 
-        $Consulta=$this->obCon->ConsultarTabla("estadosfinancieros_mayor_temporal", " WHERE Clase=5");
+        $Consulta=$this->obCon->ConsultarTabla("$db.contabilidad_estados_financieros_mayor_temporal", " WHERE Clase=5");
               
         while($DatosMayor=$this->obCon->FetchArray($Consulta)){
             if($h==0){
@@ -165,23 +164,24 @@ class PDF_ReportesContables extends Documento{
         $html.='</tr>'; 
         
         $html.="</table>";
-        return($html);
+        return(utf8_encode($html));
     }
     
     //Crear Estados Financieros en PDF
  
     public function ArmeTemporalSubCuentas($TipoReporte,$FechaFinal,$FechaInicial,$CentroCostos,$EmpresaPro,$Vector){
         
+        $datos_empresa=$this->obCon->DevuelveValores("empresapro", "ID", $EmpresaPro);
+        $db=$datos_empresa["db"];
+        
         $Condicion=" WHERE Fecha<='$FechaFinal'";
-        if($CentroCostos<>"ALL"){
-            $Condicion.=" AND idCentroCosto='$CentroCostos'";
+        if($CentroCostos<>""){
+            $Condicion.=" AND centro_costos_id='$CentroCostos'";
         }
-        if($EmpresaPro<>"ALL"){
-            $Condicion.=" AND idEmpresa='$EmpresaPro'";
-        }
+        
         $Clase=0;
-        $this->obCon->VaciarTabla("estadosfinancieros_mayor_temporal");
-        $sql="SELECT `CuentaPUC` AS Cuenta,NombreCuenta AS NombreCuenta ,sum(`Neto`) as TotalCuenta FROM `vista_estado_resultados_anio` $Condicion  GROUP BY `CuentaPUC` ORDER BY `CuentaPUC`";
+        $this->obCon->VaciarTabla("$db.contabilidad_estados_financieros_mayor_temporal");
+        $sql="SELECT `CuentaPUC` AS Cuenta,NombreCuenta AS NombreCuenta ,sum(`Neto`) as TotalCuenta FROM $db.`vista_estado_resultados_anio` $Condicion  GROUP BY `CuentaPUC` ORDER BY `CuentaPUC`";
         $Consulta=$this->obCon->Query($sql);
         
         while($DatosMayor=$this->obCon->FetchArray($Consulta)){
@@ -190,11 +190,11 @@ class PDF_ReportesContables extends Documento{
                 if($TipoReporte=="Corte"){
                     $SaldoAnterior=0;
                 }else{
-                    $SaldoAnterior=$this->obCon->Sume("vista_estado_resultados_anio", "Neto", "WHERE Fecha<'$FechaInicial' AND `CuentaPUC`='$Cuenta'");
+                    $SaldoAnterior=$this->obCon->Sume("$db.vista_estado_resultados_anio", "Neto", "WHERE Fecha<'$FechaInicial' AND `CuentaPUC`='$Cuenta'");
                 }
                 $Clase=substr($DatosMayor["Cuenta"], 0, 1);
                 //$DatosCuenta=$this->obCon->DevuelveValores("cuentas", "idPUC", $DatosMayor["Cuenta"]);
-                $tab="estadosfinancieros_mayor_temporal";
+                $tab="$db.contabilidad_estados_financieros_mayor_temporal";
                 $NumRegistros=7;
                 $Columnas[0]="FechaCorte";        $Valores[0]=$FechaFinal;
                 $Columnas[1]="Clase";             $Valores[1]=$Clase;
@@ -207,13 +207,13 @@ class PDF_ReportesContables extends Documento{
             }
         }
         
-        $Activos=$this->obCon->Sume("estadosfinancieros_mayor_temporal", "Neto", "WHERE Clase='1'");
-        $Pasivos=$this->obCon->Sume("estadosfinancieros_mayor_temporal", "Neto", "WHERE Clase='2'");
-        $Patrimonio=$this->obCon->Sume("estadosfinancieros_mayor_temporal", "Neto", "WHERE Clase='3'");
-        $Ingresos=$this->obCon->Sume("estadosfinancieros_mayor_temporal", "Neto", "WHERE Clase='4'");
-        $GastosOperativos=$this->obCon->Sume("estadosfinancieros_mayor_temporal", "Neto", "WHERE Clase='5'");
-        $CostosVentas=$this->obCon->Sume("estadosfinancieros_mayor_temporal", "Neto", "WHERE Clase='6'");
-        $CostosProduccion=$this->obCon->Sume("estadosfinancieros_mayor_temporal", "Neto", "WHERE Clase='7'");
+        $Activos=$this->obCon->Sume("$db.contabilidad_estados_financieros_mayor_temporal", "Neto", "WHERE Clase='1'");
+        $Pasivos=$this->obCon->Sume("$db.contabilidad_estados_financieros_mayor_temporal", "Neto", "WHERE Clase='2'");
+        $Patrimonio=$this->obCon->Sume("$db.contabilidad_estados_financieros_mayor_temporal", "Neto", "WHERE Clase='3'");
+        $Ingresos=$this->obCon->Sume("$db.contabilidad_estados_financieros_mayor_temporal", "Neto", "WHERE Clase='4'");
+        $GastosOperativos=$this->obCon->Sume("$db.contabilidad_estados_financieros_mayor_temporal", "Neto", "WHERE Clase='5'");
+        $CostosVentas=$this->obCon->Sume("$db.contabilidad_estados_financieros_mayor_temporal", "Neto", "WHERE Clase='6'");
+        $CostosProduccion=$this->obCon->Sume("$db.contabilidad_estados_financieros_mayor_temporal", "Neto", "WHERE Clase='7'");
         
         $TotalClases[1]=$Activos;
         $TotalClases[2]=$Pasivos*(-1);    //Es naturaleza credito por lo tanto debe multiplicarse por -1
@@ -276,7 +276,7 @@ class PDF_ReportesContables extends Documento{
     
     
     //Armar el html para el estado de resultados
-    public function HTMLBalanceGeneralDetallado($TotalClases,$FechaCorte) {
+    public function HTMLBalanceGeneralDetallado($db,$TotalClases,$FechaCorte) {
         $Back="#CEE3F6";
         $html='<table id="BalanceGeneral" class="table table-bordered table table-hover" cellspacing="1" cellpadding="2" border="0"  align="center" >';
         $html.='<tr style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">';
@@ -287,7 +287,7 @@ class PDF_ReportesContables extends Documento{
         ///Se dibujan los activos
         $h=0;  
         $Back="white";
-        $Consulta=$this->obCon->ConsultarTabla("estadosfinancieros_mayor_temporal", " WHERE Clase=1");
+        $Consulta=$this->obCon->ConsultarTabla("$db.contabilidad_estados_financieros_mayor_temporal", " WHERE Clase=1");
         $html.='<tr align="left" border="0" style="border-bottom: 1px solid #ddd;background-color: '.$Back.';"> ';
         $html.='<td><strong>CUENTA</strong></td><td><strong>NOMBRE</strong></td><td><strong>SALDO ANTERIOR</strong></td><td><strong>SALDO</strong></td><td><strong>SALDO FINAL</strong></td>'; 
         
@@ -326,7 +326,7 @@ class PDF_ReportesContables extends Documento{
         $html.='<tr style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">';
         $html.='<td colspan="5"><strong>PASIVOS</strong></td></tr>';
         $h=1; 
-        $Consulta=$this->obCon->ConsultarTabla("estadosfinancieros_mayor_temporal", " WHERE Clase=2");
+        $Consulta=$this->obCon->ConsultarTabla("$db.contabilidad_estados_financieros_mayor_temporal", " WHERE Clase=2");
               
         while($DatosMayor=$this->obCon->FetchArray($Consulta)){
             if($h==0){
@@ -362,7 +362,7 @@ class PDF_ReportesContables extends Documento{
         $html.='<tr style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">';
         $html.='<td colspan="5"><strong>PATRIMONIO</strong></td></tr>';
         $h=1; 
-        $Consulta=$this->obCon->ConsultarTabla("estadosfinancieros_mayor_temporal", " WHERE Clase=3");
+        $Consulta=$this->obCon->ConsultarTabla("$db.contabilidad_estados_financieros_mayor_temporal", " WHERE Clase=3");
               
         while($DatosMayor=$this->obCon->FetchArray($Consulta)){
             if($h==0){
@@ -421,15 +421,15 @@ class PDF_ReportesContables extends Documento{
     }
     
     
-    public function HtmlBalanceComprobacionXTerceros() {
-        $sql="SELECT * FROM vista_balance_comprobacion_terceros";
+    public function HtmlBalanceComprobacionXTerceros($db) {
+        $sql="SELECT * FROM $db.vista_balance_comprobacion_terceros";
         $Consulta=$this->obCon->Query($sql);
         $TotalValorCuotas=0;
         $TotalPagos=0;
         $TotalSaldo=0;
         
         $Back="#CEE3F6";
-        $html='<table id="TableBalanceComprobacionXTerceros" class="table table-bordered table table-hover" cellspacing="1" cellpadding="2" border="0"  align="left" >';
+        $html='<table id="TableBalanceComprobacionXTerceros" class="table table-bordered table-hover table-responsive" cellspacing="1" cellpadding="2" border="0"  align="left" >';
         $html.='<thead>';
         $html.='<tr style="border-bottom: 1px solid #ddd;background-color: '.$Back.';">';        
             $html.='<th><strong>CUENTA</strong></th>';
@@ -468,35 +468,33 @@ class PDF_ReportesContables extends Documento{
     }
     
     public function BalanceComprobacionXTerceros_PDF($FechaInicial,$FechaFinal,$idEmpresa,$CentroCosto) {
-        $idEmpresaEncabezado=$idEmpresa;
-        if($idEmpresa=="ALL"){
-            $idEmpresaEncabezado=1;
-        }
-        $this->PDF_Ini("Balance de Comprobacion por Terceros", 8, "",1,"../../../");
-        $this->PDF_Encabezado($FechaFinal,$idEmpresaEncabezado, 38, "","","../../../");
         
-        $html= $this->HtmlBalanceComprobacionXTerceros();
+        $datos_empresa=$this->obCon->DevuelveValores("empresapro", "ID", $idEmpresa);
+        $db=$datos_empresa["db"];
+        $this->PDF_Ini("Balance de Comprobacion por Terceros", 8, "",1,"../../../");
+        $this->PDF_Encabezado($FechaFinal,$idEmpresa, 38, "","",$datos_empresa,"../../../");
+        
+        $html= $this->HtmlBalanceComprobacionXTerceros($db);
         $this->PDF_Write($html);
              
         $this->PDF_Output("BalanceComprobacionTerceros_$FechaFinal");
     }
     
     
-    public function EstadoSituacionFinaciera_PDF($FechaInicial,$FechaFinal,$idEmpresa,$CentroCosto,$Vector ) {
+    public function estado_situacion_finaciera_pdf($FechaInicial,$FechaFinal,$idEmpresa,$CentroCosto,$Vector ) {
         $TipoReporte="Rango";
-        $idEmpresaEncabezado=$idEmpresa;
-        if($idEmpresa=="ALL"){
-            $idEmpresaEncabezado=1;
-        }
+                
+        $datos_empresa= $this->obCon->DevuelveValores("empresapro", "ID", $idEmpresa);
+        $db=$datos_empresa["db"];
         
         $FechaReporte="Del $FechaInicial al $FechaFinal";
         
         
         $this->PDF_Ini("Estado de Situacion Finaciera", 8, "",1,"../../../");
-        $this->PDF_Encabezado($FechaFinal,$idEmpresaEncabezado, 39, "","","../../../");
+        $this->PDF_Encabezado($FechaFinal,$idEmpresa, 39, "","",$datos_empresa,"../../../");
         $TotalClases=$this->ArmeTemporalSubCuentas($TipoReporte,$FechaFinal,$FechaInicial,$CentroCosto,$idEmpresa,$Vector);
         
-        $html= $this->HTMLBalanceGeneralDetallado($TotalClases,$FechaReporte);
+        $html= $this->HTMLBalanceGeneralDetallado($db,$TotalClases,$FechaReporte);
         $this->PDF_Write($html);
              
         $this->PDF_Output("Estado_Situacion_Financiera_$FechaFinal");

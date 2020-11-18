@@ -14,7 +14,7 @@ class ExportReportes extends conexion{
     public $Campos = array("A","B","C","D","E","F","G","H","I","J","K","L",
     "M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP");
     
-    public function ExportarBalanceXTercerosAExcel($Detallado=1,$Encabezados=1){
+    public function ExportarBalanceXTercerosAExcel($db,$Detallado=1,$Encabezados=1){
         
         $objPHPExcel = new PHPExcel();  
         
@@ -46,7 +46,7 @@ class ExportReportes extends conexion{
             ;
         
          
-        $sql="SELECT * FROM vista_balancextercero2";
+        $sql="SELECT * FROM $db.vista_balancextercero2";
         $Consulta=$this->Query($sql);
         $TotalDebitos=0;
         $TotalCreditos=0;
@@ -212,7 +212,7 @@ class ExportReportes extends conexion{
         getProperties()
             ->setCreator("www.technosoluciones.com.co")
             ->setLastModifiedBy("www.technosoluciones.com.co")
-            ->setTitle("Relacion de Facturas")
+            ->setTitle("Reportes Contables TS6")
             ->setSubject("Informe")
             ->setDescription("Documento generado con PHPExcel")
             ->setKeywords("techno soluciones sas")
