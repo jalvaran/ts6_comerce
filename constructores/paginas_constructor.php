@@ -991,7 +991,7 @@ class PageConstruct extends html_estruct_class{
                 <!-- Sparkline Plugin -->
                 <script type="text/javascript" src="../../assets/plugin/echarts/echarts.js"></script> 
                 ');
-        
+                
         
     }
     public function AgregaAngular(){
@@ -2172,10 +2172,12 @@ class PageConstruct extends html_estruct_class{
          * Agrega los JS para exportar a excel desde javascript
          */
         public function AddJSExcel(){
-            print('<script src="../../componentes/jsexcel/external/jszip.js"></script>');
-            print('<script src="../../componentes/jsexcel/external/FileSaver.js"></script>');
-            print('<script src="../../componentes/jsexcel/external/jszip.js"></script>');
-            print('<script src="../../componentes/jsexcel/scripts/excel-gen.js"></script>');
+            
+            print('<script type="text/javascript" src="../../assets/plugin/jsexcel/external/FileSaver.js"></script>');      
+           
+            print('<script type="text/javascript" src="../../assets/plugin/jsexcel/scripts/excel-gen.js"></script>');
+            print('<script type="text/javascript" src="../../assets/plugin/jsexcel/external/jszip.js"></script>');
+            
         }
         
         
@@ -3315,6 +3317,8 @@ class PageConstruct extends html_estruct_class{
         
         }
     
+        
+        
         //////////////////////////////////FIN
 }
 	

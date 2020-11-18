@@ -50,7 +50,7 @@ $css->PageInit($myTitulo);
                             <div class="row">
                             <div class="col-md-2">
                                 ');
-        $css->select("empresa_id", "form-control btn-pill", "empresa_id", "", "", "onchange=formulario_documento_contable();actualizar_contadores();", 'style="padding-left:5px"');
+        $css->select("empresa_id", "form-control btn-pill", "empresa_id", "", "", "onchange=dibuje_opciones_reporte();", 'style="padding-left:5px"');
             if($TipoUser=="administrador"){
                 $sql="SELECT * FROM empresapro WHERE Estado=1";
             }else{
@@ -102,6 +102,7 @@ $css->PageInit($myTitulo);
     $css->Cdiv();
     $css->Cdiv();
 $css->PageFin();
+
 print('<script src="../../general/js/tablas.js"></script>'); 
 print('<script src="jsPages/reportes_contables.js"></script>'); 
 

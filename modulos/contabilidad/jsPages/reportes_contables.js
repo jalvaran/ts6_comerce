@@ -12,13 +12,16 @@ function add_events_frms(){
     $("#cuenta_contable").unbind();
         
     $('#btnGenerar').on('click',function () {
-        confirma_crear_documento_contable(1);
+        if(reporte_id==1){
+            generar_auxiliar(empresa_id);
+        }
+        
     });
      
     $('#tercero_id').select2({		  
         placeholder: 'Tercero',
         ajax: {
-          url: 'buscadores/terceros.search.php?empresa_id='+empresa_id,
+          url: 'buscadores/terceros_nit.search.php?empresa_id='+empresa_id,
           dataType: 'json',
           delay: 250,
           processResults: function (data) {
@@ -139,6 +142,54 @@ function dibuje_opciones_reporte(){
             document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
             add_events_frms();
             
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            ocultar_spinner();
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+
+}
+
+function generar_auxiliar(empresa_id=''){
+    if(empresa_id==''){
+        var empresa_id=document.getElementById("empresa_id").value;
+    }
+    var fecha_inicial=document.getElementById("fecha_inicial").value;
+    var fecha_final=document.getElementById("fecha_final").value;
+    var cuenta_puc=document.getElementById("cuenta_puc").value;
+    var tercero_id=document.getElementById("tercero_id").value;
+    var centro_costos_id=document.getElementById("centro_costos_id").value;
+    
+    var idDiv="DivListados";
+    urlQuery='Consultas/reportes_contables.draw.php';    
+    var form_data = new FormData();
+        form_data.append('Accion', 2);
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('fecha_inicial', fecha_inicial);
+        form_data.append('fecha_final', fecha_final);
+        form_data.append('cuenta_puc', cuenta_puc);
+        form_data.append('tercero_id', tercero_id);
+        form_data.append('centro_costos_id', centro_costos_id);
+        
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            mostrar_spinner("Cargando...");
+        },
+        
+        success: function(data){    
+            ocultar_spinner();
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+                        
         },
         error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
             ocultar_spinner();
