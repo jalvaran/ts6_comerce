@@ -789,7 +789,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                 print("</td>");
                                 
                                 print("<td style='text-align:center'>");
-                                    print('<a style="font-size:25px;text-align:center" title="Ver PDF" onclick="ver_json_documento(`'.$empresa_id.'`,`'.$idItem.'`)" ><i class="fa fa-code text-primary"></i></a>');
+                                    print('<a style="font-size:25px;text-align:center" title="Ver Código" onclick="ver_json_documento(`'.$empresa_id.'`,`'.$idItem.'`)" ><i class="fa fa-code text-primary"></i></a>');
 
                                 print("</td>");
                                     

@@ -531,6 +531,11 @@ class Factura_Electronica extends conexion{
         }
         $json.=$this->json_concepto_correccion($concepto_correccion_id);
         $json.=",";
+        if($datos_documento_electronico["notas"]<>''){
+            
+            $json.=$this->json_notas($this->limpiar_cadena($datos_documento_electronico["notas"]));
+            $json.=",";
+        }
         $json.=$this->json_numero_nota_credito_debito($datos_documento_electronico["numero"],$sync,$send,$datos_documento_electronico["tipo_documento_id"]);
         $json.=",";
         $json.=$this->json_datos_tercero($datos_tercero["identificacion"], $datos_tercero["tipo_organizacion_id"], $datos_tercero["tipo_documento_id"], $datos_tercero["tipo_regimen_id"], $this->limpiar_cadena($datos_tercero["razon_social"]), $datos_tercero["telefono"], $datos_tercero["direccion"], $datos_tercero["email"], $datos_tercero["municipio_id"]);
@@ -574,6 +579,7 @@ class Factura_Electronica extends conexion{
         $respuesta=$this->callAPI("POST", $url, $TokenTS5, $json_factura);
         
         $arrayRespuesta = json_decode($respuesta,true);
+       
         if($datos_empresa["metodo_envio"]==1){
             if(isset($arrayRespuesta["isValid"])){
                 if($arrayRespuesta["isValid"]==1){

@@ -84,11 +84,17 @@ class Documento{
      * @param type $VectorEncabezado
      * @param type $NumeracionDocumento
      */
-    public function PDF_Encabezado($Fecha,$idEmpresa,$idFormatoCalidad,$VectorEncabezado,$NumeracionDocumento="",$DatosEmpresa,$patch="../../") {
+    public function PDF_Encabezado($Fecha,$idEmpresa,$idFormatoCalidad,$VectorEncabezado,$NumeracionDocumento="",$datos_empresa,$Patch="../../") {
         
-        $DatosFormatoCalidad=$this->obCon->DevuelveValores("formatos_calidad", "ID", $idFormatoCalidad);
+        $DatosEmpresa=$this->obCon->DevuelveValores("empresapro", "ID", $idEmpresa);
+        $db=$DatosEmpresa["db"];
+        $DatosFormatoCalidad=$this->obCon->DevuelveValores("$db.formatos_calidad", "ID", $idFormatoCalidad);
         
-        $RutaLogo=$patch."images/header-logo.png";
+        $RutaLogo=$Patch."$DatosEmpresa[RutaImagen]";
+        if(!file_exists($RutaLogo)){
+            $DatosEmpresaPro1=$this->obCon->DevuelveValores("empresapro", "ID", 1);
+            $RutaLogo=$Patch."$DatosEmpresaPro1[RutaImagen]";
+        }
 ///////////////////////////////////////////////////////
 //////////////encabezado//////////////////
 ////////////////////////////////////////////////////////

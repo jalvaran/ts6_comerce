@@ -132,12 +132,17 @@ if( !empty($_REQUEST["Accion"]) ){
             }
             
             $documento_electronico_id=$obFe->crear_documento_electronico_desde_prefactura($empresa_id,$tipo_documento_id, $prefactura_id, $tercero_id, $resolucion_id,$documento_asociado_id, $idUser);
-            
-            
+                  
             $obCon->BorraReg("$db.factura_prefactura_items", "prefactura_id", $prefactura_id);
             $obCon->ActualizaRegistro("$db.factura_prefactura", "observaciones", "", "ID", $prefactura_id);
             $obCon->ActualizaRegistro("$db.factura_prefactura", "orden_compra", "", "ID", $prefactura_id);
             $obCon->ActualizaRegistro("$db.factura_prefactura", "forma_pago", "1", "ID", $prefactura_id);
+            
+            if($datos_empresa["contabilizar_documentos_automaticamente"]==1){
+                $obCon->contabilizar_documento_electronico($db, $documento_electronico_id);
+                $obCon->ActualizaRegistro("$db.documentos_electronicos", "contabilizado", 1, "documento_electronico_id", $documento_electronico_id);
+            }
+            
             print("OK;Documento creado correctamente;$documento_electronico_id");
         break;//fin caso 6    
         
@@ -242,6 +247,24 @@ if( !empty($_REQUEST["Accion"]) ){
             $json_resoluciones= json_encode($resoluciones, true);
             print("OK;".$json_resoluciones);
         break;//Fin caso 12    
+        
+        case 13://Contabilizar todos los documentos electronicos sin contabilizar
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            
+            $sql="SELECT documento_electronico_id FROM $db.documentos_electronicos WHERE contabilizado=0";
+            
+            $consulta=$obCon->Query($sql);
+            
+            while($datos_consulta=$obCon->FetchAssoc($consulta)){
+                $obCon->contabilizar_documento_electronico($db, $datos_consulta["documento_electronico_id"]);
+                $obCon->ActualizaRegistro("$db.documentos_electronicos", "contabilizado", 1, "documento_electronico_id", $datos_consulta["documento_electronico_id"]);
+                
+            }
+            exit("OK;Documentos contabilizados");
+        break;//fin caso 13    
         
     }
     

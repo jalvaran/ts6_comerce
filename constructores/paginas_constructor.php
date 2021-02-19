@@ -60,6 +60,8 @@ class PageConstruct extends html_estruct_class{
                         <!-- Custom Stylesheet -->
                         
                         <link rel="stylesheet" href="../../dist/css/style.css" />
+                        <script src="../../assets/plugin/moment/moment.js"></script>
+                        <script src="../../general/js/uuid.min.js"></script>
                     </head>
                     <body>
 
@@ -1714,6 +1716,7 @@ class PageConstruct extends html_estruct_class{
             if($Oculto==1){
                 $OcultarModal="fade";
             }
+            $style="";
             $class="modal";
             if($Tipo==2){
                 $class="modal modal-primary";
@@ -1729,8 +1732,9 @@ class PageConstruct extends html_estruct_class{
             if($Amplio==1){
                 $classTypeModal='modal-lg';
             }
+            
             print('<div class="'.$class.' '.$OcultarModal.'" id="'.$id.'" >
-                    <div class="modal-dialog '.$classTypeModal.'" >
+                    <div class="modal-dialog '.$classTypeModal.'" '.$style.'>
                       <div class="modal-content">
                         <div class="modal-header">
                             <h4 class="modal-title">'.$title.'</h4>
@@ -3317,7 +3321,14 @@ class PageConstruct extends html_estruct_class{
         
         }
     
-        
+        public function agregar_full_calendar(){
+            print("<link href='../../assets/plugin/fullcalendar/lib/main.css' rel='stylesheet'/>");
+            print("<script src='../../assets/plugin/fullcalendar/lib/main.js'></script>");
+            print("<script src='../../assets/plugin/fullcalendar/lib/locales-all.js'></script>");            
+           
+
+
+        }
         
         //////////////////////////////////FIN
 }
