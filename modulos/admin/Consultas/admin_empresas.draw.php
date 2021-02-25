@@ -157,6 +157,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                 print('<tr>');
                                     print("<td>");
                                         print('<a onclick="frm_crear_empresa(`'.$idItem.'`)" title="Editar"><i class="icon-pencil text-info"></i></a>');
+                                        print(' || <a onclick="frm_subir_logo(`'.$idItem.'`)" title="Subir Logo" ><i class="icon-picture text-flickr"></i></a>');
                                         print(' || <a onclick="frm_crear_cliente_factura_electronica(`'.$idItem.'`)" title="Crear como facturador electrónico" ><i class="fa fa-cogs text-warning"></i></a>');
                                     print("</td>");
                                     print("<td class='mailbox-name'>");
@@ -221,10 +222,28 @@ if( !empty($_REQUEST["Accion"]) ){
                             print('<li class="nav-item">');
                                 print('<a class="nav-link" href="#tab_resolucionfe" data-toggle="tab" onclick=dibuje_resoluciones(`'.$empresa_id.'`)><i class="ti-view-list mr-2" ></i>Crear Resolución de Facturación</a>');
                             print('</li>');
+                            print('<li class="nav-item">');
+                                print('<a class="nav-link" href="#tab_logo_empresa" data-toggle="tab" ><i class="icon-picture mr-2" ></i>Crear el Logo de la empresa</a>');
+                            print('</li>');
                             
                         print('</ul>'); 
                         
                         $css->div("", "tab-content", "", "", "", "", "");
+                            $css->div("tab_logo_empresa", "tab-pane", "", "", "", "", "");
+                                print("<h5>Crear Logo en el API</h5>");
+                                $css->div("", "row", "", "", "", "", "");  
+                                
+                                    $css->div("", "col-md-4", "", "", "", "", "");
+                                        $css->CrearBotonEvento("btnCrearLogo", "Crear o Actualizar el Logo de la empresa en el API", 1, "onclick", "confirmaAccion(`6`,`$empresa_id`)", "rojo");
+                                    $css->Cdiv();
+                                    
+                                $css->Cdiv();
+                                $css->div("", "row", "", "", "", "", "");  
+                                    $css->div("div_crear_logo", "col-md-12", "", "", "", "", "");
+                                    $css->Cdiv();
+                                $css->Cdiv();    
+                            $css->Cdiv();
+                            
                             $css->div("tab_empresa", "tab-pane active show", "", "", "", "", "");
                                 print("<h5>Crear Empresa</h5>");
                                 $css->div("", "row", "", "", "", "", "");  
@@ -573,7 +592,23 @@ if( !empty($_REQUEST["Accion"]) ){
             $css->CerrarTabla();
         break; //Fin caso 7
         
-        
+        case 8:// subir el logo de una empresa
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            print("<h5>Subir el logo de la Empresa $datos_empresa[RazonSocial]</h5>");
+                    print('<div class="row">');
+                        print('<div class="col-md-12">
+                            <div class="panel">
+                                <div class="panel-head">
+                                    <h5 class="panel-title">Por favor adjuntar el Logo de la Empresa, solo se admiten Imágenes PNG de 700x300 px</h5>
+                                </div>
+                                <div class="panel-body">
+                                    <form data-empresa_id="'.$empresa_id.'" action="/" class="dropzone dz-clickable" id="logo_empresa"><div class="dz-default dz-message"><span><i class="icon-plus"></i>Arrastre aqui el Logo<br> Suba solo un archivo con extension png y tamaño 700x300 px</span></div></form>
+                                </div>
+                            </div>
+                        </div>');
+                        
+        break;//Fin caso 8    
         
     }
     

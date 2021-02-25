@@ -387,6 +387,10 @@ if( !empty($_REQUEST["Accion"]) ){
                                     print('</td>');
                                 foreach ($RegistrosTabla as $key => $value) {
                                     print("<td class='mailbox-name'>");
+                                        $longitud= strlen($value);
+                                        if($longitud>50){
+                                            $value= substr($value, 0, 50)."...";
+                                        }
                                         print($value);
                                     print("</td>");
                                 }

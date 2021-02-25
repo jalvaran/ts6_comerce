@@ -107,7 +107,7 @@ $css->PageInit($myTitulo);
                         <div class="panel-action panel-action-background" style="rigth:10px;" ;>
                         <button id="btnFrmNuevaEmpresa" title="Nuevo" class="btn btn-primary btn-gradient btn-pill m-1" onclick=frm_crear_editar_proyecto(``,`1`)>Crear <i class="fa fa-plus-circle"></i></button>
                         <button id="btnActualizar" title="Actualizar" class="btn btn-success btn-gradient btn-pill m-1" onclick=MostrarListadoSegunID()>Actualizar <i class="fa fa-sync"></i></button>
-                        
+                        <button id="btnNuevoTercero" title="Crear Cliente" class="btn btn-warning btn-gradient btn-pill m-1" onclick="dibuja_tabla(`get`,`terceros`,`1`,`DivGeneralDraw`)">Tercero <i class="fa fa-plus-circle"></i></button>
                         </div>
                         
                                             

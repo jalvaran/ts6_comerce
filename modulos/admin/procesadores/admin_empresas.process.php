@@ -1,4 +1,5 @@
 <?php
+use \Gumlet\ImageResize;
 
 @session_start();
 if (!isset($_SESSION['username'])){
@@ -9,6 +10,7 @@ $idUser=$_SESSION['idUser'];
 
 include_once("../clases/admin_empresas.class.php");
 include_once("../../../general/class/facturacion_electronica.class.php");
+include_once("../../../librerias/ImageResize/ImageResize.php");
 if( !empty($_REQUEST["Accion"]) ){
     
     $obCon=new adminEmpresas($idUser);
@@ -506,6 +508,96 @@ if( !empty($_REQUEST["Accion"]) ){
             }
         break;//Fin caso 8
         
+        case 9://recibe el logo de una empresa
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            $DatosEmpresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            
+            $Extension="";
+            if(!empty($_FILES['logo_empresa']['name'])){
+                
+                $info = new SplFileInfo($_FILES['logo_empresa']['name']);
+                $Extension=($info->getExtension()); 
+                
+                $Tamano=filesize($_FILES['logo_empresa']['tmp_name']);
+                $DatosConfiguracion=$obCon->DevuelveValores("configuracion_general", "ID", 3001);
+                
+                $carpeta=$DatosConfiguracion["Valor"];
+                if (!file_exists($carpeta)) {
+                    mkdir($carpeta, 0777);
+                }
+                
+                $carpeta.=$empresa_id."/";
+                if (!file_exists($carpeta)) {
+                    mkdir($carpeta, 0777);
+                }
+                                                
+                opendir($carpeta);
+                
+                $destino=$carpeta."logo.png";
+                
+                move_uploaded_file($_FILES['logo_empresa']['tmp_name'],$destino);
+                
+                $image = new ImageResize($destino);
+                $image->resize(700, 300, $allow_enlarge = True);
+                $image->save($destino);
+                
+                $im = file_get_contents($destino);               
+                $logo_base_64=base64_encode($im);
+                $DatosLogo=$obCon->DevuelveValores("api_fe_logo_empresa", "ID", $empresa_id);
+                
+                $Datos["ID"]=$empresa_id;
+                $Datos["logo_base64"]=$logo_base_64;
+                if($DatosLogo["ID"]==''){
+                    $sql=$obCon->getSQLInsert("api_fe_logo_empresa", $Datos);
+                }else{
+                    $sql=$obCon->getSQLUpdate("api_fe_logo_empresa", $Datos);
+                    $sql.=" WHERE ID='$empresa_id'";
+                }
+                $obCon->Query($sql);
+                $logo_empresa= str_replace("../", "", $destino);
+                $obCon->ActualizaRegistro("empresapro", "RutaImagen", $logo_empresa, "ID", $empresa_id);
+            }else{
+                exit("E1;No se recibió El Logo");
+            }
+            print("OK;Logo Subido Correctamente");
+        break;//Fin caso 9
+        
+        case 10://Crear o editar el logo de la empresa en el API de Factura electronica
+            $obFe=new Factura_Electronica($idUser);            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosEmpresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $parametros=$obCon->DevuelveValores("servidores", "ID", 110); //Ruta para crear o actualizar el logo
+            $url=$parametros["IP"];            
+            $TokenTS5=$DatosEmpresa["TokenAPIFE"];
+            $data_logo=$obCon->DevuelveValores("api_fe_logo_empresa", "ID", $empresa_id);
+            if($data_logo["logo_base64"]==''){
+                exit("E1;No existe un logo para esta empresa");
+            }
+            $data='{
+                    "logo": "'.$data_logo["logo_base64"].'"
+                  }';
+            $method="PUT";
+            
+            $respuesta=$obFe->callAPI($method, $url, $TokenTS5, $data);
+            //$respuesta= json_decode($respuesta);
+            $arrayRespuesta = json_decode($respuesta,true);
+            //print_r($arrayRespuesta);
+            if(isset($arrayRespuesta["errors"])){
+                foreach ($arrayRespuesta["errors"] as $key => $value) {
+                    print("<br><strong>".$value[0]."</strong>");                    
+                }
+            }else{
+                
+                $msg=$arrayRespuesta["message"];
+                
+                print("OK;$msg;$respuesta");
+            }
+            
+            
+            
+            
+        break;//Fin caso 10
     }
     
     

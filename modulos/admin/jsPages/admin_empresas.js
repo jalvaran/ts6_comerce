@@ -308,6 +308,9 @@ function confirmaAccion(funcion,empresa_id){
                 if(funcion==5){
                     actualizar_empresa_api(empresa_id);
                 }
+                if(funcion==6){
+                    crear_actualizar_logo(empresa_id);
+                }
                               
             } else {     
                 swal("Cancelado", "Se ha cancelado el proceso :)", "error");   
@@ -850,6 +853,130 @@ function add_events_dropzone_centificado(){
         });
    
 }
+
+
+function frm_subir_logo(empresa_id=''){
+    var idDiv="div_modal_view";
+    openModal('modal_view');
+    urlQuery='Consultas/admin_empresas.draw.php';    
+    var form_data = new FormData();
+        form_data.append('Accion', 8);  
+        form_data.append('empresa_id', empresa_id);       
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            add_events_dropzone_logo();
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+
+function add_events_dropzone_logo(){
+    Dropzone.autoDiscover = false;
+           
+    urlQuery='procesadores/admin_empresas.process.php';
+    var empresa_id=$("#logo_empresa").data("empresa_id");
+        
+    var myDropzone = new Dropzone("#logo_empresa", { url: urlQuery,paramName: "logo_empresa",maxFiles: 1,acceptedFiles: '.png'});
+        myDropzone.on("sending", function(file, xhr, formData) { 
+
+            formData.append("Accion", 9);            
+            formData.append("empresa_id", empresa_id);
+            
+        });
+
+        myDropzone.on("addedfile", function(file) {
+            file.previewElement.addEventListener("click", function() {
+                myDropzone.removeFile(file);
+            });
+        });
+
+        myDropzone.on("success", function(file, data) {
+
+            var respuestas = data.split(';');
+            if(respuestas[0]=="OK"){
+                toastr.success(respuestas[1]);
+                
+            }else if(respuestas[0]=="E1"){
+                toastr.warning(respuestas[1]);
+            }else{
+                swal(data);
+            }
+
+        });
+   
+}
+
+function crear_actualizar_logo(empresa_id){
+    
+    urlQuery='procesadores/admin_empresas.process.php';    
+    var idDiv="div_crear_logo";
+    var btnEnviar = "btnCrearLogo";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    
+        
+    
+    var form_data = new FormData();
+        form_data.append('Accion', '10');  
+        form_data.append('empresa_id', empresa_id);
+                     
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Crear o Actualizar el Logo de la Empresa";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);
+                document.getElementById('div_crear_logo').innerHTML="<pre>"+respuestas[2]+"</pre>";
+                
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                
+                document.getElementById('div_crear_logo').innerHTML=data;
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Crear o Actualizar el Logo de la Empresa";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
 
 dibujeListadoEmpresas();
 
