@@ -33,11 +33,19 @@ function ocultar_spinner(){
 
 function asigne_eventos_busqueda_general(empresa_id,tab,page,idDiv){
     $("#txtBusquedasGenerales").unbind();
+    
+    $("#txtBusquedasGenerales").keypress(function(e) {
+        if(e.which == 13) {
+          dibuja_tabla(empresa_id,tab,page,idDiv);
+        }
+      });
+      /*
     $('#txtBusquedasGenerales').on('keyup',function() {
         
         dibuja_tabla(empresa_id,tab,page,idDiv);
         
     });
+    */
 }
 
 function add_events_frms_ts6(){
@@ -178,7 +186,9 @@ function dibuja_tabla(empresa_id,tab,page,idDiv){
         success: function(data){    
             ocultar_spinner();
             document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
-            
+            //tippy('.tippy');
+            $('[data-toggle="tooltip"]').tooltip();
+              
         },
         error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
             

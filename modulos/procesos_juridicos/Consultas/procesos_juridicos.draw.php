@@ -8,11 +8,11 @@ if (!isset($_SESSION['username'])){
 $idUser=$_SESSION['idUser'];
 include_once("../../../modelo/php_conexion.php");
 include_once("../../../constructores/paginas_constructor.php");
-include_once("../clases/repositorio_juridico.class.php");
+include_once("../clases/procesos_juridicos.class.php");
 
 if( !empty($_REQUEST["Accion"]) ){
     $css =  new PageConstruct("", "", 1, "", 1, 0);
-    $obCon = new RepositorioJuridico($idUser);
+    $obCon = new ProcesoJuridico($idUser);
     
     switch ($_REQUEST["Accion"]) {
         
@@ -20,26 +20,26 @@ if( !empty($_REQUEST["Accion"]) ){
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
             $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
             $db=$datos_empresa["db"];
-            $repositorio_id=$obCon->normalizar($_REQUEST["repositorio_id"]);
-            $datos_repositorio=$obCon->DevuelveValores("$db.repositorio_juridico", "repositorio_id", $repositorio_id);
-            if($repositorio_id==''){
-                $repositorio_id=$obCon->getUniqId("rep_");
+            $proceso_id=$obCon->normalizar($_REQUEST["proceso_id"]);
+            $datos_repositorio=$obCon->DevuelveValores("$db.procesos_juridicos", "proceso_id", $proceso_id);
+            if($proceso_id==''){
+                $proceso_id=$obCon->getUniqId("prj_");
             }
             
             print('<div class="panel">
                                 <div class="panel-head">
-                                    <h5 class="panel-title">Crear o Editar un Registro</h5>
+                                    <h5 class="panel-title">Crear o Editar un Proceso</h5>
                                 </div>
                                 <div class="panel-body">
                                     
                                         <div class="row">
-                                            <div class="col-lg-6">
+                                            <div class="col-lg-4">
                                                 <div class="form-group row">
                                                     <label class="col-12 col-form-label">Tema</label>
                                                     <div class="col-12">');
                                                         $css->select("tema_id", "form-control", "tema_id", "", "", "", "");
 
-                                                            $sql="select * from $db.repositorio_juridico_temas ";
+                                                            $sql="select * from $db.procesos_juridicos_temas ";
                                                             $Consulta=$obCon->Query($sql);
                                                             $css->option("", "", "", "", "", "");
                                                                 print("Seleccione...");
@@ -56,26 +56,26 @@ if( !empty($_REQUEST["Accion"]) ){
                                                         $css->Cselect();
                                                         
                                                         
-                                            print( '<span class="form-text">'.$datos_repositorio["tema_referencia"].'</span>
+                                            print( '<span class="form-text">Seleccione un Tema</span>
                                                     </div>
                                                     
                                                 </div>
                                             </div>
-                                            <div class="col-lg-6">
+                                            <div class="col-lg-4">
                                                 <div class="form-group row">
                                                     <label class="col-12 col-form-label">Sub Tema</label>
                                                     <div class="col-12">
                                                         ');
                                                         $css->select("sub_tema_id", "form-control", "sub_tema_id", "", "", "", "");
 
-                                                            $sql="select * from $db.repositorio_juridico_sub_temas ";
+                                                            $sql="select * from $db.procesos_juridicos_sub_temas ";
                                                             $Consulta=$obCon->Query($sql);
                                                             $css->option("", "", "", "", "", "");
                                                                 print("Seleccione...");
                                                             $css->Coption();
                                                             while($datos_consulta=$obCon->FetchAssoc($Consulta)){
                                                                 $sel=0;
-                                                                if($datos_repositorio["sub_tema_id"]==$datos_consulta["ID"]){
+                                                                if($datos_repositorio["subtema_id"]==$datos_consulta["ID"]){
                                                                     $sel=1;
                                                                 }
                                                                 $css->option("", "", "", $datos_consulta["ID"], "", "",$sel);
@@ -85,122 +85,106 @@ if( !empty($_REQUEST["Accion"]) ){
                                                         $css->Cselect();
                                                         
                                                         
-                                            print( '<span class="form-text">'.$datos_repositorio["sub_tema_referencia"].'</span>
+                                            print( '<span class="form-text">Seleccione un Subtema del proceso</span>
                                                     
                                                     </div>
                                                 </div>
                                             </div>
                                             
-                                            <div class="col-lg-3">
-                                                        <div class="form-group row">
-                                                            <label class="col-12 col-form-label">Fecha de Documento</label>
-                                                            <div class="col-12">
-                                                                <input id="fecha_documento" name="fecha_documento" class="form-control" type="date" value="'.date("Y-m-d").'">
-                                                            <span class="form-text">'.$datos_repositorio["fecha_referencia"].'</span>
-                                                        </div>
-                                                        </div>
-                                                </div>
                                                 
-                                            <div class="col-lg-5">
+                                            <div class="col-lg-4">
                                                 <div class="form-group row">
-                                                    <label class="col-12 col-form-label">Tipo de Documento</label>
+                                                    <label class="col-12 col-form-label">Tipo de Proceso</label>
                                                     <div class="col-12">
                                                         ');
-                                                        $css->select("tipo_documento_id", "form-control", "sub_tema_id", "", "", "", "");
+                                                        $css->select("tipo_proceso_id", "form-control", "tipo_proceso_id", "", "", "", "");
 
-                                                            $sql="select * from $db.repositorio_juridico_tipo_documentos ";
+                                                            $sql="select * from $db.procesos_juridicos_tipo ";
                                                             $Consulta=$obCon->Query($sql);
                                                             $css->option("", "", "", "", "", "");
                                                                 print("Seleccione...");
                                                             $css->Coption();
                                                             while($datos_consulta=$obCon->FetchAssoc($Consulta)){
                                                                 $sel=0;
-                                                                if($datos_repositorio["tipo_documento_id"]==$datos_consulta["ID"]){
+                                                                if($datos_repositorio["tipo_proceso_id"]==$datos_consulta["ID"]){
                                                                     $sel=1;
                                                                 }
                                                                 $css->option("", "", "", $datos_consulta["ID"], "", "",$sel);
-                                                                    print($datos_consulta["tipo_documento"]);
+                                                                    print($datos_consulta["proceso_tipo"]);
                                                                 $css->Coption();
                                                             }
                                                         $css->Cselect();
                                                         
                                                         
-                                            print( '<span class="form-text">'.$datos_repositorio["tipo_documento_referencia"].'</span>
+                                            print( '<span class="form-text">Seleccione el Tipo del proceso</span>
                                                     
                                                     </div>
                                                 </div>
                                                 </div>
-                                                <div class="col-lg-4">
-                                                        <div class="form-group row">
-                                                            <label class="col-12 col-form-label">Número de Documento</label>
-                                                            <div class="col-12">
-                                                                <input id="numero_documento" value="'.$datos_repositorio["numero_documento"].'" name="numero_documento" type="text" class="form-control" placeholder="Número Documento">
-                                                            </div>
-                                                        </div>
-                                                </div>
+                                                
                                             
                                         </div>
                                         <div class="form-group row">
-                                            <label class="col-12 col-form-label">Entidad </label>
-                                            <div class="col-12">
+                                            
+                                            <div class="col-6">
                                                 ');
-                                                        $css->select("entidad_id", "form-control", "entidad_id", "", "", "", "");
-
-                                                            $sql="select * from $db.repositorio_juridico_entidades ";
-                                                            $Consulta=$obCon->Query($sql);
+                                                        $css->select("tercero_id", "form-control", "tercero_id", "", "", "", "");
+                                 
                                                             $css->option("", "", "", "", "", "");
-                                                                print("Seleccione...");
+                                                                print("Tercero");
                                                             $css->Coption();
-                                                            while($datos_consulta=$obCon->FetchAssoc($Consulta)){
-                                                                $sel=0;
-                                                                if($datos_repositorio["entidad_id"]==$datos_consulta["ID"]){
-                                                                    $sel=1;
-                                                                }
-                                                                $css->option("", "", "", $datos_consulta["ID"], "", "",$sel);
-                                                                    print($datos_consulta["nombre_entidad"]);
-                                                                $css->Coption();
-                                                            }
+                                                            
                                                         $css->Cselect();
                                                         
                                                         
-                                            print( '<span class="form-text">'.$datos_repositorio["entidad_referencia"].'</span>
+                                            print( '<span class="form-text">Seleccione un tercero</span>
                                                     
-                                            </div>
+                                            </div>');
+                                            print( '
+                                                
+                                            <div class="col-6">
+                                                ');
+                                                        $css->select("usuario_asignado_id", "form-control", "usuario_asignado_id", "", "", "", "");
+                                 
+                                                            $css->option("", "", "", "", "", "");
+                                                                print("Asignar a...");
+                                                            $css->Coption();
+                                                            
+                                                        $css->Cselect();
+                                                        
+                                                        
+                                            print( '<span class="form-text">Usuario que lleva el proceso</span>
+                                                    
+                                            </div>');
+                                            print( ' 
                                         </div>
                                         <div class="form-group row">
-                                            <label class="col-12 col-form-label">Extracto <i class="icon-eyeglass text-flickr" ></i></label>
+                                            <label class="col-12 col-form-label">Descripción <i class="far fa-comment text-flickr" ></i></label>
                                             <div class="col-12">
-                                                <textarea id="extracto" name="extracto" class="form-control autoHeightDone" style="height:200px;">'.$datos_repositorio["extracto"].'</textarea>
+                                                <textarea id="descripcion" name="descripcion" class="form-control" style="height:200px;">'.$datos_repositorio["descripcion"].'</textarea>
                                             </div>
                                         </div>
                                         <div class="row">
-                                            <div class="col-lg-7">
-                                                <div class="form-group row">
-                                                    <label class="col-12 col-form-label">Fuentes Formales <i class="fa fa-book text-success"></i></label>
-                                                    <div class="col-12">
-                                                        <input class="form-control" id="fuentes_formales" name="fuentes_formales" type="text" value="'.$datos_repositorio["fuentes_formales"].'" placeholder="Fuentes Formales" >
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-2">
+                                            
+                                            <div class="col-lg-4">
                                                 <div class="form-group">
-                                                    <fieldset disabled="">
-                                                        <label class="col-form-label">Año Recopilación <i class="far fa-calendar-times text-flickr" ></i></label>
+                                                    
+                                                        <label class="col-form-label">Año Gravable <i class="far fa-calendar-times text-flickr" ></i></label>
                                                         ');
-                                                        $disabled="disabled";
+                                                        $disabled="";
                                                         
-                                                        $css->select("ano_recopilacion", "form-control", "ano_recopilacion", "", "", "", $disabled);
+                                                        $css->select("anio_gravable", "form-control", "anio_gravable", "", "", "", $disabled);
                                                             $anoactual=date("Y");
                                                             $css->option("", "", "", "", "", "");
                                                                 print("Seleccione...");
                                                             $css->Coption();
                                                             
-                                                            for($i=2015;$i<=2050;$i++){
+                                                            for($i=2000;$i<=$anoactual;$i++){
                                                                 $sel=0;
-                                                                if($anoactual==$i and $datos_repositorio["ano_recopilacion"]==''){
+                                                                if($anoactual==$i and $datos_repositorio["anio_gravable"]==''){
                                                                     $sel=1;
                                                                 }
-                                                                if($datos_repositorio["ano_recopilacion"]==$i){
+                                                                if($datos_repositorio["anio_gravable"]==$i){
                                                                     $sel=1;
                                                                 }
                                                                 
@@ -211,18 +195,49 @@ if( !empty($_REQUEST["Accion"]) ){
                                                             
                                                         $css->Cselect();
                                             
-                                            print( ' 
-                                                    </fieldset>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-3">
+                                            print('</div></div>');            
+                                            
+                                            print(' <div class="col-lg-4">
                                                 <div class="form-group">
-                                                    <fieldset >
+                                                    
+                                                        <label class="col-form-label">Periodo <i class="far fa-calendar-times text-flickr" ></i></label>
+                                                        ');
+                                                        $disabled="";
+                                                        
+                                                        $css->select("periodo", "form-control", "periodo", "", "", "", $disabled);
+                                                            
+                                                            $css->option("", "", "", "", "", "");
+                                                                print("Seleccione...");
+                                                            $css->Coption();
+                                                            
+                                                            for($i=1;$i<=12;$i++){
+                                                                $sel=0;
+                                                                
+                                                                if($datos_repositorio["periodo"]==$i){
+                                                                    $sel=1;
+                                                                }
+                                                                
+                                                                $css->option("", "", "", $i, "", "",$sel);
+                                                                    print($i);
+                                                                $css->Coption();
+                                                            }
+                                                            
+                                                        $css->Cselect();
+                                            
+                                            print('</div></div>');  
+                                            
+                                            print( ' 
+                                                    
+                                                
+                                            
+                                            <div class="col-lg-4">
+                                                <div class="form-group">
+                                                    
                                                         <label class="col-form-label">Estado <i class="fa fa-tag text-flickr" ></i></label>
                                                         ');
                                                         $css->select("estado", "form-control", "estado", "", "", "", "");
 
-                                                            $sql="select * from $db.repositorio_juridico_estados ";
+                                                            $sql="select * from $db.procesos_juridicos_estados ";
                                                             $Consulta=$obCon->Query($sql);
                                                             $css->option("", "", "", "", "", "");
                                                                 print("Seleccione...");
@@ -240,33 +255,16 @@ if( !empty($_REQUEST["Accion"]) ){
                                                         
                                                         
                                             print( '
-                                                    </fieldset>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6">
-                                                <div class="form-group">
-                                                    <label class="col-form-label">Adjuntar <i class="fa fa-paperclip text-primary" ></i></label>
-                                                    <div class="panel">                            
-                                                        <div class="panel-body">
-                                                            <form data-repositorio_id="'.$repositorio_id.'" action="/" class="dropzone dz-clickable" id="repositorio_adjuntos"><div class="dz-default dz-message"><span><i class="icon-plus"></i>Arrastre archivos aquí o de click para subir.<br> Suba cualquier tipo de archivos.</span></div></form>
-                                                        </div>
-                                                    </div>
+                                                    
                                                 </div>
                                             </div>
                                             
-                                            <div class="col-lg-6">
-                                                <div class="form-group">
-                                                    <label class="col-form-label">Archivos Adjuntados <i class="fa fa-paperclip text-success" ></i></label>
-                                                    <div id="div_adjuntos_repositorio">                            
-                                                        
-                                                    </div>
-                                                </div>
                                             </div>
                                         </div>
                                    
                                 </div>
                                 <div class="panel-footer text-right">
-                                    <button id="btn_guardar" name="btn_guardar" onclick="confirmar_crear_editar_repositorio(`'.$repositorio_id.'`)" class="btn btn-success mr-2">Guardar</button>
+                                    <button id="btn_guardar" name="btn_guardar" onclick="confirmar_crear_editar_proceso(`'.$proceso_id.'`)" class="btn btn-success mr-2">Guardar</button>
                                     
                                 </div>
                             </div>');
@@ -279,7 +277,7 @@ if( !empty($_REQUEST["Accion"]) ){
         
         case 2: //Dibuja los adjuntos de un repositorio
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
-            $repositorio_id=$obCon->normalizar($_REQUEST["repositorio_id"]);
+            $proceso_id=$obCon->normalizar($_REQUEST["proceso_id"]);
             
             $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
             $db=$DatosEmpresa["db"];
@@ -297,8 +295,8 @@ if( !empty($_REQUEST["Accion"]) ){
                 $css->CierraFilaTabla();
                 
                 $sql="SELECT t1.*
-                        FROM $db.repositorio_juridico_adjuntos t1 
-                        WHERE t1.repositorio_id='$repositorio_id' 
+                        FROM $db.procesos_juridicos_adjuntos t1 
+                        WHERE t1.proceso_id='$proceso_id' 
                             ";
                 $Consulta=$obCon->Query($sql);
                 while($DatosConsulta=$obCon->FetchAssoc($Consulta)){

@@ -85,13 +85,24 @@ if( !empty($_REQUEST["Accion"]) ){
                     $flag_in=1;
                     $nombre_campo=$datos_consulta["nombre_campo"];
                     if($datos_consulta["condicion"]==1){
+                        
                         $Condicion_busqueda_general.=" t1.$nombre_campo = '$BusquedasGenerales' or ";
+                        
+                        
                     }
                     if($datos_consulta["condicion"]==2){
+                        
                         $Condicion_busqueda_general.=" t1.$nombre_campo like '$BusquedasGenerales' or ";
                     }
                     if($datos_consulta["condicion"]==3){
-                        $Condicion_busqueda_general.=" t1.$nombre_campo like '%$BusquedasGenerales%' or ";
+                        $array_busqueda= explode(" ", $BusquedasGenerales);
+                        foreach ($array_busqueda as $key => $value) {
+                            if($value<>' '){
+                                $Condicion_busqueda_general.=" t1.$nombre_campo like '%$value%' or ";
+                            }
+                        }
+                        
+                        //$Condicion_busqueda_general.=" t1.$nombre_campo like '%$BusquedasGenerales%' or ";
                     }
                     if($datos_consulta["condicion"]==4){
                         $Condicion_busqueda_general.=" t1.$nombre_campo like '$BusquedasGenerales%' or ";
@@ -387,11 +398,17 @@ if( !empty($_REQUEST["Accion"]) ){
                                     print('</td>');
                                 foreach ($RegistrosTabla as $key => $value) {
                                     print("<td class='mailbox-name'>");
+                                        
                                         $longitud= strlen($value);
                                         if($longitud>50){
-                                            $value= substr($value, 0, 50)."...";
+                                            print('<div title="'.str_replace('"', "`",$value ).'" >');
+                                                $value= substr($value, 0, 100)."...";
+                                                print($value);
+                                            print("</div>");
+                                        }else{
+                                            print($value);
                                         }
-                                        print($value);
+                                        
                                     print("</td>");
                                 }
                                    

@@ -1,5 +1,5 @@
 /*
- * javascript para controlar los eventos del modulo repositorio juridico
+ * javascript para controlar los eventos del modulo procesos juridicos
  */
 var listado_id=1;
 function evento_busqueda(){
@@ -31,7 +31,7 @@ function CambiePagina(Funcion,Page=""){
 function dibujeListadoSegunID(Page=1){
     
     if(listado_id==1){
-        listar_repositorio_juridico(Page);
+        listar_procesos_juridicos(Page);
     }
        
     
@@ -45,7 +45,7 @@ function actualizar_contadores(){
         form_data.append('empresa_id', empresa_id);
         
         $.ajax({
-        url: './procesadores/repositorio_juridico.process.php',
+        url: './procesadores/procesos_juridicos.process.php',
         //dataType: 'json',
         cache: false,
         contentType: false,
@@ -55,10 +55,10 @@ function actualizar_contadores(){
         success: function(data){
             var respuestas = data.split(';'); 
             if(respuestas[0]=="OK"){
-                document.getElementById('sp_repositorio_juridico_temas').innerHTML=respuestas[1];
+                document.getElementById('sp_temas').innerHTML=respuestas[1];
                 document.getElementById('sp_sub_temas').innerHTML=respuestas[2];
-                document.getElementById('sp_tipo_documentos').innerHTML=respuestas[3];
-                document.getElementById('sp_entidades').innerHTML=respuestas[4];
+                document.getElementById('sp_tipo_procesos').innerHTML=respuestas[3];
+                document.getElementById('sp_terceros').innerHTML=respuestas[4];
             }else if(respuestas[0]=="E1"){
                 
                 toastr.error(respuestas[1]);
@@ -74,12 +74,12 @@ function actualizar_contadores(){
       });
 }
 
-function listar_repositorio_juridico(page){
-    dibuja_tabla(`get`,`vista_repositorio_juridico`,page,`DivListados`);
+function listar_procesos_juridicos(page){
+    dibuja_tabla(`get`,`vista_procesos_juridicos`,page,`DivListados`);
     
 }
 
-function frm_crear_editar_registro_repositorio(repositorio_id=''){
+function frm_crear_editar_registro_proceso(proceso_id=''){
     var idDiv="DivListados";
     //document.getElementById(idDiv).innerHTML='<div id="GifProcess">procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
     
@@ -88,10 +88,10 @@ function frm_crear_editar_registro_repositorio(repositorio_id=''){
     var form_data = new FormData();
         form_data.append('Accion', 1);// pasamos la accion y el numero de accion para el dibujante sepa que caso tomar
         form_data.append('empresa_id', empresa_id);
-        form_data.append('repositorio_id', repositorio_id);
+        form_data.append('proceso_id', proceso_id);
                 
        $.ajax({// se arma un objecto por medio de ajax  
-        url: 'Consultas/repositorio_juridico.draw.php',// se indica donde llegara la informacion del objecto
+        url: 'Consultas/procesos_juridicos.draw.php',// se indica donde llegara la informacion del objecto
         
         cache: false,
         contentType: false,
@@ -100,9 +100,10 @@ function frm_crear_editar_registro_repositorio(repositorio_id=''){
         type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
         success: function(data){            
             document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
-            add_events_dropzone_repositorio();           
-            listar_adjuntos_repositorio(repositorio_id);
+            //add_events_dropzone_procesos();  
             convertir_selects();
+            
+            
         },
         error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
             
@@ -113,15 +114,48 @@ function frm_crear_editar_registro_repositorio(repositorio_id=''){
 }
 
 function convertir_selects(){
+    var empresa_id =document.getElementById("empresa_id").value;
     $('#tema_id').select2();
     $('#sub_tema_id').select2();
-    $('#tipo_documento_id').select2();
-    $('#entidad_id').select2();
+    $('#tipo_proceso_id').select2();
+    
+    $('#tercero_id').select2({		  
+        placeholder: 'Seleccione un tercero',
+        ajax: {
+          url: 'buscadores/terceros.search.php?empresa_id='+empresa_id,
+          dataType: 'json',
+          delay: 250,
+          processResults: function (data) {
+
+            return {                     
+              results: data
+            };
+          },
+         cache: true
+        }
+      });
+      
+      
+      $('#usuario_asignado_id').select2({		  
+        placeholder: 'Asignar a...',
+        ajax: {
+          url: 'buscadores/usuarios.search.php',
+          dataType: 'json',
+          delay: 250,
+          processResults: function (data) {
+
+            return {                     
+              results: data
+            };
+          },
+         cache: true
+        }
+      });
     
 }
 
-function listar_adjuntos_repositorio(repositorio_id=''){
-    var idDiv="div_adjuntos_repositorio";
+function listar_adjuntos_procesos(proceso_id=''){
+    var idDiv="div_adjuntos_proceso";
     //document.getElementById(idDiv).innerHTML='<div id="GifProcess">procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
     
     var empresa_id =document.getElementById("empresa_id").value;
@@ -129,10 +163,10 @@ function listar_adjuntos_repositorio(repositorio_id=''){
     var form_data = new FormData();
         form_data.append('Accion', 2);// pasamos la accion y el numero de accion para el dibujante sepa que caso tomar
         form_data.append('empresa_id', empresa_id);
-        form_data.append('repositorio_id', repositorio_id);
+        form_data.append('proceso_id', proceso_id);
                 
        $.ajax({// se arma un objecto por medio de ajax  
-        url: 'Consultas/repositorio_juridico.draw.php',// se indica donde llegara la informacion del objecto
+        url: 'Consultas/procesos_juridicos.draw.php',// se indica donde llegara la informacion del objecto
         
         cache: false,
         contentType: false,
@@ -153,18 +187,18 @@ function listar_adjuntos_repositorio(repositorio_id=''){
 }
 
 
-function add_events_dropzone_repositorio(){
+function add_events_dropzone_procesos(){
     Dropzone.autoDiscover = false;
            
-    urlQuery='procesadores/repositorio_juridico.process.php';
-    var repositorio_id=$("#repositorio_adjuntos").data("repositorio_id");
+    urlQuery='procesadores/procesos_juridicos.process.php';
+    var proceso_id=$("#proceso_adjuntos").data("proceso_id");
     var empresa_id=document.getElementById('empresa_id').value; 
     
-    var myDropzone = new Dropzone("#repositorio_adjuntos", { url: urlQuery,paramName: "adjunto_repositorio"});
+    var myDropzone = new Dropzone("#proceso_adjuntos", { url: urlQuery,paramName: "adjunto_proceso"});
         myDropzone.on("sending", function(file, xhr, formData) { 
 
             formData.append("Accion", 2);
-            formData.append("repositorio_id", repositorio_id);
+            formData.append("proceso_id", proceso_id);
             formData.append("empresa_id", empresa_id);
             
         });
@@ -180,7 +214,7 @@ function add_events_dropzone_repositorio(){
             var respuestas = data.split(';');
             if(respuestas[0]=="OK"){
                 alertify.success(respuestas[1]);
-                listar_adjuntos_repositorio(repositorio_id);
+                listar_adjuntos_procesos(proceso_id);
             }else if(respuestas[0]=="E1"){
                 alertify.error(respuestas[1]);
             }else{
@@ -188,7 +222,7 @@ function add_events_dropzone_repositorio(){
             }
 
         });
-    listar_adjuntos_repositorio(repositorio_id);
+    listar_adjuntos_procesos(proceso_id);
 }
 
 
@@ -239,7 +273,7 @@ function EliminarItem(tabla_id,item_id,repositorio_id){
 }  
 
 
-function confirmar_crear_editar_repositorio(repositorio_id){
+function confirmar_crear_editar_proceso(proceso_id){
     swal({   
             title: "Seguro que desea realizar esta acción?",   
             //text: "You will not be able to recover this imaginary file!",   
@@ -254,7 +288,7 @@ function confirmar_crear_editar_repositorio(repositorio_id){
         }, function(isConfirm){   
             if (isConfirm) {
                 
-                crear_editar_repositorio_juridico(repositorio_id);              
+                crear_editar_proceso_juridico(proceso_id);              
                 
                               
             } else {     
@@ -263,7 +297,7 @@ function confirmar_crear_editar_repositorio(repositorio_id){
         });
 }
 
-function crear_editar_repositorio_juridico(repositorio_id){
+function crear_editar_proceso_juridico(proceso_id){
     
     var btnEnviar = "btn_guardar";
     document.getElementById(btnEnviar).disabled=true;
@@ -272,34 +306,32 @@ function crear_editar_repositorio_juridico(repositorio_id){
     var empresa_id = document.getElementById('empresa_id').value;  
     var tema_id = document.getElementById('tema_id').value;  
     var sub_tema_id = document.getElementById('sub_tema_id').value;  
-    var fecha_documento = document.getElementById('fecha_documento').value; 
-    var tipo_documento_id = document.getElementById('tipo_documento_id').value; 
-    var numero_documento = document.getElementById('numero_documento').value; 
-    var entidad_id = document.getElementById('entidad_id').value; 
-    var extracto = document.getElementById('extracto').value; 
-    var fuentes_formales = document.getElementById('fuentes_formales').value; 
-    var ano_recopilacion = document.getElementById('ano_recopilacion').value; 
+    var tipo_proceso_id = document.getElementById('tipo_proceso_id').value; 
+    var tercero_id = document.getElementById('tercero_id').value; 
+    var usuario_asignado_id = document.getElementById('usuario_asignado_id').value; 
+    var descripcion = document.getElementById('descripcion').value; 
+    var anio_gravable = document.getElementById('anio_gravable').value; 
+    var periodo = document.getElementById('periodo').value; 
     var estado = document.getElementById('estado').value; 
-        
+            
     var form_data = new FormData();
         form_data.append('Accion', 4);        
         form_data.append('empresa_id', empresa_id);
-        form_data.append('repositorio_id', repositorio_id);        
+        form_data.append('proceso_id', proceso_id);        
         form_data.append('tema_id', tema_id);
         form_data.append('sub_tema_id', sub_tema_id);
-        form_data.append('tipo_documento_id', tipo_documento_id);
-        form_data.append('fecha_documento', fecha_documento);
+        form_data.append('tipo_proceso_id', tipo_proceso_id);
+        form_data.append('tercero_id', tercero_id);
+        form_data.append('usuario_asignado_id', usuario_asignado_id);
+        form_data.append('descripcion', descripcion);
+        form_data.append('anio_gravable', anio_gravable);
+        form_data.append('periodo', periodo);
         
-        form_data.append('numero_documento', numero_documento);
-        form_data.append('entidad_id', entidad_id);
-        form_data.append('extracto', extracto);
-        form_data.append('fuentes_formales', fuentes_formales);
-        form_data.append('ano_recopilacion', ano_recopilacion);
         form_data.append('estado', estado);
                       
         
         $.ajax({
-        url: './procesadores/repositorio_juridico.process.php',
+        url: './procesadores/procesos_juridicos.process.php',
         //dataType: 'json',
         cache: false,
         contentType: false,
@@ -307,7 +339,7 @@ function crear_editar_repositorio_juridico(repositorio_id){
         data: form_data,
         type: 'post',
         beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
-           mostrar_spinner("Creando Repositorio..");
+           mostrar_spinner("Creando proceso..");
         },
         complete: function(){
            ocultar_spinner();

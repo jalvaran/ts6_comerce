@@ -1,6 +1,6 @@
 <?php
 /**
- * Pagina para administrar el repositorio juridico
+ * Pagina para administrar los procesos juridicos
  * 2021-02-24, Julian Alvaran Techno Soluciones SAS
  * 
  * es recomendable No usar los siguientes ID para ningún objeto:
@@ -15,7 +15,7 @@ $urlRequest= explode("/", $urlRequest);
 $Pagina=end($urlRequest);
 
 $myPage=$Pagina;
-$myTitulo="Repositorio Jurídico";
+$myTitulo="Procesos Jurídicos";
 include_once("../../sesiones/php_control_usuarios.php");
 include_once("../../constructores/paginas_constructor.php");
 
@@ -68,14 +68,15 @@ $css->PageInit($myTitulo);
                 $css->Coption();
             }
         $css->Cselect();
-        print('<button class="btn btn-success m-1" onclick="listado_id=1;dibujeListadoSegunID()">Actualizar</button>');
-        print('<button class="btn btn-primary m-1" onclick="frm_crear_editar_registro_repositorio()">Crear Registro</button>');
+        print('<button class="btn btn-success m-1" onclick="listado_id=1;dibujeListadoSegunID()">Ver Listado</button>');
+        print('<button class="btn btn-primary m-1" onclick="frm_crear_editar_registro_proceso()">Crear Registro</button>');
         //$css->CrearBotonEvento("btnFacturar", "Hacer un Documento Electrónico", 1, "onclick", "formulario_facturador()", "azul");
         print('</div>');
-        $html=$css->getHtmlPanelInfo("Temas", 0, "sp_repositorio_juridico_temas", 2, "far fa-object-group", "onclick=dibuja_tabla(`get`,`repositorio_juridico_temas`,`1`,`DivListados`)", "style=cursor:pointer", "primary", 1, "p_repositorio_juridico_temas");
-        $html.=$css->getHtmlPanelInfo("SubTemas", 0, "sp_sub_temas", 2, "far fa-object-ungroup", "onclick=dibuja_tabla(`get`,`repositorio_juridico_sub_temas`,`1`,`DivListados`)", "style=cursor:pointer", "warning", 1, "p_sub_temas");
-        $html.=$css->getHtmlPanelInfo("Documentos", 0, "sp_tipo_documentos", 2, "far fa-clone", "onclick=dibuja_tabla(`get`,`repositorio_juridico_tipo_documentos`,`1`,`DivListados`)", "style=cursor:pointer", "success", 1, "p_tipo_documentos");
-        $html.=$css->getHtmlPanelInfo("Entidades", 0, "sp_entidades", 2, "far fa-building", "onclick=dibuja_tabla(`get`,`repositorio_juridico_entidades`,`1`,`DivListados`)", "style=cursor:pointer", "danger", 1, "p_entidades");
+        
+        $html=$css->getHtmlPanelInfo("Temas", 0, "sp_temas", 2, "far fa-object-group", "onclick=dibuja_tabla(`get`,`procesos_juridicos_temas`,`1`,`DivListados`)", "style=cursor:pointer", "primary", 1, "p_temas");
+        $html.=$css->getHtmlPanelInfo("SubTemas", 0, "sp_sub_temas", 2, "far fa-object-ungroup", "onclick=dibuja_tabla(`get`,`procesos_juridicos_sub_temas`,`1`,`DivListados`)", "style=cursor:pointer", "warning", 1, "p_sub_temas");
+        $html.=$css->getHtmlPanelInfo("Tipos", 0, "sp_tipo_procesos", 2, "far fa-clone", "onclick=dibuja_tabla(`get`,`procesos_juridicos_tipo`,`1`,`DivListados`)", "style=cursor:pointer", "success", 1, "p_tipo_procesos");
+        $html.=$css->getHtmlPanelInfo("Terceros", 0, "sp_terceros", 2, "far fa-building", "onclick=dibuja_tabla(`get`,`terceros`,`1`,`DivListados`)", "style=cursor:pointer", "danger", 1, "p_terceros");
         
         
         print($html);
@@ -96,7 +97,7 @@ $css->PageInit($myTitulo);
     $css->Cdiv();
 $css->PageFin();
 print('<script src="../../general/js/tablas.js"></script>'); 
-print('<script src="jsPages/repositorio_juridico.js"></script>'); 
+print('<script src="jsPages/procesos_juridicos.js"></script>'); 
 
 $css->Cbody();
 $css->Chtml();

@@ -145,11 +145,11 @@ if(isset($_REQUEST["Opcion"])){
                         $mensaje.="\r\n";
                         if($r==1000){
                             $r=0;
-                            fwrite($archivo, $mensaje);
+                            fwrite($archivo, ($mensaje));
                             $mensaje="";
                         }
                     }
-                    fwrite($archivo, $mensaje);
+                    fwrite($archivo, ($mensaje));
                     fclose($archivo);
                 }
 

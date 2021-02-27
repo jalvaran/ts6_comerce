@@ -2407,7 +2407,7 @@ class PageConstruct extends html_estruct_class{
                             $disabled="disabled";
                         }
                         $style="";
-                        if(($NombreCol=="usuario_id" or $NombreCol=="idUser")){
+                        if(($NombreCol=="usuario_id" or $NombreCol=="idUser" or $NombreCol=="user_id")){
                             $style="style=display:none";
                         }
                         print('<div class="col-md-4" '.$style.'>');
@@ -2419,7 +2419,7 @@ class PageConstruct extends html_estruct_class{
                             
                             if($CamposAsociados["TablaAsociada"]==''){
                                 
-                                if(($NombreCol=="usuario_id" or $NombreCol=="idUser") and $valueField==''){
+                                if(($NombreCol=="usuario_id" or $NombreCol=="idUser" or $NombreCol=="user_id") and $valueField==''){
                                     $valueField= $this->usuario_id;
                                     $TypeField="hidden";
                                 }

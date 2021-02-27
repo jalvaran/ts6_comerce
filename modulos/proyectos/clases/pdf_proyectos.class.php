@@ -36,11 +36,98 @@ class PDF_Proyectos extends Documento{
         
         $html=$this->get_flujo_caja($db,$datos_proyecto) ;
         $this->PDF_Write('<br><br><br>'.$html);
+        
+        $html=$this->get_calendar_mes($db,$datos_proyecto) ;
+        $this->PDF_Write('<br><br><br>'.$html);
          
         $html='<p style="text-align: justify;">'.($datos_formato_calidad["NotasPiePagina"]).'</p>';
         $this->PDF_Write($html);
         
         $this->PDF_Output("Informe_proyecto_$datos_proyecto[ID]");
+    }
+    
+    public function get_cronograma($db,$datos_proyecto) {
+        $proyecto_id=$datos_proyecto["proyecto_id"];
+        $obCon=new conexion($_SESSION["idUser"]);
+        $sql="SELECT t1.*,(SELECT t2.titulo_actividad FROM proyectos_actividades t2 WHERE t2.actividad_id=t1.actividad_id LIMIT 1) as nombre_actividad,
+                        
+                   FROM $db.proyectos_actividades_eventos t1 WHERE proyecto_id='$proyecto_id' and estado<10 ORDER BY fecha_inicial asc";
+        
+        $Consulta=$obCon->Query($sql);
+        $eventos=[];
+        $i=0;
+        while($datos_eventos=$obCon->FetchAssoc($Consulta)){
+            $eventos[$i]=$datos_eventos;
+        }
+        
+        
+        
+    }
+    
+    public function get_calendar_mes($db,$datos_proyecto) {
+        
+        $dias_semana=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+        $meses=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        $datos_dia=$this->get_datos_dia_mes(2021, 4);
+        
+        $html =' 
+                <table cellspacing="1" cellpadding="2" border="1">
+                    <tr>
+                        <td align="center" colspan="7"  style="border-bottom: 1px solid #ddd;"><strong>CRONOGRAMA MES DE FEBRERO '.$datos_dia["ultimo_dia"].'  '.$datos_dia["primer_dia_semana"].' '.$datos_dia["ultimo_dia_semana"].' '.$datos_dia["total_semanas"].'</strong></td>
+                    </tr>  ';
+        $html.='<tr>';
+        foreach ($dias_semana as $key => $value) {
+            $html.='<td style="text-align:center;border-bottom: 1px solid #ddd;">';
+                $html.="<strong>".$value."</strong>";
+            $html.='</td>';
+        }
+        $html.='</tr>';
+        $d=1;
+        $contador_dia=$datos_dia["primer_dia_semana"];
+        $flag_conteo=0;
+        for($i=1;$i<=$datos_dia["total_semanas"];$i++){
+            $html.='<tr>';
+                foreach ($dias_semana as $key => $value) {
+                    $html.='<td height="100px;" style="text-align:center;border: 1px solid #ddd;">';
+                        
+                        if($flag_conteo==1 and $d<=$datos_dia["ultimo_dia"]){
+                            
+                            $html.='<div style="text-align:rigth">'.$d.'</div>';
+                            $d++;
+                        }
+                        if($key==$contador_dia and $flag_conteo==0){
+                            $html.='<div style="text-align:rigth">'.$d.'</div>';
+                            $flag_conteo=1;
+                            $d++;
+                        }
+                        
+                    $html.='</td>';
+                }
+            $html.='</tr>';
+        }
+        
+        
+        $html .='</table>';
+        return($html);
+    }
+    
+    function get_datos_dia_mes($anio,$mes) {
+        $dia["ultimo_dia"]= date("d",(mktime(0,0,0,$mes+1,1,$anio)-1));
+        $dia["ultimo_dia_semana"]= date("w",(mktime(0,0,0,$mes+1,1,$anio)-1));
+        $dia["primer_dia_semana"]= date("w", strtotime("$anio-$mes-01"));
+        $dia["total_semanas"]=date('W',mktime(0,0,0,$mes,date('t', mktime(0,0,0,$mes,1,$anio)),$anio))-date('W',mktime(0,0,0,$mes,1,$anio));
+        $dia["total_semanas"]++;
+        if($dia["ultimo_dia_semana"]==0){
+            $dia["ultimo_dia_semana"]=6;
+        }else{
+            $dia["ultimo_dia_semana"]=$dia["ultimo_dia_semana"]-1;
+        }
+        if($dia["primer_dia_semana"]==0){
+            $dia["primer_dia_semana"]=6;
+        }else{
+            $dia["primer_dia_semana"]=$dia["primer_dia_semana"]-1;
+        }
+        return($dia);
     }
     
     public function get_flujo_caja($db,$datos_proyecto) {
