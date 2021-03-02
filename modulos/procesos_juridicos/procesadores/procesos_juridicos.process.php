@@ -33,15 +33,15 @@ if( !empty($_REQUEST["Accion"]) ){
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
             $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
             $db=$datos_empresa["db"];
-            $proceso_id=$obCon->normalizar($_REQUEST["proceso_id"]);
+            $acto_id=$obCon->normalizar($_REQUEST["acto_id"]);
             
             $Extension="";
-            if(!empty($_FILES['adjunto_proceso']['name'])){
+            if(!empty($_FILES['acto_adjunto']['name'])){
                 
-                $info = new SplFileInfo($_FILES['adjunto_proceso']['name']);
+                $info = new SplFileInfo($_FILES['acto_adjunto']['name']);
                 $Extension=($info->getExtension()); 
                 
-                $Tamano=filesize($_FILES['adjunto_proceso']['tmp_name']);
+                $Tamano=filesize($_FILES['acto_adjunto']['tmp_name']);
                 $DatosConfiguracion=$obCon->DevuelveValores("configuracion_general", "ID", 38);
                 
                 $carpeta=$DatosConfiguracion["Valor"];
@@ -53,21 +53,25 @@ if( !empty($_REQUEST["Accion"]) ){
                 if (!file_exists($carpeta)) {
                     mkdir($carpeta, 0777);
                 }
-                $carpeta.="ProcesoJuridico/";
+                $carpeta.="ProcesosJuridicos/";
                 if (!file_exists($carpeta)) {
                     mkdir($carpeta, 0777);
                 }
-                $carpeta.=$repositorio_id."/";
+                $carpeta.="ActosAdministrativos/";
+                if (!file_exists($carpeta)) {
+                    mkdir($carpeta, 0777);
+                }
+                $carpeta.=$acto_id."/";
                 if (!file_exists($carpeta)) {
                     mkdir($carpeta, 0777);
                 }
                 
                 opendir($carpeta);
-                $idAdjunto=$obCon->getUniqId("ad_pro_");
+                $idAdjunto=$obCon->getUniqId("ad_ap_");
                 $destino=$carpeta.$idAdjunto.".".$Extension;
                 
-                move_uploaded_file($_FILES['adjunto_proceso']['tmp_name'],$destino);
-                $obCon->RegistreAdjuntoRepositorio($db,$repositorio_id, $destino, $Tamano, $_FILES['adjunto_proceso']['name'], $Extension, $idUser);
+                move_uploaded_file($_FILES['acto_adjunto']['tmp_name'],$destino);
+                $obCon->RegistreAdjuntoProcesoJuridico($db,$acto_id, $destino, $Tamano, $_FILES['acto_adjunto']['name'], $Extension, $idUser);
             }else{
                 exit("E1;No se recibió el archivo");
             }
@@ -86,8 +90,8 @@ if( !empty($_REQUEST["Accion"]) ){
             }
             
             if($tabla_id==1){
-                $tabla=$db.".repositorio_juridico_adjuntos";
-                $DatosAdjunto=$obCon->DevuelveValores("$db.repositorio_juridico_adjuntos", "ID", $item_id);
+                $tabla=$db.".procesos_juridicos_acto_admin_adjuntos";
+                $DatosAdjunto=$obCon->DevuelveValores("$db.procesos_juridicos_acto_admin_adjuntos", "ID", $item_id);
                 if(file_exists($DatosAdjunto["Ruta"])){
                     unlink($DatosAdjunto["Ruta"]);
                 }
@@ -112,6 +116,7 @@ if( !empty($_REQUEST["Accion"]) ){
             $datos_repositorio["anio_gravable"]=$obCon->normalizar($_REQUEST["anio_gravable"]);
             $datos_repositorio["periodo"]=$obCon->normalizar($_REQUEST["periodo"]);
             $datos_repositorio["estado"]=$obCon->normalizar($_REQUEST["estado"]);
+            $datos_repositorio["codigo_dane_municipio"]=$obCon->normalizar($_REQUEST["codigo_dane_municipio"]);
             
             foreach ($datos_repositorio as $key => $value) {
                 if($value==''){
@@ -125,6 +130,42 @@ if( !empty($_REQUEST["Accion"]) ){
             
             print("OK;Datos Guardados");
         break;//Fin caso 4
+        
+        case 5://crear o editar un acto administrativo de un proceso
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $datos_repositorio["proceso_id"]=$obCon->normalizar($_REQUEST["proceso_id"]);
+            $datos_repositorio["acto_id"]=$obCon->normalizar($_REQUEST["acto_id"]);
+            $datos_repositorio["entidad_id"]=$obCon->normalizar($_REQUEST["entidad_id"]);
+            
+            $datos_repositorio["fecha_acto"]=$obCon->normalizar($_REQUEST["fecha_acto"]);
+            $datos_repositorio["fecha_notificacion"]=$obCon->normalizar($_REQUEST["fecha_notificacion"]);
+            $datos_repositorio["acto_tipo_id"]=$obCon->normalizar($_REQUEST["acto_tipo_id"]);
+            $datos_repositorio["numero_acto"]=$obCon->normalizar($_REQUEST["numero_acto"]);
+            $datos_repositorio["observaciones"]=$obCon->normalizar($_REQUEST["observaciones"]);
+            
+            foreach ($datos_repositorio as $key => $value) {
+                if($value==''){
+                    exit("E1;El campo $key no puede estar vacío;$key");
+                }
+                
+            }
+            $datos_repositorio["user_id"]=$idUser;
+            
+            $datos_acto_admin_tipo=$obCon->DevuelveValores("$db.procesos_juridicos_actos_tipo", "ID", $datos_repositorio["acto_tipo_id"]);
+            if($datos_acto_admin_tipo["dias_respuesta"]>0){
+                $datos_repositorio["fecha_plazo_atencion"]=$obCon->sume_dias_fecha($datos_repositorio["fecha_notificacion"], $datos_acto_admin_tipo["dias_respuesta"]);
+            }else{
+                $datos_repositorio["fecha_plazo_atencion"]="0000-00-00";
+            }
+            
+            $datos_repositorio["estado"]=1;
+            
+            $obCon->crear_editar_acto_administrativo_proceso($db, $datos_repositorio);
+            
+            print("OK;Datos Guardados");
+        break;//Fin caso 5
     
     }
     

@@ -190,9 +190,13 @@ if( !empty($_REQUEST["Accion"]) ){
                         
                     }
                     
-                    $html_filtros='<div class="icon-widget">
-                                            <h5 class="icon-widget-heading" >Filtros <li class="far fa-times-circle text-danger" style="cursor:pointer;" onclick="clean_filter_tab(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`)"></li></h5>
-                                            <div class="icon-widget-body tbl">
+                    $html_filtros='<div class="icon-widget">';
+                    
+                    
+                    //$html_filtros.='     <h5 class="icon-widget-heading" >Filtros <li class="far fa-times-circle text-danger" style="cursor:pointer;" onclick="clean_filter_tab(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`)"></li></h5>';
+                    $html_filtros.='     <h5 class="icon-widget-heading" >Filtros</h5>';
+                    
+                    $html_filtros.='    <div class="icon-widget-body tbl">
                                                 '
                             . '                     <div class="input-group">';
                     $html_filtros.='<div class="input-group-prepend">';
@@ -242,12 +246,22 @@ if( !empty($_REQUEST["Accion"]) ){
                                     $nombre_campo=$data_nombres_campos["muestre"];
                                 }
                                 if($value["tab"]==$tab){
-                                    $html_filtros.='<tr>';
-                                        $html_filtros.='<td><li class="far fa-times-circle text-danger" style="cursor:pointer;" onclick="delete_filter(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`,`'.$key.'`)"></li></td>';
-                                        $html_filtros.='<td>'.$nombre_campo.'</td>';
-                                        $html_filtros.='<td>'.$data_condicion["Descripcion"].'</td>';
-                                        $html_filtros.='<td>'.$value["txt_fil"].'</td>';
-                                    $html_filtros.='</tr>';
+                                    $mostrar=1;
+                                    if(isset($value["visible"])){
+                                        if($value["visible"]==0){
+                                            $mostrar=0;
+                                        }
+                                    } 
+                                    if($mostrar==1){
+                                        $html_filtros.='<tr>';
+                                            $html_filtros.='<td><li class="far fa-times-circle text-danger" style="cursor:pointer;" onclick="delete_filter(`'.$empresa_id.'`,`'.$tab.'`,`'.$idDiv.'`,`'.$key.'`)"></li></td>';
+                                            $html_filtros.='<td>'.$nombre_campo.'</td>';
+                                            $html_filtros.='<td>'.$data_condicion["Descripcion"].'</td>';
+                                            $html_filtros.='<td>'.$value["txt_fil"].'</td>';
+                                        $html_filtros.='</tr>';
+                                        
+                                    }
+                                    
                                 }
 
                             }

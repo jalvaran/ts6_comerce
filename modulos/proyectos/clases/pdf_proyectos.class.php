@@ -37,19 +37,36 @@ class PDF_Proyectos extends Documento{
         $html=$this->get_flujo_caja($db,$datos_proyecto) ;
         $this->PDF_Write('<br><br><br>'.$html);
         
-        $html=$this->get_calendar_mes($db,$datos_proyecto) ;
-        $this->PDF_Write('<br><br><br>'.$html);
          
         $html='<p style="text-align: justify;">'.($datos_formato_calidad["NotasPiePagina"]).'</p>';
         $this->PDF_Write($html);
         
+        $this->get_cronograma($db,$datos_proyecto) ;
+        
         $this->PDF_Output("Informe_proyecto_$datos_proyecto[ID]");
     }
     
-    public function get_cronograma($db,$datos_proyecto) {
+    public function pdf_cronograma_proyecto($db,$empresa_id,$proyecto_id ) {
+        $obCon=new conexion($_SESSION["idUser"]);
+        $datos_formato_calidad=$obCon->DevuelveValores("$db.formatos_calidad", "ID", 42);
+        $datos_proyecto=$obCon->DevuelveValores("$db.vista_proyectos", "proyecto_id", $proyecto_id);
+        $this->PDF_Ini("Proyectos", 8, "",1,"../../../");
+        $this->PDF_Encabezado($datos_proyecto["created"],$empresa_id, 42, "","","","../../../");
+        $html='<BR><BR><BR><center><strong>CRONOGRAMA DEL PROYECTO: '.($datos_proyecto["nombre"]).', PARA EL CLIENTE '.$datos_proyecto["cliente_razon_social"].'</strong></center><br>';
+        $this->PDF_Write($html);
+           
+        
+        $this->get_cronograma($db,$datos_proyecto,0) ;
+        
+         
+        $this->PDF_Output("Informe_proyecto_$datos_proyecto[ID]");
+    }
+    
+    public function get_cronograma($db,$datos_proyecto,$salto_inicial=1) {
         $proyecto_id=$datos_proyecto["proyecto_id"];
         $obCon=new conexion($_SESSION["idUser"]);
-        $sql="SELECT t1.*,(SELECT t2.titulo_actividad FROM proyectos_actividades t2 WHERE t2.actividad_id=t1.actividad_id LIMIT 1) as nombre_actividad,
+        $sql="SELECT t1.*,
+                 (SELECT t2.titulo_actividad FROM $db.proyectos_actividades t2 WHERE t2.actividad_id=t1.actividad_id LIMIT 1) as nombre_actividad 
                         
                    FROM $db.proyectos_actividades_eventos t1 WHERE proyecto_id='$proyecto_id' and estado<10 ORDER BY fecha_inicial asc";
         
@@ -57,23 +74,43 @@ class PDF_Proyectos extends Documento{
         $eventos=[];
         $i=0;
         while($datos_eventos=$obCon->FetchAssoc($Consulta)){
+            
             $eventos[$i]=$datos_eventos;
+            $i++;
         }
         
-        
-        
+        $sql="SELECT SUBSTR(fecha_inicial, 1, 4) as anio, SUBSTR(fecha_inicial, 6, 2) as mes 
+                 FROM $db.proyectos_actividades_eventos WHERE proyecto_id='$proyecto_id' and estado<10 
+                 GROUP BY SUBSTR(fecha_inicial, 1, 4),SUBSTR(fecha_inicial, 6, 2) ORDER BY fecha_inicial asc
+                 ";
+        $Consulta=$obCon->Query($sql);
+        $inicio=1;
+        while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+            if($salto_inicial==1 or $inicio==0){
+                $this->PDF->AddPage();
+                $salto_inicial=0;
+                
+            }
+            $inicio=0;
+            $html=$this->get_calendar_mes($db, $datos_consulta["anio"], $datos_consulta["mes"],$eventos);
+            $this->PDF_Write($html);
+            //$this->PDF->AddPage();
+        }
+        //return($html);
     }
     
-    public function get_calendar_mes($db,$datos_proyecto) {
-        
+    public function get_calendar_mes($db,$anio,$mes,$eventos) {
+        if($mes<>10){
+            $numero_mes= str_replace("0", "", $mes);
+        }
         $dias_semana=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
         $meses=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-        $datos_dia=$this->get_datos_dia_mes(2021, 4);
+        $datos_dia=$this->get_datos_dia_mes($anio, $mes);
         
-        $html =' 
+        $html =' <br><br>
                 <table cellspacing="1" cellpadding="2" border="1">
                     <tr>
-                        <td align="center" colspan="7"  style="border-bottom: 1px solid #ddd;"><strong>CRONOGRAMA MES DE FEBRERO '.$datos_dia["ultimo_dia"].'  '.$datos_dia["primer_dia_semana"].' '.$datos_dia["ultimo_dia_semana"].' '.$datos_dia["total_semanas"].'</strong></td>
+                        <td align="center" colspan="7"  style="border-bottom: 1px solid #ddd;"><strong>CRONOGRAMA MES DE '.strtoupper($meses[$numero_mes]).' </strong></td>
                     </tr>  ';
         $html.='<tr>';
         foreach ($dias_semana as $key => $value) {
@@ -91,12 +128,46 @@ class PDF_Proyectos extends Documento{
                     $html.='<td height="100px;" style="text-align:center;border: 1px solid #ddd;">';
                         
                         if($flag_conteo==1 and $d<=$datos_dia["ultimo_dia"]){
+                            $fecha_compuesta=$anio."-".$mes."-".str_pad($d, 2, "0", STR_PAD_LEFT)." 00:00:00";
+                            $fecha_calendario_inicial=new DateTime($fecha_compuesta);
+                            $fecha_compuesta=$anio."-".$mes."-".str_pad($d, 2, "0", STR_PAD_LEFT)." 23:59:59";
+                            $fecha_calendario_final=new DateTime($fecha_compuesta);
                             
                             $html.='<div style="text-align:rigth">'.$d.'</div>';
+                            foreach ($eventos as $key => $array_eventos) {
+                                $fecha_inicial=new DateTime($array_eventos["fecha_inicial"]);                                
+                                $fecha_final=new DateTime($array_eventos["fecha_final"]);
+                                
+                                if($fecha_inicial>=$fecha_calendario_inicial and $fecha_final<=$fecha_calendario_final){
+                                    $hora_inicial= substr($array_eventos["fecha_inicial"], 11,5);
+                                    $hora_final= substr($array_eventos["fecha_final"], 11,5);
+                                    $html.='<div style="text-align:left">'.$hora_inicial."-$hora_final ".$array_eventos["titulo"].'</div>';
+                                }
+                            }
+                            
+                            
                             $d++;
                         }
                         if($key==$contador_dia and $flag_conteo==0){
+                            $fecha_compuesta=$anio."-".$mes."-".str_pad($d, 2, "0", STR_PAD_LEFT)." 00:00:00";
+                            $fecha_calendario_inicial=new DateTime($fecha_compuesta);
+                            $fecha_compuesta=$anio."-".$mes."-".str_pad($d, 2, "0", STR_PAD_LEFT)." 23:59:59";
+                            $fecha_calendario_final=new DateTime($fecha_compuesta);
+                            
                             $html.='<div style="text-align:rigth">'.$d.'</div>';
+                            foreach ($eventos as $key => $array_eventos) {
+                                $fecha_inicial=new DateTime($array_eventos["fecha_inicial"]);                                
+                                $fecha_final=new DateTime($array_eventos["fecha_final"]);
+                                
+                                if($fecha_inicial>=$fecha_calendario_inicial and $fecha_final<=$fecha_calendario_final){
+                                    $hora_inicial= substr($array_eventos["fecha_inicial"], 11,5);
+                                    $hora_final= substr($array_eventos["fecha_final"], 11,5);
+                                    $html.='<div style="text-align:left">'.$hora_inicial."-$hora_final ".$array_eventos["titulo"].'</div>';
+                                }
+                            }
+                            
+                            
+                            
                             $flag_conteo=1;
                             $d++;
                         }

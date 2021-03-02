@@ -37,7 +37,7 @@ $css->PageInit($myTitulo);
         
         $css->Cdiv();
         
-    $css->CModal("btnModalView", "", "", "Enviar");
+    $css->CModal("btnModalView", "onclick=SeleccioneAccionFormularios();", "button", "Enviar");
     $css->div("div_spinner", "", "", "", "", "", "");
     
     $css->Cdiv();
@@ -73,13 +73,38 @@ $css->PageInit($myTitulo);
         //$css->CrearBotonEvento("btnFacturar", "Hacer un Documento Electrónico", 1, "onclick", "formulario_facturador()", "azul");
         print('</div>');
         
+        print('<div id="div_usuarios" class="col-md-3" style="text-align:center" >');
+            
+        
+        
+        print('</div>');
+        
+        print('<div class="dropdown d-inline-block m-1 col-md-4" style="text-align:right">
+                                        <button class="btn btn-primary dropdown-toggle " data-toggle="dropdown" aria-expanded="false"><i class="fa fa-cogs"></i> Catalogos </button>
+                                        <ul class="dropdown-menu" x-placement="bottom-start" style="position: absolute; transform: translate3d(0px, 44px, 0px); top: 0px; left: 0px; will-change: transform;">
+                                            <li><a onclick=dibuja_tabla(`get`,`procesos_juridicos_temas`,`1`,`DivListados`)>Temas</a></li>
+                                            <li class="dropdown-divider"></li>
+                                            <li><a onclick=dibuja_tabla(`get`,`procesos_juridicos_sub_temas`,`1`,`DivListados`)>Subtemas</a></li>
+                                            <li class="dropdown-divider"></li>
+                                            <li><a onclick=dibuja_tabla(`get`,`procesos_juridicos_tipo`,`1`,`DivListados`)>Tipos de Procesos</a></li>
+                                            <li class="dropdown-divider"></li>
+                                            <li><a onclick=dibuja_tabla(`get`,`terceros`,`1`,`DivListados`)>Terceros</a></li>
+                                            <li class="dropdown-divider"></li>
+                                            <li><a onclick=dibuja_tabla(`get`,`procesos_juridicos_actos_tipo`,`1`,`DivListados`)>Tipos de Actos</a></li>
+                                        </ul>
+                                    </div>');
+        
+        
+        /*
         $html=$css->getHtmlPanelInfo("Temas", 0, "sp_temas", 2, "far fa-object-group", "onclick=dibuja_tabla(`get`,`procesos_juridicos_temas`,`1`,`DivListados`)", "style=cursor:pointer", "primary", 1, "p_temas");
         $html.=$css->getHtmlPanelInfo("SubTemas", 0, "sp_sub_temas", 2, "far fa-object-ungroup", "onclick=dibuja_tabla(`get`,`procesos_juridicos_sub_temas`,`1`,`DivListados`)", "style=cursor:pointer", "warning", 1, "p_sub_temas");
         $html.=$css->getHtmlPanelInfo("Tipos", 0, "sp_tipo_procesos", 2, "far fa-clone", "onclick=dibuja_tabla(`get`,`procesos_juridicos_tipo`,`1`,`DivListados`)", "style=cursor:pointer", "success", 1, "p_tipo_procesos");
         $html.=$css->getHtmlPanelInfo("Terceros", 0, "sp_terceros", 2, "far fa-building", "onclick=dibuja_tabla(`get`,`terceros`,`1`,`DivListados`)", "style=cursor:pointer", "danger", 1, "p_terceros");
-        
-        
         print($html);
+         * 
+         */
+        
+        
         print('</div>');
         print('</div>');
         print('</div>');

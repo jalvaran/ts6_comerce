@@ -16,7 +16,7 @@ if( !empty($_REQUEST["Accion"]) ){
     
     switch ($_REQUEST["Accion"]) {
         
-        case 1:// dibujo el formulario para registrar o editar un repositorio
+        case 1:// dibujo el formulario para registrar o editar un proceso administrativo
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
             $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
             $db=$datos_empresa["db"];
@@ -134,6 +134,13 @@ if( !empty($_REQUEST["Accion"]) ){
                                                                 print("Tercero");
                                                             $css->Coption();
                                                             
+                                                            if($datos_repositorio["tercero_id"]>0){
+                                                                $datos_tercero=$obCon->DevuelveValores("$db.terceros", "ID", $datos_repositorio["tercero_id"]);
+                                                                $css->option("", "", "",$datos_tercero["ID"], "", "",1);
+                                                                    print($datos_tercero["razon_social"]." ".$datos_tercero["identificacion"]);
+                                                                $css->Coption();
+                                                            }
+                                                            
                                                         $css->Cselect();
                                                         
                                                         
@@ -150,6 +157,13 @@ if( !empty($_REQUEST["Accion"]) ){
                                                                 print("Asignar a...");
                                                             $css->Coption();
                                                             
+                                                            if($datos_repositorio["usuario_asignado_id"]>0){
+                                                                $datos_usuario=$obCon->DevuelveValores("usuarios", "ID", $datos_repositorio["usuario_asignado_id"]);
+                                                                $css->option("", "", "",$datos_usuario["ID"], "", "",1);
+                                                                    print($datos_usuario["nombre_completo"]." ".$datos_usuario["Identificacion"]);
+                                                                $css->Coption();
+                                                            }
+                                                            
                                                         $css->Cselect();
                                                         
                                                         
@@ -164,9 +178,31 @@ if( !empty($_REQUEST["Accion"]) ){
                                                 <textarea id="descripcion" name="descripcion" class="form-control" style="height:200px;">'.$datos_repositorio["descripcion"].'</textarea>
                                             </div>
                                         </div>
-                                        <div class="row">
+                                        <div class="row">');
+                                        
+                                        print( '
+
+                                            <div class="col-lg-3">
+                                                <div class="form-group">
+                                                    
+                                                        <label class="col-form-label">Municipio <i class="far fa-image text-flickr" ></i></label>
+                                                        ');
+                                                        $disabled="";
+                                                        
+                                                        $css->select("codigo_dane_municipio", "form-control", "codigo_dane_municipio", "", "", "", $disabled);
+                                                            
+                                                            $css->option("", "", "", "", "", "");
+                                                                print("Seleccione un municipio");
+                                                            $css->Coption();
+                                                            
+                                                            
+                                                        $css->Cselect();
                                             
-                                            <div class="col-lg-4">
+                                            print('</div></div>');     
+                                            
+                                        print( '
+
+                                            <div class="col-lg-3">
                                                 <div class="form-group">
                                                     
                                                         <label class="col-form-label">Año Gravable <i class="far fa-calendar-times text-flickr" ></i></label>
@@ -197,7 +233,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                             
                                             print('</div></div>');            
                                             
-                                            print(' <div class="col-lg-4">
+                                            print(' <div class="col-lg-3">
                                                 <div class="form-group">
                                                     
                                                         <label class="col-form-label">Periodo <i class="far fa-calendar-times text-flickr" ></i></label>
@@ -230,7 +266,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                                     
                                                 
                                             
-                                            <div class="col-lg-4">
+                                            <div class="col-lg-3">
                                                 <div class="form-group">
                                                     
                                                         <label class="col-form-label">Estado <i class="fa fa-tag text-flickr" ></i></label>
@@ -275,9 +311,9 @@ if( !empty($_REQUEST["Accion"]) ){
                 
         break; //Fin caso 1
         
-        case 2: //Dibuja los adjuntos de un repositorio
+        case 2: //Dibuja los adjuntos de un acto administrativo
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
-            $proceso_id=$obCon->normalizar($_REQUEST["proceso_id"]);
+            $acto_id=$obCon->normalizar($_REQUEST["acto_id"]);
             
             $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
             $db=$DatosEmpresa["db"];
@@ -295,8 +331,8 @@ if( !empty($_REQUEST["Accion"]) ){
                 $css->CierraFilaTabla();
                 
                 $sql="SELECT t1.*
-                        FROM $db.procesos_juridicos_adjuntos t1 
-                        WHERE t1.proceso_id='$proceso_id' 
+                        FROM $db.procesos_juridicos_acto_admin_adjuntos t1 
+                        WHERE t1.acto_id='$acto_id' 
                             ";
                 $Consulta=$obCon->Query($sql);
                 while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
@@ -313,7 +349,7 @@ if( !empty($_REQUEST["Accion"]) ){
                         
                         print("<td style='font-size:16px;text-align:center;color:red' title='Borrar'>");   
                             
-                            $css->li("", "far fa-trash-alt", "", "onclick=EliminarItem(`1`,`$idItem`,`$repositorio_id`) style=font-size:16px;cursor:pointer;text-align:center;color:red");
+                            $css->li("", "far fa-trash-alt", "", "onclick=EliminarItem(`1`,`$idItem`,`$acto_id`) style=font-size:16px;cursor:pointer;text-align:center;color:red");
                             $css->Cli();
                         print("</td>");
                           
@@ -324,7 +360,335 @@ if( !empty($_REQUEST["Accion"]) ){
             
         break; //Fin caso 2
         
+        case 3://lista los actos administrativos de un proceso
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $proceso_id=$obCon->normalizar($_REQUEST["proceso_id"]);
+            
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            
+            $html='<div class="row">
+                        <div class="col-lg-5">
+                            <div class="panel panel-default">
+                                <div class="panel-head">
+                                    
+                                    <div class="panel-title">
+                                        
+                                        <i class="icon-docs panel-head-icon font-24"></i>
+                                        <div class="panel-title-text">Actos Administrativos</div>
+                                        
+                                    </div>
+                                    <div class="panel-action">
+                                        <button onclick="frm_agregar_editar_acto_proceso(`'.$proceso_id.'`)" class="btn btn-primary btn-shadow btn-gradient btn-sm btn-pill">Agregar <i class="fa fa-plus-circle"></i></button>
+                                    </div>
+                                </div>
+                                <div id="div_actos_administrativos" class="panel-body"> 
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="panel panel-default">
+                                <div class="panel-head">
+                                    <div class="panel-title">
+                                        <div class="panel-title-text">New messages</div>
+                                    </div>
+                                </div>
+                                <div class="panel-body"> 
+                                    <div class="ticket-list">
+                                        <div class="list">
+                                            <div class="tbl-cell icon"><img src="uploads/team-5.jpg" alt=""></div>
+                                            <div class="tbl-cell content">
+                                                <h4>North Wall</h4>
+                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+                                                <div class="date text-left text-primary">Just Now</div>
+                                            </div>
+                                        </div>
+                                        <div class="list">
+                                            <div class="tbl-cell icon"><img src="uploads/team-1.jpg" alt=""></div>
+                                            <div class="tbl-cell content">
+                                                <h4>House of Stark</h4>
+                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+                                                <div class="date text-left text-primary">11 min ago</div>
+                                            </div>
+                                        </div>
+                                        <div class="list">
+                                            <div class="tbl-cell icon "><i class="bg-dark">R</i></div>
+                                            <div class="tbl-cell content">
+                                                <h4>Lannister</h4>
+                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+                                                <div class="date text-left text-primary">15 Min ago</div>
+                                            </div>
+                                        </div>
+                                        <div class="list">
+                                            <div class="tbl-cell icon "><img src="uploads/team-2.jpg" alt=""></div>
+                                            <div class="tbl-cell content">
+                                                <h4>House Tally</h4>
+                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+                                                <div class="date text-left text-primary">18 Min ago</div>
+                                            </div>
+                                        </div>
+                                        <div class="list">
+                                            <div class="tbl-cell icon "><img src="uploads/team-6.jpg" alt=""></div>
+                                            <div class="tbl-cell content">
+                                                <h4>Khal Drogo</h4>
+                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+                                                <div class="date text-left text-primary">1 Hour ago</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>';
+            
+            
+            print($html);
+        break; //Fin caso 3
+    
+        case 4://dibuja los usuarios de una empresa
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $sql="SELECT TipoUser,Role FROM usuarios WHERE ID='$idUser'";
+            $DatosUsuario=$obCon->Query($sql);
+            $DatosUsuario=$obCon->FetchAssoc($DatosUsuario);
+            $TipoUser=$DatosUsuario["TipoUser"];
+            $Role=$DatosUsuario["Role"];            
+                       
+            $css->select("usuario_proceso", "form-control btn-pill", "usuario_proceso", "", "", "onchange=dibujeListadoSegunID();", "title='Usuario que tiene asignado el proceso'");
+                $mostar_todos=0;
+                if($Role=="SUPERVISOR" or $Role=="ADMINISTRADOR"){
+                    $mostar_todos=1;
+                    $sql="SELECT t1.ID,t1.nombre_completo,t1.Identificacion FROM usuarios t1 
+                            INNER JOIN usuarios_rel_empresas t2 ON t2.usuario_id_relacion=t1.ID 
+                            WHERE t1.Habilitado='SI' and t2.empresa_id='$empresa_id'";
+                }else{
+                    $sql="SELECT ID,nombre_completo,identificacion FROM usuarios WHERE ID='$idUser'";
+                }
+
+                $Consulta=$obCon->Query($sql);
+                if($mostar_todos==1){
+                    $css->option("", "", "", '', "", "");
+                        print("Todos los usuarios");
+                    $css->Coption();
+                }
+                while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                    $css->option("", "", "", $DatosConsulta["ID"], "", "");
+                        print($DatosConsulta["nombre_completo"]." ".$DatosConsulta["Identificacion"]);
+                    $css->Coption();
+                }
+            $css->Cselect();
+            
+        break; //Fin caso 4
+        
+        case 5://dibuja los actos administrativos de un proceso
+        
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $proceso_id=$obCon->normalizar($_REQUEST["proceso_id"]);
+            
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
              
+            print('<div class="ticket-list">');
+                $sql="SELECT * FROM $db.vista_actos_administrativos_procesos WHERE proceso_id='$proceso_id' ORDER BY dias_plazo DESC";
+            
+                $Consulta=$obCon->Query($sql);
+                while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                    $color_circulo="primary";
+                    if($datos_consulta["dias_plazo"]==''){
+                        $color_circulo="primary";
+                    }
+                    if($datos_consulta["dias_plazo"]<='7' and $datos_consulta["dias_plazo"]<>''){
+                        $color_circulo="danger";
+                    }
+                    if($datos_consulta["dias_plazo"]>='8' and $datos_consulta["dias_plazo"]<='15'){
+                        $color_circulo="warning";
+                    }
+                    if($datos_consulta["estado"]==2){
+                        $color_circulo="success";
+                    }
+                    if($datos_consulta["estado"]==3){
+                        $color_circulo="dark";
+                    }
+                    if(strlen($datos_consulta["observaciones"])>200){
+                        $observaciones=substr($datos_consulta["observaciones"],0,200)."...";
+                    }else{
+                        $observaciones=$datos_consulta["observaciones"];
+                    }
+                    print('<div class="list">
+                                <div class="tbl-cell icon"><i class="bg-'.$color_circulo.'"></i></div>
+                                <div class="tbl-cell content">
+                                    <h4>'.$datos_consulta["nombre_acto_administrativo"].' <span class="status text-'.$datos_consulta["color_estado"].'">'.$datos_consulta["nombre_estado"].'</span></h4>
+                                    <p title="'.$datos_consulta["observaciones"].'">'.$observaciones.'</p>
+                                </div>');
+                    
+                                if($datos_consulta["dias_plazo"]<>''){
+                                    print(' <div class="tbl-cell date">'.$datos_consulta["dias_plazo"].' Días para Responder</div>');
+                                }
+                                
+                                        
+                           print('            
+                            </div> <div class="list"> <ul class="comment-action">
+                                                            <li><a onclick="frm_agregar_editar_acto_proceso(`'.$datos_consulta["proceso_id"].'`,`'.$datos_consulta["acto_id"].'`)"><i class="fa fa-eye text-success"></i>Ver</a></li>
+                                                           
+                                                            <li><a><i class="fa fa-reply text-primary"></i>Responder</a></li>
+                                                        </ul> </div> ');
+                }
+                
+            print('</div>');
+            
+        break;//Fin caso 5  
+    
+    
+        case 6://Agregar o editar un acto administrativo de un proceso
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            
+            $proceso_id=$obCon->normalizar($_REQUEST["proceso_id"]);
+            $acto_id=$obCon->normalizar($_REQUEST["acto_id"]);
+            $datos_acto=$obCon->DevuelveValores("$db.procesos_juridicos_actos_administrativos", "acto_id", $acto_id);
+            $datos_proceso=$obCon->DevuelveValores("$db.procesos_juridicos", "proceso_id", $proceso_id);
+            
+            if($acto_id==''){
+                $acto_id=$obCon->getUniqId("paa_");
+            }
+            $titulo="Crear un Acto Administrativo para este proceso";
+            if($datos_acto["ID"]<>''){
+                $titulo="Editar Acto Administrativo: ".$datos_acto["ID"];
+            }
+            
+            $css->input("hidden", "formulario_id", "", "formulario_id", "", 1, "", "", "", "");
+            $css->input("hidden", "acto_id", "", "acto_id", "", $acto_id, "", "", "", "");
+            $css->input("hidden", "proceso_id", "", "proceso_id", "", $proceso_id, "", "", "", "");
+            
+            print('<div class="col-12">
+                            <div class="panel">
+                                <div class="panel-head">
+                                    <h5 class="panel-title">'.$titulo.'</h5>
+                                </div>
+                                <div class="panel-body">');
+                                        
+            print('<div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="form-group row">
+                                                    <label class="col-12 col-form-label">Entidad: <i class="fa fa-industry text-flickr"></i></label>
+                                                    <div class="col-12">');
+                                                        
+                                                $css->select("entidad_id", "form-control", "entidad_id", "", "", "", "");
+                                                    $css->option("", "", "", "", "", "");
+                                                        print("Seleccione una entidad");
+                                                    $css->Coption();
+                                                    if($datos_acto["entidad_id"]>0){
+                                                        $datos_entidad=$obCon->DevuelveValores("$db.repositorio_juridico_entidades", "ID", $datos_acto["entidad_id"]);
+                                                        $css->option("", "", "", $datos_entidad["ID"], "", "",1);
+                                                            print($datos_entidad["nombre_entidad"]." ".$datos_entidad["nit"]);
+                                                        $css->Coption();
+                                                    }
+                                                    
+                                                $css->Cselect();
+                                        print('</div>
+                                                </div>
+                                            </div>
+                                            
+                                        </div>'); 
+            
+            print( '                   <div class="row">
+                                            <div class="col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-12 col-form-label">Fecha del Acto <i class="far fa-calendar-alt text-flickr"></i></label>
+                                                    <div class="col-12">
+                                                        <input id="fecha_acto" name="fecha_acto" class="form-control" type="date" value="'.$datos_acto["fecha_acto"].'">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-12 col-form-label">Fecha de Notificación <i class="far fa-calendar-alt text-flickr"></i></label>
+                                                    <div class="col-12">
+                                                        <input id="fecha_notificacion" name="fecha_notificacion" class="form-control" type="date" value="'.$datos_acto["fecha_notificacion"].'">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-12 col-form-label">Tipo del Acto <i class="far fa-clipboard text-flickr"></i></label>
+                                                    <div class="col-12">');
+            
+                                                $css->select("acto_tipo_id", "form-control", "acto_tipo_id", "", "", "", "");
+                                                    $css->option("", "", "", "", "", "");
+                                                        print("Seleccione un tipo de Acto");
+                                                    $css->Coption();
+                                                    $tipo_proceso=$datos_proceso["tipo_proceso_id"];
+                                                    $sql="SELECT * FROM $db.procesos_juridicos_actos_tipo WHERE proceso_tipo_id='$tipo_proceso' AND oficio_respuesta=1";
+                                                    $Consulta=$obCon->Query($sql);
+                                                    while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                                                        $sel=0;
+                                                        if($datos_consulta["ID"]==$datos_acto["acto_tipo_id"]){
+                                                            $sel=1;
+                                                        }
+                                                        $css->option("", "", "", $datos_consulta["ID"], "", "",$sel);
+                                                            print($datos_consulta["acto_administrativo"]);
+                                                        $css->Coption();
+                                                    }
+                                                $css->Cselect();
+                                                        
+                                        print('    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-12 col-form-label">Número Acto <i class="fa fa-bookmark text-flickr"></i></label>
+                                                    <div class="col-12">
+                                                        <input id="numero_acto" name="numero_acto" class="form-control" type="text" value="'.$datos_acto["numero_acto"].'" placeholder="Número de Acto">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-12 col-form-label">Observaciones <i class="far fa-comment-alt text-success"></i></label>
+                                            <div class="col-12">
+                                                <textarea id="observaciones" name="observaciones" class="form-control" rows="5">'.$datos_acto["observaciones"].'</textarea>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                                <div class="col-lg-6">
+                                                    <div class="form-group">
+                                                        <label class="col-form-label">Adjuntar <i class="fa fa-paperclip text-primary" ></i></label>
+                                                        <div class="panel">                            
+                                                            <div class="panel-body">
+                                                                <form data-acto_id="'.$acto_id.'" action="/" class="dropzone dz-clickable" id="acto_adjuntos"><div class="dz-default dz-message"><span><i class="icon-plus"></i>Arrastre archivos aquí o de click para subir.<br> Suba cualquier tipo de archivos.</span></div></form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-6">
+                                                    <div class="form-group">
+                                                        <label class="col-form-label">Archivos Adjuntados <i class="fa fa-paperclip text-success" ></i></label>
+                                                        <div id="div_adjuntos_actos">                            
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ');
+                                        
+                                        print('
+                                   
+                                </div>
+                                
+                            </div>
+                        </div>');
+            
+        break;// fin caso 6   
     }
     
     

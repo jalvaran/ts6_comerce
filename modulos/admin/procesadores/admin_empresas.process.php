@@ -342,6 +342,45 @@ if( !empty($_REQUEST["Accion"]) ){
                 $parametros=$obCon->DevuelveValores("servidores", "ID", 107); //Ruta para crear una resolucion multiple
                 $url=$parametros["IP"];                
                 $metodo_envio="POST";
+                
+                if($cmb_tipo_documento==1){
+                    $data=$obFe->JSONCrearResolucionFacturacion($cmb_tipo_documento, $resolucion_prefijo, $resolucion_rango_desde, $resolucion_rango_hasta, $resolucion_numero, $resolucion_fecha, $resolucion_llave, $resolucion_fecha_desde, $resolucion_fecha_hasta);
+                }    
+                if($cmb_tipo_documento==5 or $cmb_tipo_documento==6){
+                    $data=$obFe->JSONCrearResolucionNotas($cmb_tipo_documento, $resolucion_prefijo, $resolucion_rango_desde, $resolucion_rango_hasta);
+                }
+                //print($data);
+                $respuesta=$obFe->callAPI($metodo_envio, $url, $TokenTS5, $data);                
+                $arrayRespuesta = json_decode($respuesta,true);
+                if(isset($arrayRespuesta["errors"])){
+                    foreach ($arrayRespuesta["errors"] as $key => $value) {
+                        print("<br><strong>".$value[0]."</strong>");                    
+                    }
+                }else{
+                    
+                    $sql="UPDATE api_factura_electronica_respuestas_procesos SET jsonLastResolution='$respuesta' WHERE empresa_id='$empresa_id'";
+                    $obCon->Query($sql);
+
+                    if(isset($arrayRespuesta["resolution"])){
+                        $resolucion_id_api=$arrayRespuesta["resolution"]["id"];
+                        $datos_resolucion=$obCon->DevuelveValores("empresa_resoluciones", "resolucion_id_api", $resolucion_id_api);
+                        $condition="";
+                        if($datos_resolucion["ID"]<>''){
+                            $condition=" WHERE resolucion_id_api='$resolucion_id_api'";
+                        }
+                        if($cmb_tipo_documento==1){
+                            $obFe->crear_actualizar_resolucion_db($empresa_id, $cmb_tipo_documento, $resolucion_prefijo, $resolucion_rango_desde, $resolucion_rango_hasta, $resolucion_numero, $resolucion_fecha, $resolucion_llave, $resolucion_fecha_desde, $resolucion_fecha_hasta, $resolucion_id_api, $condition);
+                        }
+                        if($cmb_tipo_documento==5 or $cmb_tipo_documento==6){
+                            $obFe->crear_actualizar_resolucion_db($empresa_id, $cmb_tipo_documento, $resolucion_prefijo, $resolucion_rango_desde, $resolucion_rango_hasta, "", "", "", "", "", $resolucion_id_api, $condition);
+                        }
+                        exit("OK;Resolución creada satisfactoriamente");
+                    }else{
+                        exit("E1;Ocurrió algún error en la creacion de la resolución");
+                    }
+
+                }
+                
             }
             if($cmb_tipo_accion==3){
                 $parametros=$obCon->DevuelveValores("servidores", "ID", 107); //Ruta para crear una resolucion multiple

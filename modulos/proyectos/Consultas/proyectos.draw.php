@@ -171,7 +171,8 @@ if( !empty($_REQUEST["Accion"]) ){
                                     print("<td>");
                                         print('<i class="far fa-edit text-warning  " style="font-size:20px;cursor:pointer;" onclick=frm_crear_editar_proyecto(`'.$idItem.'`,`'.$Page.'`)></i> ');
                                         print('<i class="far fa-calendar text-primary " style="font-size:20px;cursor:pointer;" onclick=mostrar_calendario_proyecto(`'.$idItem.'`)></i> ');
-                                        
+                                        $link="procesadores/proyectos.process.php?Accion=15&empresa_id=$empresa_id&proyecto_id=$idItem";
+                                        print('<a href="'.$link.'" title="Cronograma" target="_blank"><i class="far fa-calendar-check text-success " style="font-size:20px;cursor:pointer;"></i></a> ');
                                         $link="procesadores/proyectos.process.php?Accion=14&empresa_id=$empresa_id&proyecto_id=$idItem";
                                         print('<a href="'.$link.'" title="Informe" target="_blank"><i class="far fa-file-pdf text-danger " style="font-size:20px;cursor:pointer;"></i></a>');
                                     print("</td>");

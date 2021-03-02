@@ -2434,7 +2434,7 @@ class PageConstruct extends html_estruct_class{
                                         $dbAsociada=DB;
                                     }
                                     if($CamposAsociados["dbCampoAsociado"]<>''){
-                                        $dbAsociada=$CamposAsociados["dbCampoAsociado"];
+                                        $dbAsociada=$db;
                                     }
                                     $TablaConsulta=$dbAsociada.".".$CamposAsociados["TablaAsociada"];
                                     $CampoAsociado=$CamposAsociados["CampoAsociado"];

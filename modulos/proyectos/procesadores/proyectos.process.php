@@ -498,7 +498,18 @@ if( !empty($_REQUEST["Accion"]) ){
             $obPDF=new PDF_Proyectos($db);
             $proyecto_id=$obCon->normalizar($_REQUEST["proyecto_id"]);
             $obPDF->pdf_informe_proyecto($db, $empresa_id, $proyecto_id);
-        break;//fin caso 14    
+        break;//fin caso 14   
+    
+        case 15://genera el pdf del cronograma general del proyecto
+            include_once("../clases/pdf_proyectos.class.php");
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $obPDF=new PDF_Proyectos($db);
+            $proyecto_id=$obCon->normalizar($_REQUEST["proyecto_id"]);
+            $obPDF->pdf_cronograma_proyecto($db, $empresa_id, $proyecto_id);
+        break;//fin caso 15
     }
     
     

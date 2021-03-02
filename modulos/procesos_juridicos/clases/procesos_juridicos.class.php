@@ -26,11 +26,11 @@ class ProcesoJuridico extends conexion{
         
     }
     
-    public function RegistreAdjuntoRepositorio($db,$repositorio_id, $destino, $Tamano, $NombreArchivo, $Extension, $idUser) {
+    public function RegistreAdjuntoProcesoJuridico($db,$acto_id, $destino, $Tamano, $NombreArchivo, $Extension, $idUser) {
         
-        $tab="$db.repositorio_juridico_adjuntos";
+        $tab="$db.procesos_juridicos_acto_admin_adjuntos";
         
-        $Datos["repositorio_id"]=$repositorio_id;
+        $Datos["acto_id"]=$acto_id;
         
         $Datos["Ruta"]=$destino;    
         $Datos["NombreArchivo"]=$NombreArchivo;    
@@ -54,6 +54,26 @@ class ProcesoJuridico extends conexion{
             $sql=$this->getSQLInsert($Tabla, $datos_repositorio);
         }
         $this->Query($sql);
+    }
+    
+    public function crear_editar_acto_administrativo_proceso($db,$datos_repositorio){
+        $acto_id=$datos_repositorio["acto_id"];
+        $Tabla="$db.procesos_juridicos_actos_administrativos";
+        $sql="SELECT ID FROM $Tabla WHERE acto_id='$acto_id'";
+        $valida=$this->FetchAssoc($this->Query($sql));
+        if($valida["ID"]>0){
+            $sql=$this->getSQLUpdate($Tabla, $datos_repositorio);
+            $sql.=" WHERE acto_id='$acto_id'";
+        }else{
+            $sql=$this->getSQLInsert($Tabla, $datos_repositorio);
+        }
+        $this->Query($sql);
+    }
+    
+    function sume_dias_fecha($fecha,$dias){
+        $fecha_recibida = date($fecha);
+        //sumo 1 día
+        return(date("Y-m-d",strtotime($fecha_recibida."+ $dias days"))); 
     }
     
     
