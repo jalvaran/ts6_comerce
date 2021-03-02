@@ -265,7 +265,7 @@ function listar_adjuntos_actos_admin(acto_id=''){
       });
 }
 
-function EliminarItem(tabla_id,item_id,acto_id){    
+function EliminarItem(tabla_id,item_id,invoquer_id){    
     
     var empresa_id =document.getElementById("empresa_id").value;
          
@@ -289,7 +289,10 @@ function EliminarItem(tabla_id,item_id,acto_id){
             if(respuestas[0]=="OK"){
                 alertify.success(respuestas[1]);
                 if(tabla_id==1){
-                    listar_adjuntos_actos_admin(acto_id);
+                    listar_adjuntos_actos_admin(invoquer_id);
+                }
+                if(tabla_id==2){
+                    listar_adjuntos_actos_admin_respuestas(invoquer_id);
                 }
                                 
             }else if(respuestas[0]=="E1"){
@@ -583,6 +586,9 @@ function SeleccioneAccionFormularios(){
     if(formulario_id==1){
         crear_editar_acto_administrativo();
     }
+    if(formulario_id==2){
+        crear_editar_acto_administrativo_respuesta();
+    }
     
     
 }
@@ -654,6 +660,236 @@ function crear_editar_acto_administrativo(){
             alert(thrownError);
           }
       });
+}
+
+
+function ver_respuestas_actos_administrativos(acto_id){
+    var idDiv="div_respuestas_actos_administrativos";
+    //document.getElementById(idDiv).innerHTML='<div id="GifProcess">procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+    
+    var empresa_id =document.getElementById("empresa_id").value;
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 7);// pasamos la accion y el numero de accion para el dibujante sepa que caso tomar
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('acto_id', acto_id);
+        
+                
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: 'Consultas/procesos_juridicos.draw.php',// se indica donde llegara la informacion del objecto
+        async:false,
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        success: function(data){            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            
+            //dibuja_procesos_juridicos(page);
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function frm_agregar_editar_acto_proceso_respuesta(proceso_id='',acto_id="",respuesta_id="",){
+    var idDiv=modal_body;
+    openModal(modal_id);
+    var empresa_id =document.getElementById("empresa_id").value;
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 8);// pasamos la accion y el numero de accion para el dibujante sepa que caso tomar
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('proceso_id', proceso_id);
+        form_data.append('acto_id', acto_id);
+        form_data.append('respuesta_id', respuesta_id);
+                
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: 'Consultas/procesos_juridicos.draw.php',// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        success: function(data){            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            add_events_dropzone_actos_admin_respuestas();
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+function add_events_dropzone_actos_admin_respuestas(){
+    Dropzone.autoDiscover = false;
+           
+    urlQuery='procesadores/procesos_juridicos.process.php';
+    var respuesta_id=$("#respuesta_adjuntos").data("respuesta_id");
+    var empresa_id=document.getElementById('empresa_id').value; 
+    console.log("respuesta"+respuesta_id);
+    var myDropzone = new Dropzone("#respuesta_adjuntos", { url: urlQuery,paramName: "respuesta_adjunto"});
+        myDropzone.on("sending", function(file, xhr, formData) { 
+
+            formData.append("Accion", 6);
+            formData.append("respuesta_id", respuesta_id);
+            formData.append("empresa_id", empresa_id);
+            
+        });
+
+        myDropzone.on("addedfile", function(file) {
+            file.previewElement.addEventListener("click", function() {
+                myDropzone.removeFile(file);
+            });
+        });
+
+        myDropzone.on("success", function(file, data) {
+
+            var respuestas = data.split(';');
+            if(respuestas[0]=="OK"){
+                alertify.success(respuestas[1]);
+                listar_adjuntos_actos_admin_respuestas(respuesta_id);
+            }else if(respuestas[0]=="E1"){
+                alertify.error(respuestas[1]);
+            }else{
+                alert(data);
+            }
+
+        });
+    listar_adjuntos_actos_admin_respuestas(respuesta_id);
+}
+
+
+function listar_adjuntos_actos_admin_respuestas(respuesta_id=''){
+    var idDiv="div_adjuntos_respuestas";
+    //document.getElementById(idDiv).innerHTML='<div id="GifProcess">procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+    
+    var empresa_id =document.getElementById("empresa_id").value;
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 9);// pasamos la accion y el numero de accion para el dibujante sepa que caso tomar
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('respuesta_id', respuesta_id);
+                
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: 'Consultas/procesos_juridicos.draw.php',// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        success: function(data){            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function crear_editar_acto_administrativo_respuesta(){
+    
+    var btnEnviar = modal_btn;
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Guardando...";
+    
+    var empresa_id = document.getElementById('empresa_id').value;  
+    var acto_id = document.getElementById('acto_id').value;  
+    var proceso_id = document.getElementById('proceso_id').value;  
+    var respuesta_id = document.getElementById('respuesta_id').value;  
+     
+    var fecha_radicado = document.getElementById('fecha_radicado').value; 
+     
+    var acto_tipo_id = document.getElementById('acto_tipo_id').value; 
+    var numero_acto = document.getElementById('numero_acto').value; 
+    var observaciones = document.getElementById('observaciones').value; 
+                
+    var form_data = new FormData();
+        form_data.append('Accion', 7);        
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('proceso_id', proceso_id);        
+        form_data.append('acto_id', acto_id);
+        form_data.append('respuesta_id', respuesta_id);
+        form_data.append('fecha_radicado', fecha_radicado);
+                
+        form_data.append('acto_tipo_id', acto_tipo_id);
+        form_data.append('numero_acto', numero_acto);
+        form_data.append('observaciones', observaciones);
+            
+        
+        $.ajax({
+        url: './procesadores/procesos_juridicos.process.php',
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+           mostrar_spinner("Creando proceso..");
+        },
+        complete: function(){
+           ocultar_spinner();
+        },
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Guardar";
+            var respuestas = data.split(';'); 
+            if(respuestas[0]=="OK"){
+                closeModal(modal_id);
+                toastr.success(respuestas[1]);
+                ver_respuestas_actos_administrativos(acto_id);
+                actualizar_estado_acto_administrativo(acto_id);
+            }else if(respuestas[0]=="E1"){                
+                toastr.error(respuestas[1]);
+            }else{
+                alert(data);
+            }
+                       
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            ocultar_spinner();
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Guardar";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+function actualizar_estado_acto_administrativo(acto_id){
+    console.log("Entra");
+    var estado_id="sp_estado_acto_"+acto_id;
+    var dias_id="div_dias_plazo_acto_"+acto_id;
+    var circulo_id="div_circulo_acto_"+acto_id;
+    document.getElementById(estado_id).innerHTML='RESPONDIDO';
+    $("#"+estado_id).removeClass("text-warning");
+    $("#"+estado_id).addClass("text-success");
+    $("#"+dias_id).hide(5000);
+    $("#"+circulo_id).removeClass("bg-warning");
+    $("#"+circulo_id).addClass("bg-success");
+}
+
+function ver_texto_en_modal(texto){
+    var idDiv=modal_body;
+    openModal(modal_id);
+    
+    document.getElementById(idDiv).innerHTML=texto;
 }
 
 dibujeListadoSegunID();

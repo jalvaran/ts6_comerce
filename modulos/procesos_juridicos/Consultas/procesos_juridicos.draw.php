@@ -388,58 +388,8 @@ if( !empty($_REQUEST["Accion"]) ){
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-7">
-                            <div class="panel panel-default">
-                                <div class="panel-head">
-                                    <div class="panel-title">
-                                        <div class="panel-title-text">New messages</div>
-                                    </div>
-                                </div>
-                                <div class="panel-body"> 
-                                    <div class="ticket-list">
-                                        <div class="list">
-                                            <div class="tbl-cell icon"><img src="uploads/team-5.jpg" alt=""></div>
-                                            <div class="tbl-cell content">
-                                                <h4>North Wall</h4>
-                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-                                                <div class="date text-left text-primary">Just Now</div>
-                                            </div>
-                                        </div>
-                                        <div class="list">
-                                            <div class="tbl-cell icon"><img src="uploads/team-1.jpg" alt=""></div>
-                                            <div class="tbl-cell content">
-                                                <h4>House of Stark</h4>
-                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-                                                <div class="date text-left text-primary">11 min ago</div>
-                                            </div>
-                                        </div>
-                                        <div class="list">
-                                            <div class="tbl-cell icon "><i class="bg-dark">R</i></div>
-                                            <div class="tbl-cell content">
-                                                <h4>Lannister</h4>
-                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-                                                <div class="date text-left text-primary">15 Min ago</div>
-                                            </div>
-                                        </div>
-                                        <div class="list">
-                                            <div class="tbl-cell icon "><img src="uploads/team-2.jpg" alt=""></div>
-                                            <div class="tbl-cell content">
-                                                <h4>House Tally</h4>
-                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-                                                <div class="date text-left text-primary">18 Min ago</div>
-                                            </div>
-                                        </div>
-                                        <div class="list">
-                                            <div class="tbl-cell icon "><img src="uploads/team-6.jpg" alt=""></div>
-                                            <div class="tbl-cell content">
-                                                <h4>Khal Drogo</h4>
-                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-                                                <div class="date text-left text-primary">1 Hour ago</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div id="div_respuestas_actos_administrativos" class="col-lg-7">
+                            
                         </div>
                     </div>';
             
@@ -491,7 +441,7 @@ if( !empty($_REQUEST["Accion"]) ){
             $db=$DatosEmpresa["db"];
              
             print('<div class="ticket-list">');
-                $sql="SELECT * FROM $db.vista_actos_administrativos_procesos WHERE proceso_id='$proceso_id' ORDER BY dias_plazo DESC";
+                $sql="SELECT * FROM $db.vista_actos_administrativos_procesos WHERE proceso_id='$proceso_id' ORDER BY dias_plazo DESC,estado ASC,fecha_notificacion ASC";
             
                 $Consulta=$obCon->Query($sql);
                 while($datos_consulta=$obCon->FetchAssoc($Consulta)){
@@ -516,15 +466,15 @@ if( !empty($_REQUEST["Accion"]) ){
                     }else{
                         $observaciones=$datos_consulta["observaciones"];
                     }
-                    print('<div class="list">
-                                <div class="tbl-cell icon"><i class="bg-'.$color_circulo.'"></i></div>
+                    print('<div onclick="ver_respuestas_actos_administrativos(`'.$datos_consulta["acto_id"].'`)" class="list">
+                                <div class="tbl-cell icon"><i id="div_circulo_acto_'.$datos_consulta["acto_id"].'" class="bg-'.$color_circulo.'"></i></div>
                                 <div class="tbl-cell content">
-                                    <h4>'.$datos_consulta["nombre_acto_administrativo"].' <span class="status text-'.$datos_consulta["color_estado"].'">'.$datos_consulta["nombre_estado"].'</span></h4>
+                                    <h4>'.$datos_consulta["ID"].'. '.$datos_consulta["nombre_acto_administrativo"].' <span id="sp_estado_acto_'.$datos_consulta["acto_id"].'" class="status text-'.$datos_consulta["color_estado"].'">'.$datos_consulta["nombre_estado"].'</span></h4>
                                     <p title="'.$datos_consulta["observaciones"].'">'.$observaciones.'</p>
                                 </div>');
                     
                                 if($datos_consulta["dias_plazo"]<>''){
-                                    print(' <div class="tbl-cell date">'.$datos_consulta["dias_plazo"].' Días para Responder</div>');
+                                    print(' <div id="div_dias_plazo_acto_'.$datos_consulta["acto_id"].'" class="tbl-cell date" style="color:red"><strong>'.$datos_consulta["dias_plazo"].' Días para Responder</strong></div>');
                                 }
                                 
                                         
@@ -532,7 +482,8 @@ if( !empty($_REQUEST["Accion"]) ){
                             </div> <div class="list"> <ul class="comment-action">
                                                             <li><a onclick="frm_agregar_editar_acto_proceso(`'.$datos_consulta["proceso_id"].'`,`'.$datos_consulta["acto_id"].'`)"><i class="fa fa-eye text-success"></i>Ver</a></li>
                                                            
-                                                            <li><a><i class="fa fa-reply text-primary"></i>Responder</a></li>
+                                                            <li><a onclick="frm_agregar_editar_acto_proceso_respuesta(`'.$datos_consulta["proceso_id"].'`,`'.$datos_consulta["acto_id"].'`)"><i class="fa fa-reply text-primary"></i>Responder</a></li>
+                                                            <li><a onclick="ver_respuestas_actos_administrativos(`'.$datos_consulta["acto_id"].'`)"><i class="far fa-comments text-flickr"></i> Respuestas</a></li>
                                                         </ul> </div> ');
                 }
                 
@@ -689,6 +640,253 @@ if( !empty($_REQUEST["Accion"]) ){
                         </div>');
             
         break;// fin caso 6   
+        
+        case 7:// dibuje las respuestas de los actos administrativos
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            
+            
+            $acto_id=$obCon->normalizar($_REQUEST["acto_id"]);
+            $datos_acto=$obCon->DevuelveValores("$db.vista_actos_administrativos_procesos", "acto_id", $acto_id);
+            $proceso_id=$datos_acto["proceso_id"];
+            $datos_proceso=$obCon->DevuelveValores("$db.procesos_juridicos", "proceso_id", $proceso_id);
+            
+            
+            
+            print('<div class="panel panel-default">
+                                <div class="panel-head">
+                                    <div class="panel-title">
+                                        <div class="panel-title-text">Respuestas al Acto '.$datos_acto["nombre_acto_administrativo"].' No. '.$datos_acto["ID"].'</div>
+                                    </div>
+                                </div>
+                                <div class="panel-body"> 
+                                    <div class="ticket-list">');
+            
+                            $sql="SELECT t1.*,
+                                    
+                                    (SELECT t2.acto_administrativo FROM $db.procesos_juridicos_actos_tipo t2 WHERE t2.ID=t1.acto_tipo_id LIMIT 1) AS nombre_acto_administrativo 
+                                    FROM $db.procesos_juridicos_actos_administrativos_respuestas t1 WHERE acto_id='$acto_id' ORDER BY fecha_radicado ASC";
+                            
+                            $Consulta1=$obCon->Query($sql);
+                            while($datos_consulta_respuestas=$obCon->FetchAssoc($Consulta1)){
+                                if(strlen($datos_consulta_respuestas["observaciones"])>200){
+                                    $observaciones=substr($datos_consulta_respuestas["observaciones"],0,200)."...";
+                                }else{
+                                    $observaciones=$datos_consulta_respuestas["observaciones"];
+                                }
+                                $text_to_modal="<textarea style='width:100%;height:400px;'>".$datos_consulta_respuestas["observaciones"].'</textarea>';
+                                $respuesta_id=$datos_consulta_respuestas["respuesta_id"];
+                                print('<div class="list">
+                                            <div class="tbl-cell icon"><i class="icon-star"></i></div>
+                                            <div class="tbl-cell content">
+                                                <h4>'.$datos_consulta_respuestas["nombre_acto_administrativo"].'</h4>
+                                                <p title="'.$datos_consulta_respuestas["observaciones"].'" onclick="ver_texto_en_modal(`'.$text_to_modal.'`)">'.$observaciones.'</p>
+                                                <div class="date text-left text-primary">'.$datos_consulta_respuestas["fecha_radicado"].'</div>
+                                                <div class="date text-left text-success">Adjuntos:</div>');
+                                
+
+                                    $sql="SELECT t1.*
+                                            FROM $db.procesos_juridicos_acto_admin_respuestas_adjuntos t1 
+                                            WHERE t1.respuesta_id='$respuesta_id' 
+                                                ";
+                                    $Consulta=$obCon->Query($sql);
+                                    $css->CrearTabla();
+                                    while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                                        $idItem=$DatosConsulta["ID"];
+                                        $Nombre=$DatosConsulta["NombreArchivo"];
+                                        $Ruta= "../../".str_replace("../", "", $DatosConsulta["Ruta"]);
+                                        $css->FilaTabla(12);
+                                            print("<td>");
+                                                print('<div class="text-left text-primary">* <a href="'.$Ruta.'" target="blank">'.$Nombre.' <li class="fa fa-paperclip"></li></a></div>');
+                                            print("</td>");
+                                        $css->CierraFilaTabla();
+                                    }
+                                    $css->CerrarTabla();
+                                
+                                print('
+                                            </div>
+                                        </div>');
+                            }                     
+                                         
+                        print('</div>
+                                </div>
+                            </div>');
+            
+        break;//Fin caso 7    
+        
+        case 8://Agregar o editar una respuesta a un acto administrativo de un proceso
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            
+            $respuesta_id=$obCon->normalizar($_REQUEST["respuesta_id"]);
+            $datos_respuesta=$obCon->DevuelveValores("$db.procesos_juridicos_actos_administrativos_respuestas", "respuesta_id", $respuesta_id);
+            $acto_id=$obCon->normalizar($_REQUEST["acto_id"]);
+            $datos_acto=$obCon->DevuelveValores("$db.vista_actos_administrativos_procesos", "acto_id", $acto_id);
+            $proceso_id=$datos_acto["proceso_id"];
+            $datos_proceso=$obCon->DevuelveValores("$db.procesos_juridicos", "proceso_id", $proceso_id);
+            
+            if($respuesta_id==''){
+                $respuesta_id=$obCon->getUniqId("raa_");
+            }
+            $titulo="Crear una respuesta al Acto Administrativo ".$datos_acto["nombre_acto_administrativo"]." No. ".$datos_acto["ID"];
+            if($datos_respuesta["ID"]<>''){
+                $titulo="Editar la respuesta No. ".$datos_respuesta["ID"]." del Acto Administrativo ".$datos_acto["nombre_acto_administrativo"]." No. ".$datos_acto["ID"];
+            }
+            
+            $css->input("hidden", "formulario_id", "", "formulario_id", "", 2, "", "", "", "");
+            $css->input("hidden", "acto_id", "", "acto_id", "", $acto_id, "", "", "", "");
+            $css->input("hidden", "proceso_id", "", "proceso_id", "", $proceso_id, "", "", "", "");
+            $css->input("hidden", "respuesta_id", "", "respuesta_id", "", $respuesta_id, "", "", "", "");
+            
+            print('<div class="col-12">
+                            <div class="panel">
+                                <div class="panel-head">
+                                    <h5 class="panel-title">'.$titulo.'</h5>
+                                </div>
+                                <div class="panel-body">');
+                                        
+            
+            
+            print( '                   <div class="row">
+                                            <div class="col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-12 col-form-label">Fecha del Radicado <i class="far fa-calendar-alt text-flickr"></i></label>
+                                                    <div class="col-12">
+                                                        <input id="fecha_radicado" name="fecha_radicado" class="form-control" type="date" value="'.$datos_respuesta["fecha_radicado"].'">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-12 col-form-label">Tipo del Acto <i class="far fa-clipboard text-flickr"></i></label>
+                                                    <div class="col-12">');
+            
+                                                $css->select("acto_tipo_id", "form-control", "acto_tipo_id", "", "", "", "");
+                                                    $css->option("", "", "", "", "", "");
+                                                        print("Seleccione un tipo de Acto");
+                                                    $css->Coption();
+                                                    $tipo_proceso=$datos_proceso["tipo_proceso_id"];
+                                                    $sql="SELECT * FROM $db.procesos_juridicos_actos_tipo WHERE oficio_respuesta=2 order by acto_administrativo asc";
+                                                    $Consulta=$obCon->Query($sql);
+                                                    while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                                                        $sel=0;
+                                                        if($datos_consulta["ID"]==$datos_respuesta["acto_tipo_id"]){
+                                                            $sel=1;
+                                                        }
+                                                        $css->option("", "", "", $datos_consulta["ID"], "", "",$sel);
+                                                            print($datos_consulta["acto_administrativo"]);
+                                                        $css->Coption();
+                                                    }
+                                                $css->Cselect();
+                                                        
+                                        print('    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-12 col-form-label">Número Acto <i class="fa fa-bookmark text-flickr"></i></label>
+                                                    <div class="col-12">
+                                                        <input id="numero_acto" name="numero_acto" class="form-control" type="text" value="'.$datos_respuesta["numero_acto"].'" placeholder="Número de Acto">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-12 col-form-label">Observaciones <i class="far fa-comment-alt text-success"></i></label>
+                                            <div class="col-12">
+                                                <textarea id="observaciones" name="observaciones" class="form-control" rows="5">'.$datos_respuesta["observaciones"].'</textarea>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                                <div class="col-lg-6">
+                                                    <div class="form-group">
+                                                        <label class="col-form-label">Adjuntar <i class="fa fa-paperclip text-primary" ></i></label>
+                                                        <div class="panel">                            
+                                                            <div class="panel-body">
+                                                                <form data-respuesta_id="'.$respuesta_id.'" action="/" class="dropzone dz-clickable" id="respuesta_adjuntos"><div class="dz-default dz-message"><span><i class="icon-plus"></i>Arrastre archivos aquí o de click para subir.<br> Suba cualquier tipo de archivos.</span></div></form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-6">
+                                                    <div class="form-group">
+                                                        <label class="col-form-label">Archivos Adjuntados <i class="fa fa-paperclip text-success" ></i></label>
+                                                        <div id="div_adjuntos_respuestas">                            
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ');
+                                        
+                                        print('
+                                   
+                                </div>
+                                
+                            </div>
+                        </div>');
+            
+        break;// fin caso 8
+        
+        case 9: //Dibuja los adjuntos de las respuestas de un acto administrativo
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $respuesta_id=$obCon->normalizar($_REQUEST["respuesta_id"]);
+            
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            
+            
+            $css->CrearTabla();
+                
+                $css->FilaTabla(16);
+                
+                    $css->ColTabla("ID", 1);
+                    $css->ColTabla("Nombre de Archivo", 1);
+                    
+                    $css->ColTabla("Eliminar", 1);
+                    
+                $css->CierraFilaTabla();
+                
+                $sql="SELECT t1.*
+                        FROM $db.procesos_juridicos_acto_admin_respuestas_adjuntos t1 
+                        WHERE t1.respuesta_id='$respuesta_id' 
+                            ";
+                $Consulta=$obCon->Query($sql);
+                while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                    $idItem=$DatosConsulta["ID"];
+                    $Nombre=$DatosConsulta["NombreArchivo"];
+                    $css->FilaTabla(14);
+                
+                        $css->ColTabla($idItem, 1);
+                       
+                        print('<td style="text-align:center;color:blue;font-size:18px;">');
+                            $Ruta= "../../".str_replace("../", "", $DatosConsulta["Ruta"]);
+                            print('<a href="'.$Ruta.'" target="blank">'.$Nombre.' <li class="fa fa-paperclip"></li></a>');
+                        print('</td>');
+                        
+                        print("<td style='font-size:16px;text-align:center;color:red' title='Borrar'>");   
+                            
+                            $css->li("", "far fa-trash-alt", "", "onclick=EliminarItem(`2`,`$idItem`,`$respuesta_id`) style=font-size:16px;cursor:pointer;text-align:center;color:red");
+                            $css->Cli();
+                        print("</td>");
+                          
+                    $css->CierraFilaTabla();
+                }
+            $css->CerrarTabla();
+            
+            
+        break; //Fin caso 9
+        
     }
     
     

@@ -162,7 +162,12 @@ if( !empty($_REQUEST["Accion"]) ){
                 
             }
             $sql= substr($sql, 0,-1);
-            $order_by="ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
+            if($config_tabla["orden"]==""){
+                $orden="ORDER BY ID DESC";
+            }else{
+                $orden=$config_tabla["orden"];
+            }
+            $order_by="$orden LIMIT $PuntoInicio,$Limit;";
             $sql.=" FROM $tab t1 $Condicion ";
             $statement=$sql;
             $sql.=$order_by;

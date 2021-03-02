@@ -76,7 +76,36 @@ class ProcesoJuridico extends conexion{
         return(date("Y-m-d",strtotime($fecha_recibida."+ $dias days"))); 
     }
     
+    public function RegistreAdjuntoRespuestaActo($db,$respuesta_id, $destino, $Tamano, $NombreArchivo, $Extension, $idUser) {
+        
+        $tab="$db.procesos_juridicos_acto_admin_respuestas_adjuntos";
+        
+        $Datos["respuesta_id"]=$respuesta_id;
+        
+        $Datos["Ruta"]=$destino;    
+        $Datos["NombreArchivo"]=$NombreArchivo;    
+        $Datos["Extension"]=$Extension;    
+        $Datos["Tamano"]=$Tamano; 
+        $Datos["idUser"]=$idUser;		
+        $Datos["created"]=date("Y-m-d H:i:s");	
+        $sql=$this->getSQLInsert($tab, $Datos);
+        $this->Query($sql);
+    }
     
+    
+    public function crear_editar_acto_administrativo_proceso_respuesta($db,$datos_repositorio){
+        $respuesta_id=$datos_repositorio["respuesta_id"];
+        $Tabla="$db.procesos_juridicos_actos_administrativos_respuestas";
+        $sql="SELECT ID FROM $Tabla WHERE respuesta_id='$respuesta_id'";
+        $valida=$this->FetchAssoc($this->Query($sql));
+        if($valida["ID"]>0){
+            $sql=$this->getSQLUpdate($Tabla, $datos_repositorio);
+            $sql.=" WHERE respuesta_id='$respuesta_id'";
+        }else{
+            $sql=$this->getSQLInsert($Tabla, $datos_repositorio);
+        }
+        $this->Query($sql);
+    }
     
     /**
      * Fin Clase
