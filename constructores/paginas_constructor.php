@@ -49,6 +49,7 @@ class PageConstruct extends html_estruct_class{
                         <link rel="stylesheet" href="../../assets/plugin/switchery/switchery.min.css" />
                         <!-- Dropzone CSS -->
                         <link rel="stylesheet" href="../../assets/plugin/dropzone/dropzone.min.css" />    
+                        
                         <!-- Morris CSS -->
                         <link rel="stylesheet" href="../../assets/plugin/morris/morris.css" />
                         
@@ -966,6 +967,8 @@ class PageConstruct extends html_estruct_class{
                 <script type="text/javascript" src="../../assets/plugin/raphael/raphael-min.js"></script>
                 <!-- Dropzone Plugin -->
                 <script type="text/javascript" src="../../assets/plugin/dropzone/dropzone.min.js"></script>
+                <!-- summernote Plugin -->
+                <script type="text/javascript" src="../../assets/plugin/summernote/summernote-bs4.min.js"></script> 
                 <!-- Morris Plugin -->
                 <script type="text/javascript" src="../../assets/plugin/morris/morris.min.js"></script>
               
@@ -992,6 +995,9 @@ class PageConstruct extends html_estruct_class{
                 <script type="text/javascript" src="../../assets/plugin/web-ticker/jquery.webticker.min.js"></script>
                 <!-- Sparkline Plugin -->
                 <script type="text/javascript" src="../../assets/plugin/echarts/echarts.js"></script> 
+                
+                
+                
                 ');
                 
         
@@ -3329,6 +3335,14 @@ class PageConstruct extends html_estruct_class{
 
 
         }
+        
+        public function agregar_summernote(){
+            print('<link rel="stylesheet" href="../../assets/plugin/summernote/summernote-bs4.css"/>');
+            //print("<script src='../../assets/plugin/summernote/summernote-bs4.min.js'></script>");
+            
+        }
+        
+        
         
         //////////////////////////////////FIN
 }
