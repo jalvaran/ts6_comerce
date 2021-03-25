@@ -88,102 +88,35 @@ if( !empty($_REQUEST["Accion"]) ){
             }
             print("OK;Adjunto Agregado");            
             
-        break; //fin caso 1
+        break; //fin caso 2
         
-        case 3: //Responder a un ticket
-            $CmbCerrarTicket=$obCon->normalizar($_REQUEST["CmbCerrarTicket"]); 
-            $idTicket=$obCon->normalizar($_REQUEST["idTicket"]);        
-            $TxtMensaje=$obCon->normalizar($_REQUEST["TxtMensaje"]);
-           
-            if($CmbCerrarTicket==''){
-                exit("E1;Debe seleccionar un estado para el ticket;CmbCerrarTicket");
+        case 3: //Responder un ticket
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            
+            $ticket_estado=$obCon->normalizar($_REQUEST["ticket_estado"]);
+            
+            $mensaje=str_replace("drop","",$_REQUEST["mensaje"]);
+            $mensaje=str_replace("delete","",$mensaje);
+            $mensaje_id=$obCon->normalizar($_REQUEST["mensaje_id"]);
+            $ticket_id=$obCon->normalizar($_REQUEST["ticket_id"]);
+                    
+            
+            if($mensaje==''){
+                exit("E1;Debe escribir un mensaje;mensaje");
+            }
+            if($mensaje_id==''){
+                exit("E1;no se recibió el id del mensaje");
+            }
+            if($ticket_id==''){
+                exit("E1;No se recibió el id del ticket");
             }
             
-            if($TxtMensaje==''){
-                exit("E1;Escribe el Mensaje para este Ticket;TxtMensaje");
-            }
-            
-            $idMensaje=$obCon->AgregarMensajeTicket($idTicket, $TxtMensaje, $idUser);
-            
-            if(!empty($_FILES['upAdjuntosTickets1']['name'])){
-                
-                $info = new SplFileInfo($_FILES['upAdjuntosTickets1']['name']);
-                $Extension=($info->getExtension());  
-                $Tamano=filesize($_FILES['upAdjuntosTickets1']['tmp_name']);
-                $carpeta="../../../soportes/Tickets/";
-                if (!file_exists($carpeta)) {
-                    mkdir($carpeta, 0777);
-                }
-                $carpeta="../../../soportes/Tickets/$idTicket/";
-                if (!file_exists($carpeta)) {
-                    mkdir($carpeta, 0777);
-                }
-                opendir($carpeta);
-                $idAdjunto=uniqid(true);
-                $destino=$carpeta.$idMensaje."_".$idAdjunto.".".$Extension;
-                
-                move_uploaded_file($_FILES['upAdjuntosTickets1']['tmp_name'],$destino);
-                
-                $obCon->AgregarAdjuntoMensaje($destino,$Tamano, $_FILES['upAdjuntosTickets1']['name'], $Extension, $idUser, $idMensaje);
-                
-            }
-            
-            if(!empty($_FILES['upAdjuntosTickets2']['name'])){
-                
-                $info = new SplFileInfo($_FILES['upAdjuntosTickets2']['name']);
-                $Extension=($info->getExtension());  
-                $Tamano=filesize($_FILES['upAdjuntosTickets2']['tmp_name']);
-                $carpeta="../../../soportes/Tickets/";
-                if (!file_exists($carpeta)) {
-                    mkdir($carpeta, 0777);
-                }
-                $carpeta="../../../soportes/Tickets/$idTicket/";
-                if (!file_exists($carpeta)) {
-                    mkdir($carpeta, 0777);
-                }
-                opendir($carpeta);                
-                $idAdjunto=uniqid(true);
-                $destino=$carpeta.$idMensaje."_".$idAdjunto.".".$Extension;
-                move_uploaded_file($_FILES['upAdjuntosTickets2']['tmp_name'],$destino);
-                
-                $obCon->AgregarAdjuntoMensaje($destino,$Tamano, $_FILES['upAdjuntosTickets2']['name'], $Extension, $idUser, $idMensaje);
-                
-            }
-            
-            if(!empty($_FILES['upAdjuntosTickets3']['name'])){
-                
-                $info = new SplFileInfo($_FILES['upAdjuntosTickets3']['name']);
-                $Extension=($info->getExtension());  
-                $Tamano=filesize($_FILES['upAdjuntosTickets3']['tmp_name']);
-                $carpeta="../../../soportes/Tickets/";
-                if (!file_exists($carpeta)) {
-                    mkdir($carpeta, 0777);
-                }
-                $carpeta="../../../soportes/Tickets/$idTicket/";
-                if (!file_exists($carpeta)) {
-                    mkdir($carpeta, 0777);
-                }
-                opendir($carpeta);                
-                $idAdjunto=uniqid(true);
-                $destino=$carpeta.$idMensaje."_".$idAdjunto.".".$Extension;
-                move_uploaded_file($_FILES['upAdjuntosTickets3']['tmp_name'],$destino);
-                
-                $obCon->AgregarAdjuntoMensaje($destino,$Tamano, $_FILES['upAdjuntosTickets3']['name'], $Extension, $idUser, $idMensaje);
-                
-            }
-            $obCon->ActualizaRegistro("tickets", "Estado", $CmbCerrarTicket, "ID", $idTicket);
-            $Parametros=$obCon->DevuelveValores("configuracion_general","ID",31);//Determina si se envia el mail al usuario del tikcet
-            $EstadoEnvio="OK";
-            if($Parametros["Valor"]==1){
-                $EstadoEnvio=$obCon->NotificarTicketXMail($idTicket, $idMensaje, $idUser);
-            }
-            
-            if($EstadoEnvio=="OK"){
-                print("OK;Respuesta Agregada");
-            }else{
-                print("OK;Respuesta Agregada pero no enviada por mail, error: ".$EstadoEnvio);
-            }
-            
+            $obCon->AgregarMensajeTicket($db,$mensaje_id,$ticket_id, $mensaje, $idUser);
+            $obCon->ActualizaRegistro("$db.tickets", "Estado", $ticket_estado, "ticket_id", $ticket_id);
+            exit("OK;Respuesta Agregada");
         break; //fin caso 3
         
         

@@ -74,7 +74,7 @@ function VerListadoTickets(Page=1){
         form_data.append('Busqueda', Busqueda);
         form_data.append('CmbEstadoTicketsListado', CmbEstadoTicketsListado);
         form_data.append('CmbFiltroUsuario', CmbFiltroUsuario);
-        
+        form_data.append('departamentos_tickets', departamentos_tickets);
         form_data.append('CmbTiposTicketsListado', CmbTiposTicketsListado);
         
         $.ajax({
@@ -86,7 +86,7 @@ function VerListadoTickets(Page=1){
         data: form_data,
         type: 'post',
         beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
-           mostrar_spinner();
+           mostrar_spinner('Cargando...');
         },
         success: function(data){
            ocultar_spinner();
@@ -235,12 +235,14 @@ function AgregarAdjunto(idMensaje,idTicket){
       })
 }
 
-function FormularioResponderTicket(idTicket){
-    document.getElementById("DivDrawTickets").innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+function frm_responder_ticket(ticket_id){
+    var empresa_id=document.getElementById('empresa_id').value;
     
     var form_data = new FormData();
         form_data.append('Accion', 4);
-        form_data.append('idTicket', idTicket);
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('ticket_id', ticket_id);
+        
         $.ajax({
         url: './Consultas/tickets.draw.php',
         //dataType: 'json',
@@ -249,78 +251,86 @@ function FormularioResponderTicket(idTicket){
         processData: false,
         data: form_data,
         type: 'post',
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+           mostrar_spinner("Cargando...");
+        },
         success: function(data){
-            
+            ocultar_spinner();
            document.getElementById('DivDrawTickets').innerHTML=data;
+           //$("#CmbUsuarioDestino").select2();
+           summernote_init();
+           add_events_dropzone_tickets();
            
-           $("#TxtMensaje").wysihtml5(); 
         },
         error: function (xhr, ajaxOptions, thrownError) {
-            LimpiarDivs();
+            ocultar_spinner();
             alert(xhr.status);
             alert(thrownError);
           }
       });
 }
 
-function GuardarRespuesta(idTicket){
-    document.getElementById('BtnGuardarTicket').disabled=true;
-    document.getElementById('BtnGuardarTicket').value="Guardando...";
+function responder_ticket(){
     
+    var empresa_id=document.getElementById('empresa_id').value;
+    var ticket_estado=document.getElementById('ticket_estado').value;
     
-    var CmbCerrarTicket=document.getElementById('CmbCerrarTicket').value;
-    var TxtMensaje=document.getElementById('TxtMensaje').value;
-    
+    var mensaje=document.getElementById('mensaje').value;
+    var mensaje_id=$("#btn_guardar").data("mensaje_id");
+    var ticket_id=$("#btn_guardar").data("ticket_id");
+    document.getElementById('btn_guardar').disabled=true;
+    document.getElementById('btn_guardar').value="Guardando...";
     var form_data = new FormData();
         form_data.append('Accion', 3);
-        form_data.append('idTicket', idTicket);
-        form_data.append('CmbCerrarTicket', CmbCerrarTicket);
-        form_data.append('TxtMensaje', TxtMensaje);
-        form_data.append('upAdjuntosTickets1', $('#upAdjuntosTickets1').prop('files')[0]);
-        form_data.append('upAdjuntosTickets2', $('#upAdjuntosTickets2').prop('files')[0]);
-        form_data.append('upAdjuntosTickets3', $('#upAdjuntosTickets3').prop('files')[0]);
-                
-    $.ajax({
-        //async:false,
-        url: './procesadores/tickets.process.php',
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('ticket_estado', ticket_estado);
+        
+        form_data.append('mensaje', mensaje);
+        form_data.append('mensaje_id', mensaje_id);
+        form_data.append('ticket_id', ticket_id);
+        
+        $.ajax({
+        url: 'procesadores/tickets.process.php',
         //dataType: 'json',
         cache: false,
         contentType: false,
         processData: false,
         data: form_data,
         type: 'post',
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            mostrar_spinner("Procesando");
+        },
         success: function(data){
-            var respuestas = data.split(';'); 
-           if(respuestas[0]==="OK"){   
-                
-                VerTicket(idTicket);
-                
+            ocultar_spinner();
+            document.getElementById('btn_guardar').disabled=false;
+            document.getElementById('btn_guardar').value="Enviar";
+            var respuestas = data.split(';');
+            if(respuestas[0]=="OK"){
                 alertify.success(respuestas[1]);
-                
-            }else if(respuestas[0]==="E1"){
-                
+                ver_ticket(ticket_id);
+            }else if(respuestas[0]=="E1"){
                 alertify.alert(respuestas[1]);
+
                 MarqueErrorElemento(respuestas[2]);
-                document.getElementById('BtnGuardarTicket').disabled=false;
-                document.getElementById('BtnGuardarTicket').value="Guardar";
-                return;                
-            }else{
                 
+            }else{
                 alertify.alert(data);
-                document.getElementById('BtnGuardarTicket').disabled=false;
-                document.getElementById('BtnGuardarTicket').value="Guardar";
+                
             }
-            
+           
         },
         error: function (xhr, ajaxOptions, thrownError) {
-            
-            document.getElementById('BtnGuardarTicket').disabled=false;
-            document.getElementById('BtnGuardarTicket').value="Guardar";
+            document.getElementById('btn_guardar').disabled=false;
+            document.getElementById('btn_guardar').value="Enviar";
             alert(xhr.status);
             alert(thrownError);
+            
           }
-      })
+      });
+      
+      
 }
+
 
 function MarqueErrorElemento(idElemento){
     console.log(idElemento);
@@ -330,41 +340,6 @@ function MarqueErrorElemento(idElemento){
     document.getElementById(idElemento).style.backgroundColor="pink";
     document.getElementById(idElemento).focus();
 }
-
-function CargarModulosProyectosEnSelect(SelectorACambiar){
-    if(SelectorACambiar==1){
-        var idSelector="CmbModuloProyecto";
-        var SelectorPadre="CmbProyecto";
-    }
-    if(SelectorACambiar==2){
-        var idSelector="CmbModulosTicketsListado";
-        var SelectorPadre="CmbProyectosTicketsListado";
-    }
-    
-    document.getElementById(idSelector).value='';
-    if(document.getElementById("select2-"+idSelector+"-container")){
-        document.getElementById("select2-"+idSelector+"-container").innerHTML='Seleccione un módulo';
-    }
-    
-    var CmbProyectosTicketsListado=document.getElementById(SelectorPadre).value;
-        $('#'+idSelector).select2({
-            theme: "classic",
-            placeholder: 'Seleccione un Módulo',
-            ajax: {
-              url: './buscadores/modulos_proyectos.search.php?idProyecto='+CmbProyectosTicketsListado,
-              dataType: 'json',
-              delay: 250,
-              processResults: function (data) {
-                  
-                return {                     
-                  results: data
-                };
-              },
-             cache: true
-            }
-          });
-}
-
 
 function dibuje_menu_lateral_tickets(){
     var div_id="div_panel_body";
@@ -381,11 +356,12 @@ function dibuje_menu_lateral_tickets(){
         data: form_data,
         type: 'post',
         beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
-           mostrar_spinner();
+           mostrar_spinner('Construyendo menú');
         },
         success: function(data){
            ocultar_spinner();
            document.getElementById(div_id).innerHTML=data;
+           VerListadoTickets(1);
            
         },
         error: function (xhr, ajaxOptions, thrownError) {
@@ -572,6 +548,7 @@ function crear_ticket_mensaje(){
       
 }
 
-
-
 dibuje_menu_lateral_tickets();
+
+
+

@@ -15,7 +15,7 @@ $urlRequest= explode("/", $urlRequest);
 $Pagina=end($urlRequest);
 
 $myPage=$Pagina;
-$myTitulo="Consultas";
+$myTitulo="Tickets";
 include_once("../../sesiones/php_control_usuarios.php");
 include_once("../../constructores/paginas_constructor.php");
 

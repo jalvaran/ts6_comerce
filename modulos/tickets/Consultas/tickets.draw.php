@@ -21,16 +21,19 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $TipoUser=$_SESSION["tipouser"];
             $Busqueda=$obCon->normalizar($_REQUEST["Busqueda"]);
-            
+            $departamentos_tickets=$obCon->normalizar($_REQUEST["departamentos_tickets"]);
             $CmbEstadoTicketsListado=$obCon->normalizar($_REQUEST["CmbEstadoTicketsListado"]);
             $CmbFiltroUsuario=$obCon->normalizar($_REQUEST["CmbFiltroUsuario"]);
             $Condicional=" WHERE ID>0 ";
             $OrderBy=" ORDER BY FechaActualizacion DESC";            
             if($CmbEstadoTicketsListado<>''){
-                $Condicional.=" AND Estado=='$CmbEstadoTicketsListado' ";
+                $Condicional.=" AND Estado='$CmbEstadoTicketsListado' ";
                 
             }
             
+            if($departamentos_tickets<>''){
+                $Condicional.=" AND (departamento_id='$departamentos_tickets') ";
+            }
             if($CmbFiltroUsuario==2){
                 $Condicional.=" AND (idUsuarioSolicitante='$idUser' or idUsuarioAsignado='$idUser') ";
             }
@@ -142,9 +145,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                                             <span class="name">'.$datos_consulta["NombreSolicitante"].' '.$datos_consulta["ApellidoSolicitante"].'</span>
                                                             <p class="descr">'.$datos_consulta["Asunto"].'</p>
                                                         </td>
-                                                        <td class="starred-icon ">
-                                                            <a class="active text-primary"><i><strong>'.$datos_consulta["NombreEstado"].'</strong></i></a>
-                                                        </td>
+                                                        <td class="date text-primary">'.$datos_consulta["NombreEstado"].'</td>
                                                         <td class="date text-primary">'.$datos_consulta["NombreDepartamento"].'</td>
                                                         <td class="date">'.$datos_consulta["FechaApertura"].'</td>
                                                         <td class="date">'.$datos_consulta["FechaActualizacion"].'</td>
@@ -271,162 +272,204 @@ if( !empty($_REQUEST["Accion"]) ){
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
             $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
             $db=$datos_empresa["db"];
-            $DatosTickets=$obCon->DevuelveValores("$db.tickets", "ticket_id", $ticket_id);
+            $DatosTickets=$obCon->DevuelveValores("$db.vista_tickets", "ticket_id", $ticket_id);
             
-            $sql="SELECT t1.Nombre,t1.Apellido 
-                    
-                    FROM usuarios t1 WHERE t1.ID='".$DatosTickets["idUsuarioSolicitante"]."'";
-            $DatosUsuarioCreador=$obCon->FetchAssoc($obCon->Query($sql));
-            $NombreSolicitante=$DatosUsuarioCreador["Nombre"]." ".$DatosUsuarioCreador["Apellido"]; 
+            print('<div class="panel panel-default">
+                    <div class="mailbox-container">
+
+                        <div class="mail-details">
+                            <h4 class="title">'.$DatosTickets["Asunto"].'</h4>
+                            <div class="mail-body">
+                                <div class="header">
+
+                                    <div class="tbl-cell details">
+                                        <div class="from"> de: '.$DatosTickets["NombreSolicitante"].' '.$DatosTickets["ApellidoSolicitante"].'</div>
+                                        <div class="to"> para: '.$DatosTickets["NombreAsignado"].' '.$DatosTickets["ApellidoAsignado"].'</div>
+
+
+                                    </div>
+                                    <div class="btn-group pull-right">
+                                        '.$DatosTickets["FechaApertura"].'
+                                    </div>
+
+                                </div>
+
+                            ');
+            
             $ExtensionesImagenes=array("png", "bmp", "jpg", "jpeg");
-            $css->CrearDiv("", "box-header with-border", "", 1, 1);
-                print('<a href="#" onclick=ver_ticket('.$ticket_id.')><h3>Ticket No.'.$ticket_id.'</h3></a>');
-                //print("<h3 class='box-title'>Ticket No. $idTicket</h3>");
-            $css->CerrarDiv();
-            $css->CrearDiv("", "mailbox-read-info", "left", 1, 1);
-            print('
-                <h3>'.$DatosTickets["Asunto"].'</h3>
-                <h5>De: '.utf8_encode($NombreSolicitante).'
-                  <span class="mailbox-read-time pull-right">'.$DatosTickets["FechaApertura"].'</span></h5>
-              </div>');
+                     
+            
             $Consulta=$obCon->ConsultarTabla("$db.tickets_mensajes", "WHERE ticket_id='$ticket_id'");
             $i=0;
             while($DatosMensajes=$obCon->FetchAssoc($Consulta)){
+                                
                 $i=$i+1;
                 if($i==1){
-                    $css->CrearTitulo("Mensaje No. $i");
+                    $titulo="Mensaje No. $i";
                 }else{
                     $NoRespuesta=$i-1;
                     $sql="SELECT Nombre,Apellido FROM usuarios WHERE ID='".$DatosMensajes["idUser"]."'";
                     $DatosUsuarioCreador=$obCon->FetchAssoc($obCon->Query($sql));
                     $NombreUsuarioRespuesta=$DatosUsuarioCreador["Nombre"]." ".$DatosUsuarioCreador["Apellido"]; 
-                    $css->CrearTitulo("Respuesta No. $NoRespuesta por <strong>$NombreUsuarioRespuesta</strong>, el ".$DatosMensajes["Created"],"verde");
+                    $titulo="Respuesta No. $NoRespuesta por <strong>$NombreUsuarioRespuesta</strong>, el ".$DatosMensajes["Created"];
                 }
-                $idMensaje=$DatosMensajes["ID"];
-                $css->CrearDiv("", "mailbox-read-message", "left", 1, 1);
-                    echo($DatosMensajes["Mensaje"]);
-                $css->CerrarDiv();
-                print("<hr>");
-                $css->CrearDiv("", "col-md-4", "left", 1, 1);
-                    $css->input("file", "upAdjuntosMensajes_$idMensaje", "form-control", "upAdjuntosMensajes_$idMensaje", "Adjuntar:", "Adjuntar", "adjuntar", "", "", "");
-            
-                $css->CerrarDiv();
+                $mensaje_id=$DatosMensajes["mensaje_id"];
+                print('
+                        <div class="content">
+                            '.$titulo.'<br>
+                            '.$DatosMensajes["Mensaje"].'
+                        </div>
+                        ');
+               
                 
-                $css->CrearDiv("", "col-md-2", "left", 1, 1);
-                    $css->CrearBotonEvento("BtnAgregarAdjunto_$idMensaje", "Adjuntar", 1, "onclick", "AgregarAdjunto(`$idMensaje`,`$idTicket`)", "verde");
-                $css->CerrarDiv();
-                print("<br><br>");
-                $css->CrearDiv("", "box-footer", "left", 1, 1);
-                    $ConsultaAdjuntos=$obCon->ConsultarTabla("tickets_adjuntos", "WHERE idMensaje='$idMensaje'");
+               
+                    $ConsultaAdjuntos=$obCon->ConsultarTabla("$db.tickets_adjuntos", "WHERE mensaje_id='$mensaje_id'");
                     if($obCon->NumRows($ConsultaAdjuntos)){
-                        print('<ul class="mailbox-attachments clearfix">');
+                        
+                        print('<div class="attachments"><div class="row">');
                             while($DatosAdjuntos=$obCon->FetchAssoc($ConsultaAdjuntos)){
-
-                                print('<li>');
-                                    $ClassIcon="fa fa-file-o";
-                                    $Extension=strtolower($DatosAdjuntos["Extension"]);
-                                    if(!in_array($Extension,$ExtensionesImagenes)){
-                                        if($Extension=='pdf'){
-                                            $ClassIcon="fa fa-file-pdf-o";
-                                        }
-                                        if($Extension=='xls' or $Extension=='xlsx'){
-                                            $ClassIcon="fa fa-file-excel-o";
-                                        }
-                                        if($Extension=='doc' or $Extension=='docx'){
-                                            $ClassIcon="fa fa-file-word-o";
-                                        }
-                                        if($Extension=='zip' or $Extension=='rar'){
-                                            $ClassIcon="fa fa-file-zip-o";
-                                        }
-                                        print('<span class="mailbox-attachment-icon"><i class="'.$ClassIcon.'"></i></span>');
-                                    }else{
-                                        print('<span class="mailbox-attachment-icon has-img"><img src="'.substr($DatosAdjuntos["Ruta"], 3).'" alt="NO"></span>');
-                                                
+      
+                                $ClassIcon="fa fa-file-o";
+                                $Extension=strtolower($DatosAdjuntos["Extension"]);
+                                if(!in_array($Extension,$ExtensionesImagenes)){
+                                    $ClassIcon="fa fa-file text-dark";
+                                    if($Extension=='pdf'){
+                                        $ClassIcon="fa fa-file-pdf text-flickr";
                                     }
-                                    $css->CrearDiv("", "mailbox-attachment-info", "center", 1, 1);
-                                        print('<a href="'.substr($DatosAdjuntos["Ruta"], 3).'" target="blank" class="mailbox-attachment-name"><i class="fa fa-paperclip"></i> '.$DatosAdjuntos["NombreArchivo"].'</a>');
-                                        $Tamano=$DatosAdjuntos["Tamano"]." Bytes";
-                                        if($DatosAdjuntos["Tamano"]>=1000 and $DatosAdjuntos["Tamano"]<1000000){
-                                            $Tamano= number_format($DatosAdjuntos["Tamano"]/1000,2)." KB";
-                                        }
-                                        if($DatosAdjuntos["Tamano"]>=1000000 and $DatosAdjuntos["Tamano"]<1000000000){
-                                            $Tamano= number_format($DatosAdjuntos["Tamano"]/1000000,2)." MB";
-                                        }
-                                        if($DatosAdjuntos["Tamano"]>=1000000000 ){
-                                            $Tamano= number_format($DatosAdjuntos["Tamano"]/1000000000,2)." GB";
-                                        }
-                                        print('<span class="mailbox-attachment-size">'.$Tamano.'</span>');
-                                    $css->CerrarDiv();
-                                print('</li>');
+                                    if($Extension=='xls' or $Extension=='xlsx'){
+                                        $ClassIcon="fa fa-file-excel text-success";
+                                    }
+                                    if($Extension=='doc' or $Extension=='docx'){
+                                        $ClassIcon="fa fa-file-word text-primary";
+                                    }
+                                    if($Extension=='zip' or $Extension=='rar'){
+                                        $ClassIcon="far fa-file-archive text-warning";
+                                    }
+                                    $previus='<li class="'.$ClassIcon.'"></li>';
+                                    
+                                }else{
+                                    $previus='<img class="img-thumbnail" src="'.substr($DatosAdjuntos["Ruta"], 3).'" alt="">';
+                                    
+
+                                }
+                                
+                                    $Tamano=$DatosAdjuntos["Tamano"]." Bytes";
+                                    if($DatosAdjuntos["Tamano"]>=1000 and $DatosAdjuntos["Tamano"]<1000000){
+                                        $Tamano= number_format($DatosAdjuntos["Tamano"]/1000,2)." KB";
+                                    }
+                                    if($DatosAdjuntos["Tamano"]>=1000000 and $DatosAdjuntos["Tamano"]<1000000000){
+                                        $Tamano= number_format($DatosAdjuntos["Tamano"]/1000000,2)." MB";
+                                    }
+                                    if($DatosAdjuntos["Tamano"]>=1000000000 ){
+                                        $Tamano= number_format($DatosAdjuntos["Tamano"]/1000000000,2)." GB";
+                                    }
+                                    print('<div class="col-md-3" style="text-align:center;">');
+                                        print('<div class="panel panel-default">');
+                                            print('<div style="height:100px;font-size:50px;">');
+                                                print($previus);
+                                            print('</div>');   
+                                            print('<div class="panel panel-body">');
+                                                print('<a href="'.substr($DatosAdjuntos["Ruta"], 3).'" target="blank"><h5>'.$DatosAdjuntos["NombreArchivo"].'<br>'.$Tamano.'</h5></a>');
+                                            print('</div>');    
+                                        print('</div>');
+                                    print('</div>');
+                                   
+                                   // print('<a href="'.substr($DatosAdjuntos["Ruta"], 3).'" target="blank">'.$DatosAdjuntos["NombreArchivo"].'</a>');
+                                    
+                                    
                             }
-                        print("</ul>");
+                        print("</div></div>");
                     }
                 
-                $css->CerrarDiv();
+                
             }
-                        
-            $css->CrearDiv("", "col-md-2", "left", 1, 1);
-            
-            $css->CrearBotonEvento("BtnResponderTicket", "Responder", 1, "onclick", "FormularioResponderTicket($idTicket)", "azul");
-            $css->CerrarDiv();
+                
+            $css->Cdiv();
+                $css->Cdiv();
+                $css->Cdiv();
+            $css->CrearDiv("", "panel-footer text-right", "", 1, 1);
+                    print('<button id="btn_guardar" data-action="1" class="btn btn-primary m-1" onclick="frm_responder_ticket(`'.$ticket_id.'`)">Responder</button>');
+                $css->Cdiv();
+
+           $css->Cdiv();
+           
         break;//Fin caso 3
         
-        case 4: //Formulario Nueva Respuesta
-            $idTicket=$obCon->normalizar($_REQUEST["idTicket"]);
-            $DatosTickets=$obCon->DevuelveValores("tickets", "ID", $idTicket);
-            $css->CrearDiv("", "box-header with-border", "", 1, 1);
-                $css->CrearDiv("", "col-md-6", "left", 1, 1);
-                    print("<h3 class='box-title'><strong>Responder el Ticket $idTicket</strong></h3>");
-                    print("<h6 >".$DatosTickets["Asunto"]."</h6>");
-                $css->CerrarDiv();
-                $css->CrearDiv("", "col-md-2", "left", 1, 1);
-                    $css->select("CmbCerrarTicket", "form-control", "CmbCerrarTicket", "Estado:", "", "", "");
-                        $sql="SELECT * FROM tickets_estados ORDER BY ID";
-                        $Consulta=$obCon->Query($sql);
-                        while($DatosEstados=$obCon->FetchAssoc($Consulta)){
-                            if($DatosTickets["Estado"]==$DatosEstados["ID"]){
-                                $Seleccionar=1;
-                            }else{
-                                $Seleccionar=0;
-                            }
-                            //$css->option($id, $class, $title, $value, $vectorhtml, $Script, $Seleccionar, $ng_app);
-                        
-                            $css->option("", "", "", $DatosEstados["ID"], "", "",$Seleccionar);
-                                print($DatosEstados["Estado"]);
-                            $css->Coption();
-                        }
-                        
-                        
-                    $css->Cselect();
-                $css->CerrarDiv();
-            $css->CerrarDiv();
-            print("<br>");
+        case 4: //respuesta ticket
             
-            $css->CrearDiv("", "form-group", "left", 1, 1);
-                $css->textarea("TxtMensaje", "form-control", "TxtMensaje", "", "Mensaje", "", "", "style='height:400px;'");
-                       
-            $css->Ctextarea();
-            $css->CerrarDiv();    
-            //print("<br>");
-            $css->CrearDiv("", "col-md-3", "left", 1, 1);
-            print("<strong>Adjunto 1: </strong>");
-            $css->input("file", "upAdjuntosTickets1", "form-control", "upAdjuntosTickets1", "Adjuntar:", "Adjuntar", "adjuntar", "", "", "");
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $ticket_id=$obCon->normalizar($_REQUEST["ticket_id"]);
+            $mensaje_id=$obCon->getUniqId("msg_");
+            $datos_ticket=$obCon->DevuelveValores("$db.tickets", "ticket_id", $ticket_id);
+            $TipoUser=$_SESSION["tipouser"];
             
-            $css->CerrarDiv();
-            $css->CrearDiv("", "col-md-3", "left", 1, 1);
-            print("<strong>Adjunto 2: </strong>");
-            $css->input("file", "upAdjuntosTickets2", "form-control", "upAdjuntosTickets2", "Adjuntar:", "Adjuntar", "adjuntar", "", "", "");
+            $css->CrearDiv("", "panel panel-default", "", 1, 1);
+                $css->CrearDiv("", "panel-head bg-light", "", 1, 1);
+                    $css->CrearDiv("", "panel-title", "", 1, 1);
+                        print('<span class="panel-title-text font-24">Respuesta al Ticket: <strong>'.$datos_ticket["ID"].'</strong> '.$datos_ticket["Asunto"].'</span>');
+                    $css->Cdiv();
+                    
+                $css->Cdiv();
+                
+                $css->CrearDiv("", "mailbox-container", "", 1, 1);
+                    $css->CrearDiv("", "compose", "", 1, 1);
+                        $css->div("", "row", "", "", "", "", "");
+                            $css->div("", "col-lg-6", "", "", "", "", "");
+                                $css->div("", "form-group row", "", "", "", "", "");
+                                    print('<label class="col-12 col-form-label">Cambiar al estado: <i class="fa fa-outdent text-flickr" ></i></label>');
+                                    $css->div("", "col-12", "", "", "", "", "");
+                                    
+                                        $css->select("ticket_estado", "form-control", "ticket_estado", "", "", "", "");
+                                            $sql="SELECT * FROM $db.tickets_estados";
+                                            $Consulta=$obCon->Query($sql);
+                                            
+
+                                            while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                                                $sel=0;
+                                                if($datos_ticket["Estado"]==$datos_consulta["ID"]){
+                                                    $sel=1;
+                                                }
+                                                $css->option("", "", "", $datos_consulta["ID"], "", '',$sel);
+                                                    print($datos_consulta["Estado"]);
+                                                $css->Coption();
+                                            }
+
+                                        $css->Cselect();
+                                    $css->Cdiv(); 
+                                $css->Cdiv();
+                            $css->Cdiv(); 
+                            
+                            $css->CrearDiv("", "col-md-12", "", 1, 1);
+                            $css->CrearDiv("", "row", "", 1, 1);                                
+                                $css->CrearDiv("", "col-md-12", "left", 1, 1);
+                                    $css->CrearDiv("", "form-group", "", 1, 1);
+                                        print('<textarea id="mensaje" class="summernote-ts"></textarea>');
+                                    $css->Cdiv();
+                                $css->Cdiv();
+                                $css->CrearDiv("", "col-md-12", "left", 1, 1);
+                                print('<div class="panel">
+                            
+                                        <div class="panel-body">
+                                            <form data-mensaje_id="'.$mensaje_id.'" data-ticket_id="'.$ticket_id.'" action="/" class="dropzone dz-clickable" id="tickets_adjuntos"><div class="dz-default dz-message"><span><i class="icon-plus"></i>Arrastre archivos aquí o de click para subir.<br> Suba cualquier tipo de archivos.</span></div></form>
+                                        </div>
+                                    </div>');
+                                
+                                    
+                                $css->Cdiv();    
+                               
+                            $css->Cdiv(); 
+                        $css->Cdiv();
+                    $css->Cdiv();                              
+                    
+                $css->Cdiv();
+                
+                $css->CrearDiv("", "panel-footer text-right", "", 1, 1);
+                    print('<button id="btn_guardar" data-action="1" data-mensaje_id="'.$mensaje_id.'" data-ticket_id="'.$ticket_id.'" class="btn btn-primary m-1" onclick="responder_ticket()">Enviar</button>');
+                $css->Cdiv();
+            $css->Cdiv();
             
-            $css->CerrarDiv();
-            $css->CrearDiv("", "col-md-3", "left", 1, 1);
-            print("<strong>Adjunto 3: </strong>");
-            $css->input("file", "upAdjuntosTickets3", "form-control", "upAdjuntosTickets3", "Adjuntar:", "Adjuntar", "adjuntar", "", "", "");
-            
-            $css->CerrarDiv();
-            $css->CrearDiv("", "col-md-3", "left", 1, 1);
-            print("<strong>Guardar esta Respuesta: </strong>");
-            $css->CrearBotonEvento("BtnGuardarTicket", "Guardar Respuesta", 1, "onclick", "GuardarRespuesta($idTicket)", "azul");
-            $css->CerrarDiv();
         break;//Fin caso 4
         
         case 5://dibuja el menu lateral de los tickets
@@ -440,7 +483,7 @@ if( !empty($_REQUEST["Accion"]) ){
             print('<ul class="mailbox-menu">
                         <li><a onclick="VerListadoTickets();" class="active"><i class="icon-envelope-letter"></i> <span>Mi bandeja</span></a></li>
                     </ul>');
-            $css->select("CmbEstadoTicketsListado", "form-control", "CmbEstadoTicketsListado", "", "", "", "");
+            $css->select("CmbEstadoTicketsListado", "form-control", "CmbEstadoTicketsListado", "", "", "", "onchange=VerListadoTickets()");
                 $sql="SELECT * FROM $db.tickets_estados ORDER BY ID ASC";
                 $Consulta=$obCon->Query($sql);
                 $css->option("", "", "", "", "", "");
@@ -453,7 +496,7 @@ if( !empty($_REQUEST["Accion"]) ){
                 }
             $css->Cselect();
             
-            $css->select("departamentos_tickets", "form-control", "departamentos_tickets", "", "", "", "");
+            $css->select("departamentos_tickets", "form-control", "departamentos_tickets", "", "", "", "onchange=VerListadoTickets()");
                 $sql="SELECT * FROM $db.tickets_departamentos WHERE Estado=1";
                 $Consulta=$obCon->Query($sql);
                 $css->option("", "", "", "", "", "");
@@ -466,7 +509,7 @@ if( !empty($_REQUEST["Accion"]) ){
                 }
             $css->Cselect();
                     
-            $css->select("CmbTiposTicketsListado", "form-control", "CmbTiposTicketsListado", "", "", "", "");
+            $css->select("CmbTiposTicketsListado", "form-control", "CmbTiposTicketsListado", "", "", "", "onchange=VerListadoTickets()");
                 $sql="SELECT * FROM $db.tickets_tipo";
                 $Consulta=$obCon->Query($sql);
                 $css->option("", "", "", "", "", "");
@@ -479,7 +522,7 @@ if( !empty($_REQUEST["Accion"]) ){
                 }
             $css->Cselect();
             
-            $css->select("CmbFiltroUsuario", "form-control", "CmbFiltroUsuario", "", "", "", "");
+            $css->select("CmbFiltroUsuario", "form-control", "CmbFiltroUsuario", "", "", "", "onchange=VerListadoTickets()");
                 
                 $css->option("", "", "", "1", "", "");
                     print("Todos los usuarios");
