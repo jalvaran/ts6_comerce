@@ -170,8 +170,8 @@ class TS_Mail extends conexion{
     
     public function enviar_mail_sendinblue($datos_empresa,$array_destinatarios,$de,$nombreRemitente, $asunto, $mensajeHTML, $Adjuntos='') {
         require_once('../../../librerias/sendinblue/vendor/autoload.php');
-
-        $credentials = SendinBlue\Client\Configuration::getDefaultConfiguration()->setApiKey('api-key', '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');
+        $datos_configuracion=$this->DevuelveValores("configuracion_general", "ID", 5000);//lugar donde se aloja el api key de sendinblue
+        $credentials = SendinBlue\Client\Configuration::getDefaultConfiguration()->setApiKey('api-key', $datos_configuracion["Valor"]);
         $apiInstance = new SendinBlue\Client\Api\TransactionalEmailsApi(new GuzzleHttp\Client(),$credentials);
         
         $sendSmtpEmail = new \SendinBlue\Client\Model\SendSmtpEmail([
