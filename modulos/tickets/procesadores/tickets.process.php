@@ -8,10 +8,12 @@ if (!isset($_SESSION['username'])){
 $idUser=$_SESSION['idUser'];
 
 include_once("../clases/tickets.class.php");
+include_once("../../../general/class/mail.class.php");
+
 
 if( !empty($_REQUEST["Accion"]) ){
     $obCon = new Ticket($idUser);
-    //$obMail= new TS_Mail($idUser);
+    $obMail= new TS_Mail($idUser);
     switch ($_REQUEST["Accion"]) {
         
         case 1: //Crear un ticket
@@ -53,6 +55,29 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $obCon->CrearTicket($db,$ticket_id,$tipo_ticket,$departamento_id,$asunto,$idUser,$datos_departamento["usuario_asignado"]);
             $obCon->AgregarMensajeTicket($db,$mensaje_id,$ticket_id, $mensaje, $idUser);
+            
+            if($datos_empresa["enviar_correo_ticket"]==1){
+                $usuario_remitente=$idUser;
+                $usuario_destino=$datos_departamento["usuario_asignado"];
+                $sql="SELECT Email, nombre_completo FROM usuarios WHERE ID='$usuario_remitente'";
+                $datos_usuario_remitente=$obCon->FetchAssoc($obCon->Query($sql));
+                $sql="SELECT Email, nombre_completo FROM usuarios WHERE ID='$usuario_destino'";
+                $datos_usuario_destino=$obCon->FetchAssoc($obCon->Query($sql));                
+                                
+                $destinatarios[0]["email"]=$datos_usuario_destino["Email"];
+                $destinatarios[0]["name"]=$datos_usuario_destino["nombre_completo"];
+                $destinatarios[1]["email"]=$datos_usuario_remitente["Email"];
+                $destinatarios[1]["name"]=$datos_usuario_remitente["nombre_completo"];
+                if($datos_departamento["correo_notificacion_general"]<>''){
+                    $destinatarios[2]["email"]=$datos_departamento["correo_notificacion_general"];
+                    $destinatarios[2]["name"]=$datos_departamento["Departamento"];
+                }
+                
+                $asunto="Ticket: ".$asunto;
+                
+                $enviado=$obMail->enviar_mail_sendinblue($datos_empresa,$destinatarios, $datos_usuario_remitente["Email"], $datos_usuario_remitente["nombre_completo"], $asunto, $mensaje);
+                
+            }
             
             exit("OK;Ticket creado");
         break; //fin caso 1
@@ -104,6 +129,7 @@ if( !empty($_REQUEST["Accion"]) ){
             $ticket_id=$obCon->normalizar($_REQUEST["ticket_id"]);
                     
             
+            
             if($mensaje==''){
                 exit("E1;Debe escribir un mensaje;mensaje");
             }
@@ -116,6 +142,40 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $obCon->AgregarMensajeTicket($db,$mensaje_id,$ticket_id, $mensaje, $idUser);
             $obCon->ActualizaRegistro("$db.tickets", "Estado", $ticket_estado, "ticket_id", $ticket_id);
+            $DatosTickets=$obCon->DevuelveValores("$db.tickets", "ticket_id", $ticket_id);
+            if($DatosTickets["idUsuarioAsignado"]==$idUser){
+                $obCon->ActualizaRegistro("$db.tickets", "leido_remitente", 0, "ticket_id", $ticket_id);
+                $obCon->ActualizaRegistro("$db.tickets", "leido_destinatario", 1, "ticket_id", $ticket_id);
+               
+            }
+            if($DatosTickets["idUsuarioSolicitante"]==$idUser){
+                $obCon->ActualizaRegistro("$db.tickets", "leido_remitente", 1, "ticket_id", $ticket_id);
+                $obCon->ActualizaRegistro("$db.tickets", "leido_destinatario", 0, "ticket_id", $ticket_id);
+            }
+            if($datos_empresa["enviar_correo_ticket"]==1){
+                $datos_ticket=$obCon->DevuelveValores("$db.tickets", "ticket_id", $ticket_id);
+                $datos_departamento=$obCon->DevuelveValores("$db.tickets_departamentos", "ID", $datos_ticket["departamento_id"]);
+                $asunto=$datos_ticket["Asunto"];
+                $usuario_remitente=$idUser;
+                $usuario_destino=$datos_departamento["usuario_asignado"];
+                $sql="SELECT Email, nombre_completo FROM usuarios WHERE ID='$usuario_remitente'";
+                $datos_usuario_remitente=$obCon->FetchAssoc($obCon->Query($sql));
+                $sql="SELECT Email, nombre_completo FROM usuarios WHERE ID='$usuario_destino'";
+                $datos_usuario_destino=$obCon->FetchAssoc($obCon->Query($sql));                
+                                
+                $destinatarios[0]["email"]=$datos_usuario_destino["Email"];
+                $destinatarios[0]["name"]=$datos_usuario_destino["nombre_completo"];
+                $destinatarios[1]["email"]=$datos_usuario_remitente["Email"];
+                $destinatarios[1]["name"]=$datos_usuario_remitente["nombre_completo"];
+                if($datos_departamento["correo_notificacion_general"]<>''){
+                    $destinatarios[2]["email"]=$datos_departamento["correo_notificacion_general"];
+                    $destinatarios[2]["name"]=$datos_departamento["Departamento"];
+                }
+                $asunto="Ticket: ".$asunto;
+                $enviado=$obMail->enviar_mail_sendinblue($datos_empresa,$destinatarios, $datos_usuario_remitente["Email"], $datos_usuario_remitente["nombre_completo"], $asunto, $mensaje);
+                
+            }
+            
             exit("OK;Respuesta Agregada");
         break; //fin caso 3
         
@@ -192,6 +252,44 @@ if( !empty($_REQUEST["Accion"]) ){
             $obCon->Query($sql);
             print("OK;Archivo Eliminado");
         break;//Fin caso 5
+        
+        case 6://crear o editar un departamento
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $item_id=$obCon->normalizar($_REQUEST["item_id"]);
+            $datos["Departamento"]=$obCon->normalizar($_REQUEST["nombre_departamento"]);
+            $datos["correo_notificacion_general"]=$obCon->normalizar($_REQUEST["correo_notificacion_general"]);
+            $datos["usuario_asignado"]=$obCon->normalizar($_REQUEST["cmb_usuario_asignado"]);
+            $datos["Estado"]=$obCon->normalizar($_REQUEST["cmb_estado_departamento"]);
+            
+            foreach ($datos as $key => $value) {
+                if($datos[$key]=='' and $key<>'correo_notificacion_general'){
+                    exit("E1;El campo $key no puede estar vacío;$key");
+                }
+            }
+            
+            $tabla="$db.tickets_departamentos";
+            if($item_id==''){
+                $sql=$obCon->getSQLInsert($tabla, $datos);
+            }else{
+                $sql=$obCon->getSQLUpdate($tabla, $datos);
+                $sql.=" WHERE ID='$item_id'";
+            }
+            $obCon->Query($sql);
+            
+            print("OK;Registro guardado");
+        break;//Fin caso 6
+        
+        case 7://validar si hay tickets sin leer
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            
+            //$sql="SELECT SUM(ID) FROM $db.tickets WHERE leido_destinatario='0' AND ";
+            
+            print("OK;Registro guardado");
+        break;//Fin caso 7
         
     }
     

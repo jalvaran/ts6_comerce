@@ -2,9 +2,11 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
+use \Mailjet\Resources;
 
-include_once("modelo/php_conexion.php");
-
+if(file_exists("../../modelo/php_conexion.php")){
+    include_once("../../modelo/php_conexion.php");
+}
 /* 
  * Clase que realiza los procesos de facturacion electronica
  * Julian Alvaran
@@ -73,12 +75,12 @@ class TS_Mail extends conexion{
         
     }
     
-    public function EnviarMailXPHPMailer($para,$de,$nombreRemitente, $asunto, $mensajeHTML, $Adjuntos='') {
+    public function EnviarMailXPHPMailer($datos_empresa,$para,$de,$nombreRemitente, $asunto, $mensajeHTML, $Adjuntos='') {
         
-        require 'librerias/phpmailer/src/Exception.php';
-        require 'librerias/phpmailer/src/PHPMailer.php';
-        require 'librerias/phpmailer/src/SMTP.php';
-
+        require '../../../librerias/phpmailer/src/Exception.php';
+        require '../../../librerias/phpmailer/src/PHPMailer.php';
+        require '../../../librerias/phpmailer/src/SMTP.php';
+        $empresa_id=$datos_empresa["ID"];
         /*
         Primero, obtenemos el listado de e-mails
         desde nuestra base de datos y la incorporamos a un Array.
@@ -88,8 +90,12 @@ class TS_Mail extends conexion{
         $email_from=$de;
         $name_from=$nombreRemitente;
         $mail = new PHPMailer(true);
+        $sql="SELECT * FROM configuracion_correos_smtp WHERE empresa_id='$empresa_id'";
+        $DatosSMTP=$this->FetchAssoc($this->Query($sql));
+        if($DatosSMTP["Username"]==''){
+            $DatosSMTP=$this->DevuelveValores("configuracion_correos_smtp", "ID", 1);
+        }
         
-        $DatosSMTP=$this->DevuelveValores("configuracion_correos_smtp", "ID", 1);
         $mail->IsSMTP();//telling the class to use SMTP
         $mail->SMTPAuth = true;//enable SMTP authentication
         $mail->SMTPSecure = $DatosSMTP["SMTPSecure"];//sets the prefix to the servier
@@ -126,6 +132,65 @@ class TS_Mail extends conexion{
             return("E1");
         }
         
+    }
+    
+    public function enviar_mail_mailjet($datos_empresa,$array_destinatarios,$de,$nombreRemitente, $asunto, $mensajeHTML, $Adjuntos='') {
+        require '../../../librerias/mailjet/vendor/autoload.php';
+  
+        $mj = new \Mailjet\Client('68d3fe4fcfa27fde0f361e4382fd7897','3eb8bbe05a61ba2d7d7fec27a5b8e332',true,['version' => 'v3.1']);
+        
+        $body["Messages"][0]["From"]["Email"]="notificaciones@technosoluciones.com.co";
+        $body["Messages"][0]["From"]["Name"]="Notificaciones TS";
+        $i=0;
+        foreach ($array_destinatarios as $key => $value) {
+            $body["Messages"][0]["To"][$i]["Email"]=$value["mail"];
+            $body["Messages"][0]["To"][$i]["Name"]=$value["name"];
+            $i=$i+1;
+        }
+        
+        $body["Messages"][0]["Subject"]=$asunto;
+        $body["Messages"][0]["TextPart"]="Notificaciones TS";
+        $body["Messages"][0]["HTMLPart"]=$mensajeHTML;
+        $body["Messages"][0]["CustomID"]="AppGettingStartedTest";
+        /*
+        print("<pre>");
+        print_r($body);
+        print("</pre>");
+        exit();
+         * 
+         */
+        $response = $mj->post(Resources::$Email, ['body' => $body]);
+        if($response->success()){
+            return("OK");
+        }else{
+            return("E1");
+        }
+        //$response->success() && var_dump($response->getData());
+    }
+    
+    public function enviar_mail_sendinblue($datos_empresa,$array_destinatarios,$de,$nombreRemitente, $asunto, $mensajeHTML, $Adjuntos='') {
+        require_once('../../../librerias/sendinblue/vendor/autoload.php');
+
+        $credentials = SendinBlue\Client\Configuration::getDefaultConfiguration()->setApiKey('api-key', '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');
+        $apiInstance = new SendinBlue\Client\Api\TransactionalEmailsApi(new GuzzleHttp\Client(),$credentials);
+        
+        $sendSmtpEmail = new \SendinBlue\Client\Model\SendSmtpEmail([
+             'subject' => $asunto,
+             'sender' => ['name' => 'Notificaciones TS', 'email' => 'notificaciones@technosoluciones.com.co'],
+             'replyTo' => $array_destinatarios[1],
+             'to' => $array_destinatarios,
+             'htmlContent' => $mensajeHTML,
+             'params' => ['bodyMessage' => 'Techno Soluciones SAS']
+                 
+        ]);
+
+        try {
+            $result = $apiInstance->sendTransacEmail($sendSmtpEmail);
+            return("OK");
+        } catch (Exception $e) {
+            //echo $e->getMessage(),PHP_EOL;
+            return("E1");
+        }
     }
     
     //Fin Clases

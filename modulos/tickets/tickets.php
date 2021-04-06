@@ -65,20 +65,24 @@ $css->PageInit($myTitulo);
                         $css->div("", "btn-group col-md-3", "", "", "", "", '');
             
                         $css->Cdiv();
-                        print('<div id="" class="btn-group pull-right" role="">
+                        if($Role=='SUPERVISOR' or $Role=='ADMINISTRADOR' ){
+                            print('<div id="" class="btn-group pull-right" role="">
                                             
                                             
                                             <div class="btn-group">
                                                 <button type="button" class="btn btn-outline btn-default btn-pill btn-outline-1x btn-gradient dropdown-toggle tippy" data-tippy-animation="perspective" data-tippy-arrow="true" data-tippy-size="large" data-toggle="dropdown" data-tippy="" data-original-title="Labels" aria-expanded="false"><i class="fa fa-cogs"></i></button>
                                                 <div class="dropdown-menu dropdown-menu-right" x-placement="top-end" style="position: absolute; transform: translate3d(-93px, -189px, 0px); top: 0px; left: 0px; will-change: transform;">
-                                                    <a class="dropdown-item" onclick=dibuja_tabla(`get`,`tickets_departamentos`,`1`,`DivDrawTickets`)>Departamentos</a>
+                                                    <a class="dropdown-item" onclick=listado_tickets_departamento()>Departamentos</a>
                                                     
-                                                    <a class="dropdown-item" onclick=dibuja_tabla(`get`,`tickets_tipo`,`1`,`DivDrawTickets`)>Tipos de Tickets</a>
+                                                    <a class="dropdown-item" onclick=listado_tickets_tipos()>Tipos de Tickets</a>
                                                     
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>');
+                                    ');
+                            
+                        }
+                        $css->Cdiv();
                     $css->Cdiv();
                 $css->Cdiv();
         $css->Cdiv();

@@ -1761,7 +1761,7 @@ class PageConstruct extends html_estruct_class{
         function CModal($idBoton,$JSBoton,$TipoBoton,$TituloBoton,$ClassBoton='btn btn-primary') {
             print('</div>
                     <div class="modal-footer">
-                      <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cerrar</button>
+                      <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancelar</button>
                       <button id='.$idBoton.' type="'.$TipoBoton.'" class="'.$ClassBoton.'" '.$JSBoton.'>'.$TituloBoton.'</button>
                     </div>
                   </div>
@@ -3342,7 +3342,47 @@ class PageConstruct extends html_estruct_class{
             
         }
         
-        
+        public function alerta($titulo,$tipo=1,$boton_cierre=1,$icon="fa fa-exclamation-triangle") {
+            
+            $color="primary";
+            
+            if($tipo==2){
+                $color="secondary";
+            }
+            if($tipo==3){
+                $color="success";
+            }
+            if($tipo==4){
+                $color="danger";
+            }
+            if($tipo==5){
+                $color="warning";
+            }
+            if($tipo==6){
+                $color="info";
+            }
+            if($tipo==7){
+                $color="dark";
+            }
+            if($tipo==8){
+                $color="default";
+            }
+            print('<div class="alert alert-icon alert-'.$color.' alert-dismissible fade show">
+                    <div class="alert--icon">
+                        <i class="'.$icon.'"></i>
+                    </div>
+                    <div class="alert-text">
+                        '.$titulo.'
+                    </div>');
+            if($boton_cierre==1){
+                print(' <button type="button" class="close" data-dismiss="alert">
+                            <span aria-hidden="true">×</span>
+                        </button>');
+                 
+            }
+            
+            print('</div>');
+        }
         
         //////////////////////////////////FIN
 }

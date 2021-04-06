@@ -6,6 +6,7 @@ if (!isset($_SESSION['username'])){
   
 }
 $idUser=$_SESSION['idUser'];
+
 include_once("../../../modelo/php_conexion.php");
 include_once("../../../constructores/paginas_constructor.php");
 
@@ -135,6 +136,38 @@ if( !empty($_REQUEST["Accion"]) ){
                               
                                         while($datos_consulta=$obCon->FetchAssoc($Consulta)){
                                             $ID=$datos_consulta["ticket_id"];
+                                            $notificacion="";
+                                            $visualizacion="";
+                                            if($datos_consulta["idUsuarioSolicitante"]==$idUser){
+                                                $visualizacion="R";
+                                            }
+                                            if($datos_consulta["idUsuarioAsignado"]==$idUser){
+                                                $visualizacion="D";
+                                            }
+                                            if($datos_consulta["idUsuarioSolicitante"]==$idUser and $datos_consulta["idUsuarioAsignado"]==$idUser){
+                                                $visualizacion="RD";
+                                            }
+                                            if($visualizacion=="R"){
+                                                if($datos_consulta["leido_remitente"]==0 and $datos_consulta["leido_destinatario"]==1){
+                                                    $notificacion='<span class="badge badge-success badge-sm badge-pill">Respuesta</span>';
+                                                }
+                                                if($datos_consulta["leido_remitente"]==1 and $datos_consulta["leido_destinatario"]==1){
+                                                    $notificacion='<span class="badge badge-primary badge-sm badge-pill">leído</span>';
+                                                }
+                                            }
+                                            if($visualizacion=="D"){
+                                                if($datos_consulta["leido_remitente"]==2 and $datos_consulta["leido_destinatario"]==0){
+                                                    $notificacion='<span class="badge badge-danger badge-sm badge-pill">Nuevo</span>';
+                                                }
+                                                if($datos_consulta["leido_remitente"]==1 and $datos_consulta["leido_destinatario"]==1){
+                                                    $notificacion='<span class="badge badge-primary badge-sm badge-pill">leído</span>';
+                                                }
+                                                if($datos_consulta["leido_remitente"]==1 and $datos_consulta["leido_destinatario"]==0){
+                                                    $notificacion='<span class="badge badge-success badge-sm badge-pill">Respuesta</span>';
+                                                }
+                                                
+                                            }
+                                            
                                             print('<tr style="cursor:pointer" onclick="ver_ticket(`'.$ID.'`)">
                                                         
                                                         <td class="starred-icon ">
@@ -145,6 +178,10 @@ if( !empty($_REQUEST["Accion"]) ){
                                                             <span class="name">'.$datos_consulta["NombreSolicitante"].' '.$datos_consulta["ApellidoSolicitante"].'</span>
                                                             <p class="descr">'.$datos_consulta["Asunto"].'</p>
                                                         </td>
+                                                        
+                                                        <td class="date">'.$notificacion.'</td>
+                                                        
+
                                                         <td class="date text-primary">'.$datos_consulta["NombreEstado"].'</td>
                                                         <td class="date text-primary">'.$datos_consulta["NombreDepartamento"].'</td>
                                                         <td class="date">'.$datos_consulta["FechaApertura"].'</td>
@@ -278,7 +315,7 @@ if( !empty($_REQUEST["Accion"]) ){
                     <div class="mailbox-container">
 
                         <div class="mail-details">
-                            <h4 class="title">'.$DatosTickets["Asunto"].'</h4>
+                            <h4 class="title">Ticket: <strong class="text-flickr">'.$DatosTickets["ID"].'</strong>, '.$DatosTickets["Asunto"].'</h4>
                             <div class="mail-body">
                                 <div class="header">
 
@@ -381,7 +418,7 @@ if( !empty($_REQUEST["Accion"]) ){
                         print("</div></div>");
                     }
                 
-                
+                print('<div class="form-seperator"></div>');
             }
                 
             $css->Cdiv();
@@ -392,6 +429,17 @@ if( !empty($_REQUEST["Accion"]) ){
                 $css->Cdiv();
 
            $css->Cdiv();
+           
+           if($DatosTickets["idUsuarioAsignado"]==$idUser){
+               $obCon->ActualizaRegistro("$db.tickets", "leido_destinatario", 1, "ticket_id", $ticket_id);
+               if($DatosTickets["leido_remitente"]==2){//Si es un mensaje nuevo y lo ve el destino se debe poner en 1 1 para que aparezca leido por los dos
+                   $obCon->ActualizaRegistro("$db.tickets", "leido_remitente", 1, "ticket_id", $ticket_id);
+               }
+           }
+           if($DatosTickets["idUsuarioSolicitante"]==$idUser){
+               $obCon->ActualizaRegistro("$db.tickets", "leido_remitente", 1, "ticket_id", $ticket_id);
+               
+           }
            
         break;//Fin caso 3
         
@@ -477,6 +525,9 @@ if( !empty($_REQUEST["Accion"]) ){
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
             $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
             $db=$datos_empresa["db"];
+            $sql="SELECT Role FROM usuarios WHERE ID='$idUser'";
+            $datos_consulta=$obCon->FetchAssoc($obCon->Query($sql));
+            $Role=$datos_consulta['Role'];
             $css->div("", "", "", "", "", "", "");
                 print('<a onclick="FormularioNuevoTicket();" class="btn btn-red btn-block">Redactar</a>');
             $css->Cdiv();
@@ -523,21 +574,157 @@ if( !empty($_REQUEST["Accion"]) ){
             $css->Cselect();
             
             $css->select("CmbFiltroUsuario", "form-control", "CmbFiltroUsuario", "", "", "", "onchange=VerListadoTickets()");
+                if($Role=='SUPERVISOR' or $Role=='ADMINISTRADOR'){
+                    $css->option("", "", "", "1", "", "");
+                        print("Todos los usuarios");
+                    $css->Coption();
+                }
                 
-                $css->option("", "", "", "1", "", "");
-                    print("Todos los usuarios");
-                $css->Coption();
+                
                 $css->option("", "", "", "2", "", "");
                     print("Solo mios");
                 $css->Coption();
                 
             $css->Cselect();
             
-            
-            
         break;//Fin caso 5    
       
-        
+        case 6://dibuja el formulario para crear o editar un departamento
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            $item_id=$obCon->normalizar($_REQUEST["item_edit"]);
+            $datos_departamento=$obCon->DevuelveValores("$db.tickets_departamentos", "ID", $item_id);
+            print('<div class="col-12">
+                            <div class="panel">
+                                <div class="panel-head">
+                                    <h5 class="panel-title">Crear o editar un Departamento</h5>
+                                </div>
+                                
+                                    <div class="panel-body">
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="nombre_departamento">Nombre del Departamento</label>
+                                                <input type="text" class="form-control" id="nombre_departamento" placeholder="Nombre" value="'.$datos_departamento["Departamento"].'">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="correo_notificacion_general">Correo de notificación general</label>
+                                                <input type="text" class="form-control" id="correo_notificacion_general" placeholder="Correo de Notificación" value="'.$datos_departamento["correo_notificacion_general"].'">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="cmb_usuario_asignado">Asignar a:</label>');
+            
+                                    $css->select("cmb_usuario_asignado", "form-control", "cmb_usuario_asignado", "", "", "", "");
+                                        $css->option("", "", "", "", "", "");
+                                            print("Seleccione un usuario");
+                                        $css->Coption();
+                                        
+                                        $sql="SELECT t1.usuario_id_relacion,(SELECT nombre_completo FROM usuarios t2 WHERE t2.ID=t1.usuario_id_relacion LIMIT 1 ) as nombre_usuario FROM usuarios_rel_empresas t1 WHERE empresa_id='$empresa_id'";
+                                        $Consulta=$obCon->Query($sql);
+                                        while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                                            $sel=0;
+                                            if($datos_departamento["usuario_asignado"]==$datos_consulta["usuario_id_relacion"]){
+                                                $sel=1;
+                                            }
+                                            $css->option("", "", "", $datos_consulta["usuario_id_relacion"], "", "",$sel);
+                                                print($datos_consulta["nombre_usuario"]);
+                                            $css->Coption();
+                                        }
+                                    $css->Cselect();
+                                                
+                                    print('</div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="cmb_estado_departamento">Estado:</label>');
+                                    
+                                    $css->select("cmb_estado_departamento", "form-control", "cmb_estado_departamento", "", "", "", "");
+                                        
+                                        $sel=0;
+                                        if($datos_departamento["Estado"]==0){
+                                            $sel=1;
+                                        }
+                                        $css->option("", "", "", "0", "", "",$sel);
+                                            print("Inactivo");
+                                        $css->Coption();
+                                        
+                                        $sel=0;
+                                        if($datos_departamento["Estado"]==1 or $item_id==''){
+                                            $sel=1;
+                                        }
+                                        $css->option("", "", "", "1", "", "",$sel);
+                                            print("Activo");
+                                        $css->Coption();
+                                        
+                                    $css->Cselect();            
+                                                
+                                    print(' </div>
+                                            
+                                        </div>
+                                    </div>
+                                    <div class="panel-footer">
+                                        <button id="btn_guardar_departamento" class="btn btn-success mr-3" onclick=crear_editar_departamento_ticket(`'.$item_id.'`)>Guardar</button>
+                                        <button class="btn btn-default" onclick=listado_tickets_departamento()>Cancelar</button>
+                                    </div>
+                                
+                            </div>
+                        </div>');
+            
+        break;//Fin caso 6
+    
+        case 7://dibuja el listado de departamentos
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $datos_empresa=$obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+            $db=$datos_empresa["db"];
+            
+            $sql="SELECT t1.*,(SELECT nombre_completo FROM usuarios t2 WHERE t2.ID=t1.usuario_asignado) as nombre_usuario_asignado FROM $db.tickets_departamentos t1 order by t1.ID DESC";
+            $Consulta=$obCon->Query($sql);
+            
+            $css->div("", "row", "", "", "", "", "");
+                $css->div("", "col-md-12", "", "", "", "", "");
+                    $css->div("", "panel", "", "", "", "", "");
+                        $css->div("", "panel-head", "", "", "", "", "");
+                            print("Listado de departamentos");
+                            $css->div("", "pull-right", "", "", "", "", "");
+                                print('<button class="btn btn-primary btn-pill m-1" onclick=frm_tickets_departamento()>Crear <li class="fa fa-plus-circle" ></li></button>');
+                            $css->Cdiv();
+                        $css->Cdiv();
+                        $css->div("", "panel-body", "", "", "", "", "");
+                            $css->CrearTabla();
+                                $css->FilaTabla(16);
+                                    $css->ColTabla("<strong>Editar</strong>", 1);
+                                    $css->ColTabla("<strong>ID</strong>", 1);
+                                    $css->ColTabla("<strong>Departamento</strong>", 1);                                    
+                                    $css->ColTabla("<strong>Usuario Asignado</strong>", 1);
+                                    $css->ColTabla("<strong>Correo de Notificación</strong>", 1);
+                                    $css->ColTabla("<strong>Estado</strong>", 1);
+                                $css->CierraFilaTabla();
+                                
+                                while($datos_consulta=$obCon->FetchAssoc($Consulta)){
+                                    $item_id=$datos_consulta["ID"];
+                                    $css->FilaTabla(16);
+                                    
+                                        print('<td>');
+                                            print('<li class="far fa-edit text-warning" style="font-size:20px;cursor:pointer;" onclick=frm_tickets_departamento(`'.$item_id.'`)></li>');
+                                        print('</td>');
+                                        $css->ColTabla($datos_consulta["ID"], 1);
+                                        $css->ColTabla($datos_consulta["Departamento"], 1);                                    
+                                        $css->ColTabla($datos_consulta["nombre_usuario_asignado"], 1);
+                                        $css->ColTabla($datos_consulta["correo_notificacion_general"], 1);
+                                        $css->ColTabla($datos_consulta["Estado"], 1);
+                                    $css->CierraFilaTabla();
+                                }
+                                
+                            $css->CerrarTabla();
+                        $css->Cdiv();
+                    $css->Cdiv();
+                $css->Cdiv();
+            $css->Cdiv();
+            
+        break;//Fin caso 7
     }
     
     

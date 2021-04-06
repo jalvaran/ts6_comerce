@@ -27,6 +27,7 @@ class Ticket extends conexion{
         $Datos["idUsuarioSolicitante"]=$idUser;
         $Datos["idUsuarioActualiza"]=$idUser;
         $Datos["idUsuarioAsignado"]=$idUsuarioDestino;
+        $Datos["leido_remitente"]=2;
         
         $sql= $this->getSQLInsert("$db.tickets", $Datos);
         $this->Query($sql);

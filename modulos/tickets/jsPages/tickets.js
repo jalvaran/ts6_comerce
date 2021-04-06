@@ -6,7 +6,7 @@
  */
 
 var div_general="DivDrawTickets";
-
+var timer_listado_tickets;
 /**
  * Cierra una ventana modal
  * @param {type} idModal
@@ -37,14 +37,6 @@ function MuestraOcultaXID(id){
     
 }
 
-/**
- * Limpia los divs de la compra despues de guardar
- * @returns {undefined}
- */
-function LimpiarDivs(){
-    document.getElementById('DivItemsCompra').innerHTML='';
-    document.getElementById('DivTotalesCompra').innerHTML='';
-}
 
 /*
 $('#CmbBusquedas').bind('change', function() {
@@ -57,8 +49,12 @@ $('#CmbBusquedas').bind('change', function() {
 */
 
 
+function limpiar_timers_tickets(){
+    clearTimeout(timer_listado_tickets);
+}
+
 function VerListadoTickets(Page=1){
-    
+    limpiar_timers_tickets();
     var empresa_id=document.getElementById('empresa_id').value;
     var Busqueda=document.getElementById('txtBusquedasGenerales').value;
     var CmbEstadoTicketsListado=document.getElementById('CmbEstadoTicketsListado').value;  
@@ -92,6 +88,8 @@ function VerListadoTickets(Page=1){
            ocultar_spinner();
            document.getElementById(div_general).innerHTML=data;
             
+           timer_listado_tickets=setTimeout(VerListadoTickets, 60000,Page); 
+           
         },
         error: function (xhr, ajaxOptions, thrownError) {
             ocultar_spinner();
@@ -110,6 +108,7 @@ function CambiePagina(Page=""){
 }
 
 function FormularioNuevoTicket(){
+    limpiar_timers_tickets();
     var empresa_id=document.getElementById('empresa_id').value;
     
     var form_data = new FormData();
@@ -144,7 +143,7 @@ function FormularioNuevoTicket(){
 }
 
 function ver_ticket(ticket_id){
-    
+    limpiar_timers_tickets();
     var empresa_id=document.getElementById('empresa_id').value;
     
     var form_data = new FormData();
@@ -180,62 +179,8 @@ function ver_ticket(ticket_id){
 }
 
 
-function AgregarAdjunto(idMensaje,idTicket){
-    var idBoton='BtnAgregarAdjunto_'+idMensaje;
-    var UpFile='upAdjuntosMensajes_'+idMensaje;
-    document.getElementById(idBoton).disabled=true;
-    document.getElementById(idBoton).value="Guardando...";
-    
-    var form_data = new FormData();
-        form_data.append('Accion', 2);
-        form_data.append('idMensaje', idMensaje);
-        form_data.append('idTicket', idTicket);
-        form_data.append('upAdjuntosTickets', $('#'+UpFile).prop('files')[0]);
-        
-                
-    $.ajax({
-        //async:false,
-        url: './procesadores/tickets.process.php',
-        //dataType: 'json',
-        cache: false,
-        contentType: false,
-        processData: false,
-        data: form_data,
-        type: 'post',
-        success: function(data){
-            var respuestas = data.split(';'); 
-           if(respuestas[0]==="OK"){   
-                
-                VerTicket(idTicket);
-                
-                alertify.success(respuestas[1]);
-                
-            }else if(respuestas[0]==="E1"){
-                
-                alertify.alert(respuestas[1]);
-                MarqueErrorElemento(respuestas[2]);
-                document.getElementById(idBoton).disabled=false;
-                document.getElementById(idBoton).value="Adjuntar";
-                return;                
-            }else{
-                
-                alertify.alert(data);
-                document.getElementById(idBoton).disabled=false;
-                document.getElementById(idBoton).value="Adjuntar";
-            }
-            
-        },
-        error: function (xhr, ajaxOptions, thrownError) {
-            
-            document.getElementById(idBoton).disabled=false;
-            document.getElementById(idBoton).value="Adjuntar";
-            alert(xhr.status);
-            alert(thrownError);
-          }
-      })
-}
-
 function frm_responder_ticket(ticket_id){
+    limpiar_timers_tickets();
     var empresa_id=document.getElementById('empresa_id').value;
     
     var form_data = new FormData();
@@ -548,7 +493,155 @@ function crear_ticket_mensaje(){
       
 }
 
-dibuje_menu_lateral_tickets();
+
+function frm_tickets_departamento(item_edit=''){
+    limpiar_timers_tickets();
+    var empresa_id=document.getElementById('empresa_id').value;
+        
+    var form_data = new FormData();
+        form_data.append('Accion', 6);
+        
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('item_edit', item_edit);
+        
+        $.ajax({
+        url: './Consultas/tickets.draw.php',
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+           mostrar_spinner('Cargando...');
+        },
+        success: function(data){
+           ocultar_spinner();
+           document.getElementById(div_general).innerHTML=data;
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            ocultar_spinner();
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+function listado_tickets_tipos(){
+    limpiar_timers_tickets();
+    dibuja_tabla(`get`,`tickets_tipo`,`1`,`DivDrawTickets`);
+}
+
+function listado_tickets_departamento(){
+    limpiar_timers_tickets();
+    var empresa_id=document.getElementById('empresa_id').value;
+        
+    var form_data = new FormData();
+        form_data.append('Accion', 7);
+        
+        form_data.append('empresa_id', empresa_id);
+        
+        
+        $.ajax({
+        url: './Consultas/tickets.draw.php',
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+           mostrar_spinner('Cargando...');
+        },
+        success: function(data){
+           ocultar_spinner();
+           document.getElementById(div_general).innerHTML=data;
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            ocultar_spinner();
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function crear_editar_departamento_ticket(item_id){
+    
+    document.getElementById('btn_guardar_departamento').disabled=true;
+    document.getElementById('btn_guardar_departamento').value="Guardando...";
+    
+    var empresa_id=document.getElementById('empresa_id').value;
+    var nombre_departamento=document.getElementById('nombre_departamento').value;
+    var correo_notificacion_general=document.getElementById('correo_notificacion_general').value;
+    var cmb_usuario_asignado=document.getElementById('cmb_usuario_asignado').value;
+    var cmb_estado_departamento=document.getElementById('cmb_estado_departamento').value;
+    
+    var form_data = new FormData();
+        form_data.append('Accion', 6);
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('nombre_departamento', nombre_departamento);
+        form_data.append('item_id', item_id);
+        form_data.append('correo_notificacion_general', correo_notificacion_general);
+        form_data.append('cmb_usuario_asignado', cmb_usuario_asignado);
+        form_data.append('cmb_estado_departamento', cmb_estado_departamento);
+        
+        $.ajax({
+        url: 'procesadores/tickets.process.php',
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            mostrar_spinner("Procesando");
+        },
+        success: function(data){
+            ocultar_spinner();
+            document.getElementById('btn_guardar_departamento').disabled=false;
+            document.getElementById('btn_guardar_departamento').value="Guardar";
+            var respuestas = data.split(';');
+            if(respuestas[0]=="OK"){
+                alertify.success(respuestas[1]);
+                listado_tickets_departamento();
+            }else if(respuestas[0]=="E1"){
+                alertify.alert(respuestas[1]);
+
+                MarqueErrorElemento(respuestas[2]);
+                
+            }else{
+                alertify.alert(data);
+                
+            }
+           
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById('btn_guardar_departamento').disabled=false;
+            document.getElementById('btn_guardar_departamento').value="Guardar";
+            alert(xhr.status);
+            alert(thrownError);
+            
+          }
+      });
+      
+      
+}
+
+function tickets_init(){
+    dibuje_menu_lateral_tickets();
+    $("#txtBusquedasGenerales").unbind();
+    
+    $("#txtBusquedasGenerales").keypress(function(e) {
+        if(e.which == 13) {
+          VerListadoTickets();
+        }
+      });
+}
+
+tickets_init();
 
 
 
